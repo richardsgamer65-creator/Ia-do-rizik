@@ -86,6 +86,21 @@ header{position:relative}
 .hist-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 .hist-item{text-align:left;background:#292d40;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
 .hist-item small{display:block;color:#9299b0;font-size:11px;margin-bottom:2px}
+
+body{background-color:#10111a;background-image:var(--wp);background-attachment:fixed;background-size:cover;--wp:radial-gradient(60% 50% at 15% 8%,rgba(114,89,232,.45),transparent 60%),radial-gradient(50% 45% at 92% 22%,rgba(0,200,170,.28),transparent 60%),radial-gradient(60% 50% at 50% 100%,rgba(232,89,160,.28),transparent 60%);-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+body.wp-aurora{--wp:radial-gradient(60% 50% at 15% 8%,rgba(114,89,232,.45),transparent 60%),radial-gradient(50% 45% at 92% 22%,rgba(0,200,170,.28),transparent 60%),radial-gradient(60% 50% at 50% 100%,rgba(232,89,160,.28),transparent 60%)}
+body.wp-ocean{--wp:radial-gradient(70% 50% at 10% 0%,rgba(0,140,255,.40),transparent 60%),radial-gradient(60% 50% at 100% 60%,rgba(0,220,200,.28),transparent 60%),linear-gradient(180deg,#07121f,#0a1c2e)}
+body.wp-sunset{--wp:radial-gradient(70% 50% at 85% 0%,rgba(255,140,60,.38),transparent 60%),radial-gradient(60% 55% at 0% 70%,rgba(232,70,150,.32),transparent 60%),linear-gradient(180deg,#1a0f24,#2a1430)}
+body.wp-night{--wp:radial-gradient(1px 1px at 20px 30px,rgba(255,255,255,.75),transparent),radial-gradient(1.5px 1.5px at 120px 80px,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 70px 150px,rgba(255,255,255,.65),transparent),linear-gradient(180deg,#0b0c16,#151833);background-size:200px 200px,200px 200px,200px 200px,cover}
+header{position:sticky;top:0;z-index:15;padding-top:calc(16px + env(safe-area-inset-top));background:rgba(25,27,41,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.composer{background:rgba(16,17,26,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.assistant{background:rgba(32,35,51,.86)}
+.user{background:rgba(98,75,209,.94)}
+.system{background:rgba(41,45,64,.78)}
+.sources{background:rgba(27,30,43,.86)}
+button{transition:transform .12s ease,opacity .2s ease,background .2s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:active:not(:disabled){transform:scale(.96)}
+.menu{max-height:80vh;overflow-y:auto}
 </style>
 </head>
 
@@ -93,7 +108,7 @@ header{position:relative}
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 14</small>
+    <small>Seu assistente pessoal · versão 15</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -102,6 +117,23 @@ header{position:relative}
 
   <div id="menu" class="menu" hidden>
     <div class="menu-title">Configurações</div>
+    <label>Modelo
+      <select id="setModel">
+        <option value="fast">Rápido · Qwen 0.5B (398 MB)</option>
+        <option value="code">Código · Coder 1.5B (986 MB)</option>
+        <option value="chat">Geral · Qwen 1.5B (986 MB)</option>
+      </select>
+    </label>
+    <label>Papel de parede
+      <select id="setWall">
+        <option value="aurora">Aurora</option>
+        <option value="ocean">Oceano</option>
+        <option value="sunset">Pôr do sol</option>
+        <option value="night">Noite estrelada</option>
+      </select>
+    </label>
+    <label class="check"><input id="setAuto" type="checkbox"> Pesquisar na internet sozinho</label>
+    <label class="check"><input id="setAutoload" type="checkbox"> Carregar a IA ao abrir</label>
     <label>Tamanho da resposta
       <select id="setTokens">
         <option value="256">Curta</option>
@@ -157,7 +189,7 @@ header{position:relative}
   </div>
 
   <div class="info">
-    Modelo local Qwen2.5 Coder 1.5B. Primeiro carregamento: aproximadamente 986 MB. Use Wi-Fi.
+    Modelo local Qwen2.5 (escolha em ⋮): de 398 MB a 986 MB no primeiro carregamento. Use Wi-Fi.
     A pesquisa e o clima precisam de internet.
     Configuração otimizada para reduzir o consumo de memória no iPhone.
   </div>
@@ -173,18 +205,18 @@ const chat = $("chat");
 const status = $("status");
 const input = $("prompt");
 
-const MODEL_URL =
-"https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf";
-
-// Para conversa geral em vez de código, troque a linha acima por:
-// "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
+const MODELS = {
+  fast: { name: "Qwen2.5 0.5B (rápido)", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
+  code: { name: "Qwen2.5 Coder 1.5B (código)", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
+  chat: { name: "Qwen2.5 1.5B (geral)", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" }
+};
 
 // Limites (se o iPhone travar, reduza N_CTX para 1024).
-const N_CTX = 2048;
-const MAX_USER_CHARS = 1800;
+const N_CTX = 4096;
+const MAX_USER_CHARS = 6000;
 
 const settings = Object.assign(
-  { tokens: 384, temp: 0.3, city: "Nova Esperança", time: true },
+  { tokens: 384, temp: 0.3, city: "Nova Esperança", time: true, model: "fast", wall: "aurora", auto: true, autoload: true },
   (() => {
     try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); }
     catch (e) { return {}; }
@@ -327,6 +359,19 @@ function extractCode(text) {
   return blocks.join("\n\n");
 }
 
+function checkSyntax(code, lang) {
+  const l = String(lang || "").toLowerCase();
+  try {
+    if (l === "json") { JSON.parse(code); return { ok: true }; }
+    if (["js", "javascript", "node"].includes(l)) { new Function(code); return { ok: true }; }
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    if (/import|export|await/i.test(msg)) return null;
+    return { ok: false, msg };
+  }
+  return null;
+}
+
 function makeCodeBlock(code, lang) {
   const box = document.createElement("div");
   box.className = "codeblock";
@@ -335,7 +380,9 @@ function makeCodeBlock(code, lang) {
   head.className = "code-head";
 
   const name = document.createElement("span");
-  name.textContent = lang || "código";
+  const chk = checkSyntax(code, lang);
+  name.textContent = (lang || "código") +
+    (chk ? (chk.ok ? " · ✅ sintaxe ok" : " · ⚠️ " + chk.msg.slice(0, 60)) : "");
 
   const btn = document.createElement("button");
   btn.textContent = "📋 Copiar código";
@@ -582,7 +629,7 @@ function buildMessages(text, extraContext) {
   for (const item of recent) {
     messages.push({
       role: item.role,
-      content: limitText(item.content, item.role === "assistant" ? 500 : 300)
+      content: limitText(item.content, 240)
     });
   }
 
@@ -662,11 +709,12 @@ async function loadAI() {
       ai = newAI;
       ready = false;
 
-      sayStatus("Carregando modelo Qwen...");
+      try { localStorage.setItem("rizik_loading", "1"); } catch (e) {}
+      sayStatus("Carregando " + MODELS[settings.model].name + "...");
 
-      await newAI.loadModelFromUrl(MODEL_URL, {
+      await newAI.loadModelFromUrl(MODELS[settings.model].url, {
         n_ctx: N_CTX,
-        n_batch: 256,
+        n_batch: 512,
         n_threads: THREADS,
         n_gpu_layers: 0,
 
@@ -687,11 +735,12 @@ async function loadAI() {
       }
 
       ready = true;
+      try { localStorage.removeItem("rizik_loading"); localStorage.setItem("rizik_autoload", "1"); } catch (e) {}
 
       sayStatus("Rizik está pronto!");
       addMessage(
         "system",
-        "Rizik AI carregado com sucesso! 🚀\nNúcleos em uso: " + THREADS +
+        "Rizik AI carregado com sucesso! 🚀\nModelo: " + MODELS[settings.model].name + "\nNúcleos em uso: " + THREADS +
         (self.crossOriginIsolated
           ? " (modo rápido ativo)"
           : " (modo rápido inativo)")
@@ -701,6 +750,7 @@ async function loadAI() {
 
     } catch (err) {
       console.error("Erro ao carregar Wllama:", err);
+      try { localStorage.removeItem("rizik_loading"); } catch (e) {}
 
       if (newAI) {
         try { await newAI.exit(); } catch (_) {}
@@ -784,6 +834,7 @@ async function generate(text, extraContext = "", opts = {}) {
 
   try {
     if (!opts.skipUser) addMessage("user", shown);
+    if (text.length > MAX_USER_CHARS) addMessage("system", "Texto grande: li só os primeiros " + MAX_USER_CHARS + " caracteres.");
 
     if (!ready || !ai) {
       sayStatus("Carregando a IA...");
@@ -803,7 +854,7 @@ async function generate(text, extraContext = "", opts = {}) {
 
     const messages = buildMessages(text, extraContext);
 
-    history.push({ role: "user", content: limitText(shown, 4000), t: Date.now() });
+    if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 4000), t: Date.now() });
     saveHistory();
 
     // Os três pontinhos animados ficam até a resposta ficar pronta.
@@ -880,11 +931,21 @@ async function generate(text, extraContext = "", opts = {}) {
       tokenCount + " partes" +
       (truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
 
+    if (extraContext) {
+      const note = reviewNote(answer, extraContext);
+      if (note) {
+        const noteBox = addMessage("system", note);
+        noteBox.style.alignSelf = "flex-start";
+      }
+    }
+
     addActions(answer);
     scrollEnd();
 
     history.push({ role: "assistant", content: limitText(answer, 4000), t: Date.now() });
     saveHistory();
+
+    return answer;
 
   } catch (err) {
     console.error("Erro na resposta:", err);
@@ -982,8 +1043,24 @@ $("send").addEventListener("click", async () => {
   if (!text || busy || resetting || searching) return;
 
   input.value = "";
+  input.style.height = "";
   const wasWeb = webMode;
   setWebMode(false); // a pesquisa vale para uma mensagem só
+
+  // Respostas instantâneas (saudação, hora, data, conta): sem esperar o modelo.
+  const quick = wasWeb ? null : quickReply(text);
+  if (quick) {
+    addMessage("user", text);
+    addMessage("assistant", quick);
+    addActions(quick);
+    history.push(
+      { role: "user", content: text, t: Date.now() },
+      { role: "assistant", content: quick, t: Date.now() }
+    );
+    saveHistory();
+    lastAnswer = quick;
+    return;
+  }
 
   // Perguntas sobre o tempo usam a previsão real, não o modelo.
   if (isWeatherQuestion(text) && !looksLikeCode(text)) {
@@ -992,12 +1069,24 @@ $("send").addEventListener("click", async () => {
     return;
   }
 
-  if (wasWeb) {
+  // Pesquisa pedida (🌐) ou pergunta que claramente precisa da internet.
+  if (wasWeb || (settings.auto && needsWeb(text))) {
     await runSearch(text);
     return;
   }
 
-  await generate(text);
+  const answer = await generate(text);
+
+  // Se o Rizik não soube responder, pesquisa sozinho.
+  if (settings.auto && answer && UNSURE.test(answer) && !looksLikeCode(text) && text.length <= 160) {
+    addMessage("system", "Não tenho certeza: pesquisando na internet...");
+    await runSearch(text, { silent: true });
+  }
+});
+
+input.addEventListener("input", () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, 180) + "px";
 });
 
 input.addEventListener("keydown", e => {
@@ -1030,6 +1119,12 @@ function applySettings() {
   $("setCity").value = settings.city;
   $("setTime").checked = !!settings.time;
   document.body.classList.toggle("notime", !settings.time);
+  $("setModel").value = settings.model;
+  $("setWall").value = settings.wall;
+  $("setAuto").checked = !!settings.auto;
+  $("setAutoload").checked = !!settings.autoload;
+  ["aurora", "ocean", "sunset", "night"].forEach(n =>
+    document.body.classList.toggle("wp-" + n, settings.wall === n));
 }
 
 $("setTokens").addEventListener("change", e => {
@@ -1051,6 +1146,45 @@ $("setTime").addEventListener("change", e => {
   settings.time = e.target.checked;
   saveSettings();
   applySettings();
+});
+
+$("setWall").addEventListener("change", e => {
+  settings.wall = e.target.value;
+  saveSettings();
+  applySettings();
+});
+
+$("setAuto").addEventListener("change", e => {
+  settings.auto = e.target.checked;
+  saveSettings();
+});
+
+$("setAutoload").addEventListener("change", e => {
+  settings.autoload = e.target.checked;
+  saveSettings();
+});
+
+$("setModel").addEventListener("change", e => {
+  const previous = settings.model;
+  settings.model = e.target.value;
+  saveSettings();
+
+  if (busy || resetting || loadingPromise) {
+    settings.model = previous;
+    saveSettings();
+    applySettings();
+    addMessage("system", "Espere terminar o que está em andamento para trocar o modelo.");
+    return;
+  }
+
+  closeMenu();
+
+  if (ai || ready) {
+    addMessage("system", "Trocando para " + MODELS[settings.model].name + "...");
+    restartAI();
+  } else {
+    addMessage("system", "Modelo escolhido: " + MODELS[settings.model].name + ". Toque em Carregar IA.");
+  }
 });
 
 $("clear").addEventListener("click", () => {
@@ -1101,6 +1235,7 @@ function openHistory() {
     // Toque para colocar a pergunta de volta na barra de mensagens.
     item.addEventListener("click", () => {
       input.value = q.content;
+      input.dispatchEvent(new Event("input"));
       histPanel.hidden = true;
       input.focus();
     });
@@ -1187,101 +1322,169 @@ async function fetchTextWithTimeout(url, milliseconds) {
   }
 }
 
-async function searchWikipedia(query) {
+const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const STOP = new Set(("sobre como qual quais quem quando onde porque isso esse essa este esta aquilo mande manda envie " +
+  "pesquise pesquisar pesquisa procure busque internet web site google favor pode poderia preciso quero gostaria " +
+  "explique explica fale diga mostre uma uns umas para com sem por mais muito pouco meu minha seu sua dos das nos nas pra pro aos").split(" "));
+
+function keywords(text) {
+  return norm(text).replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+    .filter(w => w.length > 2 && !STOP.has(w));
+}
+
+// Tira palavras de pedido, mantendo os acentos para a busca.
+function cleanQuery(text) {
+  return String(text).split(/\s+/)
+    .map(w => w.replace(/[?!.,;:"()]/g, ""))
+    .filter(w => w.length > 2 && !STOP.has(norm(w)))
+    .join(" ");
+}
+
+const UNSURE = /não sei|não tenho (acesso|informa)|não consigo (acessar|pesquisar|saber)|não encontrei|não posso (ajudar|prever|acessar)|desculpe/i;
+
+function needsWeb(text) {
+  if (text.length > 160 || looksLikeCode(text)) return false;
+  return /(^|\s)(quem (é|foi|ganhou|venceu)|quando (foi|será|vai)|onde fica|quanto (custa|vale)|qual (é )?(a |o )?(capital|população|cotação|preço|data|resultado|placar)|notícias?|últim[oa]s?|atualmente|20[2-3]\d|presidente|cotação|preço|placar|lançamento|significado de|definição de)(\s|$|\?)/i.test(text);
+}
+
+function quickReply(text) {
+  const t = text.trim().toLowerCase().replace(/[!?.,\s]+$/g, "");
+  if (/^(oi+|ol[aá]|opa|e a[ií]|hey|hello)$/.test(t)) return "Olá! Como posso ajudar você hoje?";
+  if (t === "bom dia") return "Bom dia! Em que posso ajudar?";
+  if (t === "boa tarde") return "Boa tarde! Em que posso ajudar?";
+  if (t === "boa noite") return "Boa noite! Em que posso ajudar?";
+  if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
+  if (/^(que horas s[aã]o|que horas|hora certa)$/.test(t)) return "Agora são " + fmtTime() + ".";
+  if (/^(que dia [eé] hoje|data de hoje|qual [eé] a data)$/.test(t)) {
+    return "Hoje é " + new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ".";
+  }
+
+  const expr = t.replace(/^(quanto [eé]|calcule|calcula)\s+/, "")
+    .replace(/(\d)\s*x\s*(\d)/g, "$1*$2").replace(/,/g, ".");
+  if (expr.length < 60 && /^[\d\s+\-*/().]+$/.test(expr) && /\d\s*[+\-*/]\s*[\d(]/.test(expr)) {
+    try {
+      const v = Function('"use strict";return (' + expr + ')')();
+      if (Number.isFinite(v)) {
+        return expr.trim() + " = " + v.toLocaleString("pt-BR", { maximumFractionDigits: 6 });
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+// Revisão simples: confere se o que o Rizik escreveu aparece nas fontes.
+function reviewNote(answer, context) {
+  const prose = String(answer).replace(/```[\s\S]*?(```|$)/g, " ");
+  const words = [...new Set(keywords(prose))].filter(w => w.length > 4);
+  if (words.length < 6) return "";
+
+  const ctx = keywords(context).join(" ");
+  const hits = words.filter(w => ctx.includes(w)).length;
+
+  return hits / words.length < 0.3
+    ? "⚠️ Revisão: boa parte da resposta não aparece nas fontes. Confira antes de confiar."
+    : "✅ Revisão: a resposta tem apoio nas fontes consultadas.";
+}
+
+function cleanWebText(t) {
+  return String(t)
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, " ")
+    .split("\n").map(l => l.trim()).filter(l => l.length > 30).join("\n");
+}
+
+// Pega os 4 melhores resultados e fica com o que mais combina com a pergunta.
+async function searchWikipedia(query, words) {
   const url =
     "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
     "&gsrsearch=" + encodeURIComponent(query) +
-    "&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exchars=900" +
+    "&gsrlimit=4&prop=extracts&exintro=1&explaintext=1&exchars=900" +
     "&format=json&origin=*";
 
   const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Wikipedia respondeu HTTP " + response.status);
-  }
+  if (!response.ok) throw new Error("Wikipedia respondeu HTTP " + response.status);
 
   const data = await response.json();
-  const pages = data && data.query && data.query.pages;
+  const pages = Object.values((data && data.query && data.query.pages) || {});
+  if (!pages.length) throw new Error("Sem resultados na Wikipedia.");
 
-  if (!pages) {
-    throw new Error("Sem resultados na Wikipedia.");
-  }
+  const scored = pages
+    .filter(pg => pg.extract)
+    .map(pg => {
+      const hay = keywords((pg.title || "") + " " + pg.extract);
+      const hits = words.filter(w => hay.includes(w)).length;
+      return { pg, score: words.length ? hits / words.length : 0 };
+    })
+    .sort((a, b) => b.score - a.score);
 
-  const page = Object.values(pages)[0];
+  const best = scored[0];
+  if (!best || best.score < 0.5) throw new Error("A Wikipedia não tem nada claro sobre isso.");
 
-  if (!page || !page.extract) {
-    throw new Error("Sem resultados na Wikipedia.");
-  }
-
-  return "Wikipedia: " + page.title + "\n" + page.extract;
+  const title = best.pg.title;
+  return {
+    title,
+    url: "https://pt.wikipedia.org/wiki/" + encodeURIComponent(title.replace(/ /g, "_")),
+    text: "Wikipedia: " + title + "\n" + best.pg.extract
+  };
 }
 
-async function searchWeb(query, sources, onChange) {
-  const wiki = newSource(
-    "pt.wikipedia.org",
-    "https://pt.wikipedia.org",
-    sources,
-    onChange
+async function searchStack(query) {
+  const url =
+    "https://api.stackexchange.com/2.3/search/excerpts?order=desc&sort=relevance&pagesize=3&site=stackoverflow&q=" +
+    encodeURIComponent(query);
+
+  const data = JSON.parse(await fetchTextWithTimeout(url, 10000));
+  const items = (data && data.items) || [];
+  if (!items.length) throw new Error("Sem resultados no Stack Overflow.");
+
+  const plain = html => new DOMParser().parseFromString(html || "", "text/html").documentElement.textContent;
+  const text = items.map(i => plain(i.title) + ": " + plain(i.excerpt)).join("\n").slice(0, 900);
+
+  return { text: "Stack Overflow:\n" + text };
+}
+
+async function searchDuck(query) {
+  const raw = await fetchTextWithTimeout(
+    "https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encodeURIComponent(query),
+    20000
   );
+  const text = cleanWebText(raw).slice(0, 900);
+  if (text.length < 100) throw new Error("Pesquisa sem resultados suficientes.");
+  return { text: "Resultados da web:\n" + text };
+}
 
-  try {
-    const wikiText = await searchWikipedia(query);
-    const title = wikiText.split("\n")[0].replace("Wikipedia: ", "");
+async function searchWeb(query, words, sources, onChange) {
+  const tech = /python|javascript|\bjs\b|html|css|java|erro|error|c[oó]digo|programa|\bapi\b|fetch|npm|git|sql|react|node|bug|comando/i.test(query);
 
-    finishSource(wiki, true, onChange, {
-      name: "pt.wikipedia.org → " + title,
-      url: "https://pt.wikipedia.org/wiki/" +
-        encodeURIComponent(title.replace(/ /g, "_"))
-    });
-
-    return wikiText;
-
-  } catch (err) {
-    finishSource(wiki, false, onChange);
-    console.warn("Wikipedia falhou, tentando outra fonte:", err);
-  }
-
-  const encoded = encodeURIComponent(query);
-
-  const endpoints = [
-    {
-      name: "duckduckgo.com (via r.jina.ai)",
-      site: "https://duckduckgo.com",
-      url: "https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encoded
-    },
-    {
-      name: "google.com (via r.jina.ai)",
-      site: "https://www.google.com",
-      url: "https://r.jina.ai/http://www.google.com/search?q=" + encoded
-    }
-  ];
+  const providers = [];
+  if (tech) providers.push({ name: "stackoverflow.com", site: "https://stackoverflow.com", run: () => searchStack(query) });
+  providers.push({ name: "pt.wikipedia.org", site: "https://pt.wikipedia.org", run: () => searchWikipedia(query, words) });
+  providers.push({ name: "duckduckgo.com (via r.jina.ai)", site: "https://duckduckgo.com", run: () => searchDuck(query) });
 
   let lastError = null;
 
-  for (const endpoint of endpoints) {
-    const source = newSource(endpoint.name, endpoint.site, sources, onChange);
+  for (const provider of providers) {
+    const source = newSource(provider.name, provider.site, sources, onChange);
 
     try {
-      const result = await fetchTextWithTimeout(endpoint.url, 20000);
-
-      if (result && result.trim().length > 100) {
-        finishSource(source, true, onChange);
-        return result.slice(0, 900);
-      }
-
-      throw new Error("Pesquisa sem resultados suficientes.");
-
+      const result = await provider.run();
+      finishSource(source, true, onChange, result.title
+        ? { name: provider.name + " → " + result.title, url: result.url }
+        : undefined);
+      return result.text;
     } catch (err) {
       finishSource(source, false, onChange);
       lastError = err;
-      console.warn("Fonte de pesquisa falhou:", err);
+      console.warn("Fonte de pesquisa falhou:", provider.name, err);
     }
   }
 
   throw lastError || new Error("Pesquisa indisponível.");
 }
 
-async function runSearch(rawQuery) {
+async function runSearch(rawQuery, opts = {}) {
   const original = rawQuery.trim();
 
   // Texto muito longo não é pesquisa: responde direto.
@@ -1292,14 +1495,10 @@ async function runSearch(rawQuery) {
   }
 
   searching = true;
-  addMessage("user", original);
+  if (!opts.silent) addMessage("user", original);
 
-  // Tira as palavras de pedido para a Wikipedia achar o assunto certo.
-  const query = original
-    .replace(/^\s*(pesquis[ea]r?|me\s+explique|me\s+fale|explique|fale)\s+(sobre\s+)?/i, "")
-    .replace(/^\s*(o\s+que\s+(é|são)|quem\s+(é|foi)|o\s+que\s+significa)\s+/i, "")
-    .replace(/\?+\s*$/, "")
-    .trim() || original;
+  const words = keywords(original);
+  const query = cleanQuery(original) || original;
 
   const sources = [];
   const searchStart = performance.now();
@@ -1321,7 +1520,7 @@ async function runSearch(rawQuery) {
   scrollEnd();
 
   try {
-    const results = await searchWeb(query, sources, refresh);
+    const results = await searchWeb(query, words, sources, refresh);
 
     clearInterval(searchTimer);
     searchDone = true;
@@ -1329,9 +1528,11 @@ async function runSearch(rawQuery) {
 
     searching = false;
 
-    await generate("Explique de forma curta: " + query, results, {
+    // O pedido original vai para o modelo (se for um pedido de código, ele responde com código).
+    await generate(original, results, {
       shown: original,
-      skipUser: true
+      skipUser: true,
+      noUserHistory: !!opts.silent
     });
 
     // As fontes ficam logo abaixo da resposta.
@@ -1348,7 +1549,7 @@ async function runSearch(rawQuery) {
 
     addMessage(
       "system",
-      "Não consegui pesquisar agora: " + (err.message || String(err))
+      "Não achei nada confiável sobre isso: " + (err.message || String(err))
     );
 
   } finally {
@@ -1486,10 +1687,29 @@ $("weather").addEventListener("click", async () => {
 // Inicialização
 // ------------------------------
 
+let prevCrash = false;
+try {
+  prevCrash = localStorage.getItem("rizik_loading") === "1";
+  localStorage.removeItem("rizik_loading");
+} catch (e) {}
+
+if (prevCrash && settings.model !== "fast") {
+  settings.model = "fast";
+  saveSettings();
+}
+
 applySettings();
 tickClock();
 restoreHistory();
 updateButtons();
+
+if (prevCrash) {
+  addMessage("system", "A página fechou durante o último carregamento (pouca memória). Passei para o modelo Rápido. Toque em Carregar IA.");
+} else if (settings.autoload) {
+  try {
+    if (localStorage.getItem("rizik_autoload") === "1") loadAI();
+  } catch (e) {}
+}
 
 window.addEventListener("error", event => {
   console.error("Erro JavaScript:", event.error || event.message);
