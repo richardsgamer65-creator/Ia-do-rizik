@@ -78,8 +78,15 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .code-head button{padding:5px 10px;font-size:12px;border-radius:8px}
 .codeblock pre{margin:0;padding:10px 12px;overflow-x:auto;font:12.5px/1.45 ui-monospace,Menlo,monospace;white-space:pre}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start}
-#webToggle{padding:0 14px;font-size:20px}
-#webToggle.on{background:#7259e8;box-shadow:0 0 0 2px #a99cff inset}
+.attach-wrap{position:relative}
+.attach-menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:25;background:#1b1e2b;border:1px solid #383c50;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:230px;box-shadow:0 12px 32px rgba(0,0,0,.45);animation:fade .18s ease}
+.attach-menu[hidden]{display:none}
+.attach-menu button{display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:11px 12px;font-size:14px;width:100%}
+.attach-menu button.active{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
+.attach-preview{display:flex;align-items:center;gap:10px;background:#1b1e2b;border:1px solid #383c50;border-radius:12px;padding:9px 12px;font-size:13px;color:#c4c9db}
+.attach-preview[hidden]{display:none}
+.attach-preview span{flex:1;overflow-wrap:anywhere}
+.attach-preview button{padding:5px 10px;font-size:12px;border-radius:8px}
 .hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 .hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
 .hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}
@@ -89,7 +96,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .hist-item small{display:block;color:#9299b0;font-size:11px;margin-bottom:2px}
 button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(255,255,255,.1);box-shadow:0 4px 12px rgba(0,0,0,.3);font-weight:600;letter-spacing:.2px}
 .primary,#send{background:linear-gradient(135deg,#8f70ff,#5a3de0);border-color:rgba(255,255,255,.2);box-shadow:0 6px 18px rgba(114,89,232,.5)}
-#webToggle.on{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
+#attachBtn.on{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
 .composer button{border-radius:16px}
 .ic{padding:0 12px;font-size:20px}
 #voiceBtn.on{background:linear-gradient(135deg,#ff6b8b,#e0345e);animation:pulse 1.3s infinite}
@@ -115,7 +122,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
 .composer{flex-direction:column;align-items:stretch;gap:10px;padding-left:2px;padding-right:2px}
 .tools{display:flex;align-items:center;gap:10px}
 .row{display:flex;align-items:flex-end;gap:10px}
-#webToggle,#photoBtn{width:46px;height:46px;padding:0}
+#attachBtn{width:46px;height:46px;padding:0}
 #voiceBtn{height:46px;padding:0 18px;margin-left:auto;background:linear-gradient(135deg,#1fd1ab,#0b8f86);border-color:rgba(255,255,255,.2);box-shadow:0 6px 16px rgba(20,190,160,.4)}
 #send{width:52px;height:48px;padding:0;flex:none}
 .menu{top:calc(100% + 8px);width:min(360px,calc(100vw - 24px));padding:16px;gap:14px}
@@ -160,7 +167,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 21</small>
+    <small>Seu assistente pessoal · versão 22</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -170,11 +177,11 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
     <div class="menu-title">Configurações</div>
     <label>Modelo
       <select id="setModel">
-        <option value="fast">Rápido · Qwen 0.5B (398 MB)</option>
-        <option value="code">Código · Coder 1.5B (986 MB)</option>
-        <option value="chat">Geral · Qwen 1.5B (986 MB)</option>
-        <option value="chat3">Inteligente · Qwen 3B (1,9 GB)</option>
-        <option value="code3">Código forte · Coder 3B (1,9 GB)</option>
+        <option value="fast">Modelo Rápido</option>
+        <option value="code">Código · Leve</option>
+        <option value="chat">Modelo Equilibrado</option>
+        <option value="chat3">Modelo Inteligente</option>
+        <option value="code3">Código · Forte</option>
       </select>
     </label>
     <label>Voz da IA
@@ -226,7 +233,6 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
     <div class="menu-actions">
       <button id="restart" data-ic="refresh">Reiniciar IA</button>
       <button id="speak" data-ic="volume">Ler resposta</button>
-      <button id="stop" data-ic="stop">Parar voz</button>
       <button id="histBtn" data-ic="history">Histórico</button>
       <button id="clear" data-ic="trash">Limpar conversa</button>
       <button id="install" data-ic="download" hidden>Instalar app</button>
@@ -261,11 +267,22 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
   </div>
   <div id="chat"></div>
   <div class="composer">
+    <div id="attachPreview" class="attach-preview" hidden>
+      <span id="attachPreviewName"></span>
+      <button id="attachRemove">✕ Remover</button>
+    </div>
     <div class="tools">
-      <button id="webToggle" data-ic="globe" aria-pressed="false" title="Pesquisar na internet" aria-label="Pesquisar na internet"></button>
-      <button id="photoBtn" data-ic="image" title="Fotos da galeria" aria-label="Fotos da galeria"></button>
+      <div class="attach-wrap">
+        <button id="attachBtn" data-ic="plus" title="Anexar" aria-label="Anexar" aria-haspopup="true" aria-expanded="false"></button>
+        <div id="attachMenu" class="attach-menu" hidden>
+          <button id="attPhoto" data-ic="image">Fotos e vídeos</button>
+          <button id="attFile" data-ic="file">Arquivos</button>
+          <button id="attWeb" data-ic="globe">Pesquisar na internet</button>
+        </div>
+      </div>
       <button id="voiceBtn" data-ic="phone" title="Conversar por voz"><span>Conversar</span></button>
       <input id="photoInput" type="file" accept="image/*,video/*" multiple hidden>
+      <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf,application/json" hidden>
     </div>
     <div class="row">
       <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
@@ -273,9 +290,8 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
     </div>
   </div>
   <div class="info">
-    Modelo local Qwen2.5 (escolha em ⋮): de 398 MB a 986 MB no primeiro carregamento. Use Wi-Fi.
+    Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
     A pesquisa e o clima precisam de internet.
-    Configuração otimizada para reduzir o consumo de memória no iPhone.
   </div>
 </main>
 
@@ -292,16 +308,16 @@ const input = $("prompt");
 const FENCE = String.fromCharCode(96).repeat(3);
 
 const MODELS = {
-  fast: { name: "Qwen2.5 0.5B (rápido)", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
-  code: { name: "Qwen2.5 Coder 1.5B (código)", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
-  chat: { name: "Qwen2.5 1.5B (geral)", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" },
-  chat3: { name: "Qwen2.5 3B (inteligente)", url: "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf" },
-  code3: { name: "Qwen2.5 Coder 3B (código forte)", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf" }
+  fast: { name: "Modelo Rápido", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
+  code: { name: "Código · Leve", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
+  chat: { name: "Modelo Equilibrado", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" },
+  chat3: { name: "Modelo Inteligente", url: "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf" },
+  code3: { name: "Código · Forte", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf" }
 };
 
 // Se o iPhone travar, reduza N_CTX para 1024.
-// Limite de leitura em caracteres, calculado pelo tamanho de contexto escolhido.
-const maxChars = () => Math.max(1500, Math.floor((settings.ctx - settings.tokens - 700) * 2.4));
+// Limite de leitura em caracteres: piso de 9000, cresce com o contexto escolhido.
+const maxChars = () => Math.max(9000, Math.floor((settings.ctx - settings.tokens - 700) * 2.4));
 
 const settings = Object.assign(
   { ctx: 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true },
@@ -318,13 +334,13 @@ const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda 
 
 const KNOWLEDGE = [
   { keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
-    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno (Qwen2.5 0.5B Q4_K_M, cerca de 398 MB) com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true; 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js." },
+    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true; 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js." },
   { keys: /github|pages|publicar|site.*(não|nao).*atualiz|cache|commit/i,
     text: "Publicar no GitHub Pages: coloque o index.html na raiz do repositório, faça o commit, espere 1 a 2 minutos e abra o link com ?v=2 no final (troque o número a cada versão) para fugir do cache do Safari." },
   { keys: /not defined|undefined|null|cannot read|constant|const|import|syntax|erro|error|bug|console/i,
     text: "Erros comuns de JavaScript: 'X is not defined' = variável não declarada ou fora do escopo; 'Cannot read properties of null' = elemento não existe, confira o id; 'Assignment to constant variable' = troque const por let; erro de import = confira a URL e a versão da biblioteca. Leia sempre a primeira linha vermelha do console." },
   { keys: /lent|trav|demor|memória|memoria|iphone|crash|out of memory/i,
-    text: "IA lenta ou travando no iPhone: use modelo pequeno (0.5B), n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta." },
+    text: "IA lenta ou travando no iPhone: use o modelo Rápido, n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta." },
   { keys: /fetch|api|cors|json|requisição|requisicao/i,
     text: "fetch: use await dentro de try/catch e confira response.ok antes de response.json(). Erro de CORS significa que o servidor não permite a origem: use uma API que libere CORS (origin=*)." },
   { keys: /python|indentation|modulenotfound|pip|nameerror/i,
@@ -542,7 +558,7 @@ function updateButtons() {
   $("load").disabled = busy || !!loadingPromise;
   $("restart").disabled = busy || resetting || !!loadingPromise;
   $("weather").disabled = busy;
-  $("webToggle").disabled = busy;
+  $("attachBtn").disabled = busy;
 }
 
 // ------------------------------ Histórico
@@ -726,7 +742,7 @@ async function generate(text, extraContext = "", opts = {}) {
     currentEngine = ai;
     const messages = buildMessages(text, extraContext);
 
-    if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 4000), t: Date.now() });
+    if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 9000), t: Date.now() });
     saveHistory();
 
     answerBox = addMessage("assistant", "");
@@ -797,7 +813,7 @@ async function generate(text, extraContext = "", opts = {}) {
     addActions(answer);
     scrollEnd();
 
-    history.push({ role: "assistant", content: limitText(answer, 4000), t: Date.now() });
+    history.push({ role: "assistant", content: limitText(answer, 9000), t: Date.now() });
     saveHistory();
     return answer;
 
@@ -845,30 +861,80 @@ function extractCity(text) {
 
 let webMode = false;
 let searching = false;
+let pendingAttachment = null;
 
 function setWebMode(on) {
   webMode = on;
-  $("webToggle").classList.toggle("on", on);
-  $("webToggle").setAttribute("aria-pressed", on ? "true" : "false");
-  input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
+  $("attWeb").classList.toggle("active", on);
+  $("attachBtn").classList.toggle("on", on);
+  if (!pendingAttachment) input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
 }
+
+function showAttachPreview(name) {
+  $("attachPreviewName").textContent = "📄 " + name;
+  $("attachPreview").hidden = false;
+  input.placeholder = "Pergunte algo sobre o arquivo (opcional) e toque em enviar...";
+  input.focus();
+}
+
+function hideAttachPreview() {
+  $("attachPreview").hidden = true;
+  $("attachPreviewName").textContent = "";
+  input.placeholder = webMode ? "Pesquisar na internet..." : "Converse com o Rizik...";
+}
+
+$("attachRemove").addEventListener("click", () => { pendingAttachment = null; hideAttachPreview(); });
 
 $("load").addEventListener("click", loadAI);
 
 $("restart").addEventListener("click", () => { closeMenu(); restartAI(); });
 
-$("webToggle").addEventListener("click", () => { setWebMode(!webMode); input.focus(); });
+// ----- Menu de anexos (+)
+
+const attachMenu = $("attachMenu");
+const attachBtn = $("attachBtn");
+
+function closeAttachMenu() {
+  attachMenu.hidden = true;
+  attachBtn.setAttribute("aria-expanded", "false");
+}
+
+attachBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  const willOpen = attachMenu.hidden;
+  attachMenu.hidden = !willOpen;
+  attachBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+});
+
+document.addEventListener("click", e => {
+  if (!attachMenu.hidden && !attachMenu.contains(e.target) && e.target !== attachBtn) closeAttachMenu();
+});
+
+$("attPhoto").addEventListener("click", () => { closeAttachMenu(); $("photoInput").click(); });
+$("attFile").addEventListener("click", () => { closeAttachMenu(); $("fileInput").click(); });
+$("attWeb").addEventListener("click", () => { closeAttachMenu(); setWebMode(!webMode); input.focus(); });
 
 async function handleSend() {
   const text = input.value.trim();
-  if (!text || busy || resetting || searching) return;
+  if (busy || resetting || searching) return;
+  if (!text && !pendingAttachment) return;
+
+  if (pendingAttachment) {
+    const attachment = pendingAttachment;
+    pendingAttachment = null;
+    hideAttachPreview();
+    input.value = "";
+    input.style.height = "";
+    await handleLong(attachment.text, attachment.label, text || null);
+    return;
+  }
 
   input.value = "";
   input.style.height = "";
   const wasWeb = webMode;
   setWebMode(false);
 
-  if (text.length > 1500 && !wasWeb) { await handleLong(text); return; }
+  if (text.length > 9000 && !wasWeb) { await handleLong(text); return; }
 
   const quick = wasWeb ? null : quickReply(text);
   if (quick) {
@@ -1054,11 +1120,6 @@ $("speak").addEventListener("click", () => {
   const pv2 = pickVoice();
   if (pv2) utterance.voice = pv2;
   speechSynthesis.speak(utterance);
-});
-
-$("stop").addEventListener("click", () => {
-  closeMenu();
-  if ("speechSynthesis" in window) speechSynthesis.cancel();
 });
 
 // ------------------------------ Pesquisa na internet
@@ -1382,12 +1443,13 @@ function addFileMessage(text, label) {
   scrollEnd();
 }
 
-async function handleLong(text) {
-  const label = looksLikeCode(text) ? "codigo.txt" : "texto.txt";
+async function handleLong(text, customLabel, customQuestion) {
+  const label = customLabel || (looksLikeCode(text) ? "codigo.txt" : "texto.txt");
   addFileMessage(text, label);
+  if (customQuestion) addMessage("user", customQuestion);
   const marker = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
   const limit = maxChars();
-  const question = "Explique o que este conteúdo faz e aponte erros prováveis, com o trecho corrigido.";
+  const question = customQuestion || "Explique o que este conteúdo faz e aponte erros prováveis, com o trecho corrigido.";
 
   if (text.length <= limit - 150) {
     await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true });
@@ -1505,7 +1567,7 @@ function startListening() {
 
 function setVoiceMode(on) {
   if (on && !SR) {
-    addMessage("system", "Este navegador não tem reconhecimento de voz. Use o Chrome (Android) ou o Safari (iPhone).");
+    addMessage("system", "Este navegador não tem reconhecimento de voz. No iPhone, use o Safari normal (sem o leitor de voz do Chrome); se não funcionar, essa função depende do suporte do navegador.");
     return;
   }
   voiceMode = on;
@@ -1532,6 +1594,7 @@ function chime() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
+    if (ctx.state === "suspended") { ctx.resume().catch(() => {}); }
     [660, 880].forEach((f, i) => {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.type = "sine";
@@ -1684,7 +1747,79 @@ function addGallery(files) {
   scrollEnd();
 }
 
-$("photoBtn").addEventListener("click", () => $("photoInput").click());
+const TEXT_FILE_RE = /\.(txt|md|markdown|csv|json|js|jsx|ts|tsx|py|html|htm|css|xml|yml|yaml|log|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat|ini|env)$/i;
+const MAX_FILE_BYTES = 400 * 1024;
+const MAX_PDF_BYTES = 15 * 1024 * 1024;
+
+let pdfLib = null;
+async function loadPdfJs() {
+  if (pdfLib) return pdfLib;
+  pdfLib = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs");
+  pdfLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs";
+  return pdfLib;
+}
+
+async function extractPdfText(file, setMsg) {
+  const lib = await loadPdfJs();
+  const buffer = await file.arrayBuffer();
+  const doc = await lib.getDocument({ data: buffer }).promise;
+  const maxPages = Math.min(doc.numPages, 40);
+  let text = "";
+  for (let i = 1; i <= maxPages; i++) {
+    if (setMsg) setMsg("📄 Lendo página " + i + " de " + maxPages + "...");
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(" ") + "\n\n";
+  }
+  if (doc.numPages > maxPages) text += "\n[PDF truncado: li " + maxPages + " de " + doc.numPages + " páginas.]";
+  return text.trim();
+}
+
+$("fileInput").addEventListener("change", async () => {
+  const file = $("fileInput").files[0];
+  $("fileInput").value = "";
+  if (!file || busy || resetting || searching) return;
+
+  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+  const looksText = !isPdf && (/^text\//.test(file.type) || file.type === "application/json" || TEXT_FILE_RE.test(file.name) || !file.type);
+
+  if (!isPdf && !looksText) {
+    addMessage("system", "Só consigo ler arquivos de texto, código ou PDF (.txt, .md, .csv, .json, .pdf e similares). Para fotos ou vídeos, use a opção \"Fotos e vídeos\".");
+    return;
+  }
+  if (isPdf && file.size > MAX_PDF_BYTES) {
+    addMessage("system", "PDF grande demais: o limite é " + Math.round(MAX_PDF_BYTES / 1024 / 1024) + " MB.");
+    return;
+  }
+  if (!isPdf && file.size > MAX_FILE_BYTES) {
+    addMessage("system", "Arquivo grande demais: o limite é " + Math.round(MAX_FILE_BYTES / 1024) + " KB de texto.");
+    return;
+  }
+
+  const loadingBox = isPdf ? addMessage("system", "📄 Abrindo o PDF...") : null;
+  let text = "";
+  try {
+    text = isPdf
+      ? await extractPdfText(file, t => { if (loadingBox) loadingBox.querySelector(".body").textContent = t; })
+      : await file.text();
+  } catch (err) {
+    console.error("Erro ao ler arquivo:", err);
+    const msg = "Não consegui ler esse arquivo: " + (err?.message || String(err));
+    if (loadingBox) loadingBox.querySelector(".body").textContent = msg;
+    else addMessage("system", msg);
+    return;
+  }
+
+  if (loadingBox) loadingBox.remove();
+
+  if (!text.trim()) {
+    addMessage("system", isPdf ? "Não encontrei texto nesse PDF (pode ser só imagens digitalizadas)." : "Esse arquivo parece estar vazio.");
+    return;
+  }
+
+  pendingAttachment = { label: "📄 " + file.name, text };
+  showAttachPreview(file.name);
+});
 
 $("photoInput").addEventListener("change", () => {
   let files = [...$("photoInput").files].filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
@@ -1954,13 +2089,14 @@ const ICONS = {
   dots: '<circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  file: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>',
   phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>',
   end: '<g transform="rotate(135 12 12)"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></g>',
   send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
   mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
   refresh: '<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>',
   volume: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/>',
-  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
   history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
@@ -1993,7 +2129,7 @@ restoreHistory();
 updateButtons();
 
 if (prevCrash) {
-  addMessage("system", "A página fechou durante o último carregamento (pouca memória). Passei para o modelo Rápido. Toque em Carregar IA.");
+  addMessage("system", "A página fechou durante o último carregamento (pouca memória). Passei para o Modelo Rápido. Toque em Carregar IA.");
 } else if (settings.autoload) {
   try { if (localStorage.getItem("rizik_autoload") === "1") loadAI(); } catch (e) {}
 }
