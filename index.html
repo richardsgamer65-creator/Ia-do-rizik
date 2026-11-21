@@ -107,17 +107,56 @@ button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(
 .viewer{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center}
 .viewer[hidden]{display:none}
 .viewer img{max-width:96vw;max-height:92vh;border-radius:14px}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button[data-ic]{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+#menuBtn{width:44px;height:44px;padding:0}
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toolbar button{min-height:48px}
+.composer{flex-direction:column;align-items:stretch;gap:10px;padding-left:2px;padding-right:2px}
+.tools{display:flex;align-items:center;gap:10px}
+.row{display:flex;align-items:flex-end;gap:10px}
+#webToggle,#photoBtn{width:46px;height:46px;padding:0}
+#voiceBtn{height:46px;padding:0 18px;margin-left:auto;background:linear-gradient(135deg,#1fd1ab,#0b8f86);border-color:rgba(255,255,255,.2);box-shadow:0 6px 16px rgba(20,190,160,.4)}
+#send{width:52px;height:48px;padding:0;flex:none}
+.menu{top:calc(100% + 8px);width:min(360px,calc(100vw - 24px));padding:16px;gap:14px}
+.menu label{gap:6px}
+.menu select,.menu input[type=text]{width:100%;min-height:42px}
+.menu label.check{min-height:36px;gap:10px}
+.menu-actions{gap:10px}
+.menu-actions button{min-height:46px;padding:10px 8px;font-size:13px}
+.menu-actions .i{width:18px;height:18px}
+#clear,#install{grid-column:1/-1}
+.call{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(40px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom));background:radial-gradient(80% 60% at 50% 35%,#2a2160,#10111a 72%)}
+.call[hidden]{display:none}
+.call-top{text-align:center}
+.call-top b{display:block;font-size:22px}
+.call-top small{color:#aeb4ca;font-size:14px}
+.orb{width:200px;height:200px;border-radius:50%;border:0;padding:0;background:radial-gradient(circle at 35% 30%,#c9bcff,#7259e8 55%,#3a22a8);box-shadow:0 0 60px rgba(114,89,232,.6);animation:orbIdle 3s ease-in-out infinite}
+.call[data-state=listening] .orb{animation:orbListen 1.6s ease-in-out infinite}
+.call[data-state=thinking] .orb{animation:orbThink 1.2s linear infinite;filter:hue-rotate(40deg)}
+.call[data-state=speaking] .orb{animation:orbSpeak .55s ease-in-out infinite}
+.call[data-state=muted] .orb{filter:grayscale(.8);animation:none;opacity:.7}
+@keyframes orbIdle{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes orbListen{0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(114,89,232,.5)}50%{transform:scale(1.08);box-shadow:0 0 90px rgba(114,89,232,.85)}}
+@keyframes orbThink{0%{transform:scale(1) rotate(0)}50%{transform:scale(.94) rotate(180deg)}100%{transform:scale(1) rotate(360deg)}}
+@keyframes orbSpeak{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.call-text{max-width:520px;text-align:center;color:#c4c9db;font-size:15px;line-height:1.5;min-height:90px;max-height:22vh;overflow:auto}
+.call-actions{display:flex;gap:28px}
+.round{width:68px;height:68px;border-radius:50%;padding:0}
+.round .i{width:28px;height:28px}
+.round.end{background:linear-gradient(135deg,#ff6b6b,#d62839)}
+.round.off{background:#fff;color:#111}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 17</small>
+    <small>Seu assistente pessoal · versão 19</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
-    <button id="menuBtn" aria-label="Configurações">⋮</button>
+    <button id="menuBtn" data-ic="dots" aria-label="Configurações"></button>
   </div>
   <div id="menu" class="menu" hidden>
     <div class="menu-title">Configurações</div>
@@ -129,6 +168,9 @@ button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(
         <option value="chat3">Inteligente · Qwen 3B (1,9 GB)</option>
         <option value="code3">Código forte · Coder 3B (1,9 GB)</option>
       </select>
+    </label>
+    <label>Voz da IA
+      <select id="setVoice"></select>
     </label>
     <label>Papel de parede
       <select id="setWall">
@@ -167,12 +209,12 @@ button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(
     </label>
     <label class="check"><input id="setTime" type="checkbox"> Mostrar horas nas mensagens</label>
     <div class="menu-actions">
-      <button id="restart">🔄 Reiniciar IA</button>
-      <button id="speak">🔊 Ler resposta</button>
-      <button id="stop">⏹ Parar voz</button>
-      <button id="histBtn">📜 Histórico</button>
-      <button id="clear">🗑 Limpar conversa</button>
-      <button id="install" hidden>📲 Instalar app</button>
+      <button id="restart" data-ic="refresh">Reiniciar IA</button>
+      <button id="speak" data-ic="volume">Ler resposta</button>
+      <button id="stop" data-ic="stop">Parar voz</button>
+      <button id="histBtn" data-ic="history">Histórico</button>
+      <button id="clear" data-ic="trash">Limpar conversa</button>
+      <button id="install" data-ic="download" hidden>Instalar app</button>
     </div>
   </div>
 </header>
@@ -184,22 +226,36 @@ button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(
   </div>
 </div>
 
+<div id="call" class="call" hidden data-state="listening">
+  <div class="call-top"><b>Rizik AI</b><small id="callState">Ouvindo...</small></div>
+  <button id="orb" class="orb" aria-label="Toque para interromper"></button>
+  <div id="callText" class="call-text"></div>
+  <div class="call-actions">
+    <button id="callMute" class="round" data-ic="mic" aria-label="Silenciar microfone"></button>
+    <button id="callEnd" class="round end" data-ic="end" aria-label="Encerrar chamada"></button>
+  </div>
+</div>
+
 <div id="viewer" class="viewer" hidden><img id="viewerImg" alt=""></div>
 
 <main>
   <div id="status">Rizik está aguardando.</div>
   <div class="toolbar">
-    <button id="load" class="primary">Carregar IA</button>
-    <button id="weather">🌤️ Clima</button>
+    <button id="load" class="primary" data-ic="power">Carregar IA</button>
+    <button id="weather" data-ic="weather">Clima</button>
   </div>
   <div id="chat"></div>
   <div class="composer">
-    <button id="webToggle" aria-pressed="false" title="Pesquisar na internet">🌐</button>
-    <button id="photoBtn" class="ic" title="Fotos da galeria">🖼️</button>
-    <button id="voiceBtn" class="ic" title="Conversar por voz">🎙️</button>
-    <input id="photoInput" type="file" accept="image/*" multiple hidden>
-    <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
-    <button id="send">Enviar</button>
+    <div class="tools">
+      <button id="webToggle" data-ic="globe" aria-pressed="false" title="Pesquisar na internet" aria-label="Pesquisar na internet"></button>
+      <button id="photoBtn" data-ic="image" title="Fotos da galeria" aria-label="Fotos da galeria"></button>
+      <button id="voiceBtn" data-ic="phone" title="Conversar por voz"><span>Conversar</span></button>
+      <input id="photoInput" type="file" accept="image/*" multiple hidden>
+    </div>
+    <div class="row">
+      <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
+      <button id="send" data-ic="send" aria-label="Enviar"></button>
+    </div>
   </div>
   <div class="info">
     Modelo local Qwen2.5 (escolha em ⋮): de 398 MB a 986 MB no primeiro carregamento. Use Wi-Fi.
@@ -271,7 +327,7 @@ function looksLikeCode(text) {
 }
 
 const THREADS = self.crossOriginIsolated
-  ? Math.max(2, Math.min(6, (navigator.hardwareConcurrency || 4) - 1))
+  ? Math.max(2, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2)))
   : 1;
 
 let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false;
@@ -977,6 +1033,8 @@ $("speak").addEventListener("click", () => {
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(spoken);
   utterance.lang = "pt-BR";
+  const pv2 = pickVoice();
+  if (pv2) utterance.voice = pv2;
   speechSynthesis.speak(utterance);
 });
 
@@ -1093,7 +1151,7 @@ async function searchWikipedia(query, words) {
   }).sort((a, b) => b.score - a.score);
 
   const best = scored[0];
-  if (!best || best.score < 0.5) throw new Error("A Wikipedia não tem nada claro sobre isso.");
+  if (!best || best.score < 0.75) throw new Error("A Wikipedia não tem nada claro sobre isso.");
 
   const title = best.pg.title;
   return {
@@ -1374,18 +1432,54 @@ async function handleLong(text) {
 // ------------------------------ Conversa por voz
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let voiceMode = false, rec = null, listening = false, speaking = false, voicePending = false;
+let voiceMode = false, rec = null, listening = false, speaking = false, voicePending = false, callMuted = false;
+
+const CALL_LABELS = { listening: "Ouvindo...", thinking: "Pensando...", speaking: "Falando... toque na bola para interromper", muted: "Microfone desligado" };
+function setCallState(st) {
+  $("call").dataset.state = st;
+  $("callState").textContent = CALL_LABELS[st] || "";
+}
+function setCallText(t) { $("callText").textContent = String(t || "").slice(0, 320); }
+
+function ptVoices() {
+  return ("speechSynthesis" in window ? speechSynthesis.getVoices() : []).filter(v => /^pt/i.test(v.lang));
+}
+function pickVoice() {
+  const list = ptVoices();
+  if (!list.length) return null;
+  const saved = list.find(v => v.name === settings.voice);
+  if (saved) return saved;
+  const rank = v => (/google|natural|neural|online|enhanced|premium/i.test(v.name) ? 2 : 0) + (/BR/i.test(v.lang) ? 1 : 0);
+  return list.slice().sort((a, b) => rank(b) - rank(a))[0];
+}
+function fillVoices() {
+  const sel = $("setVoice");
+  sel.textContent = "";
+  const auto = document.createElement("option");
+  auto.value = "";
+  auto.textContent = "Automática";
+  sel.appendChild(auto);
+  ptVoices().forEach(v => {
+    const o = document.createElement("option");
+    o.value = v.name;
+    o.textContent = v.name + " (" + v.lang + ")";
+    sel.appendChild(o);
+  });
+  sel.value = settings.voice || "";
+}
+if ("speechSynthesis" in window) { speechSynthesis.onvoiceschanged = fillVoices; fillVoices(); }
+$("setVoice").addEventListener("change", e => { settings.voice = e.target.value; saveSettings(); });
 
 function startListening() {
-  if (!voiceMode || !SR || listening || speaking || busy) return;
+  if (!voiceMode || !SR || listening || speaking || busy || callMuted) return;
   rec = new SR();
   rec.lang = "pt-BR";
   rec.interimResults = false;
   rec.continuous = false;
-  rec.onstart = () => { listening = true; sayStatus("🎙️ Ouvindo... fale agora."); };
+  rec.onstart = () => { listening = true; setCallState("listening"); sayStatus("🎙️ Ouvindo... fale agora."); };
   rec.onresult = e => {
     const t = (e.results[0][0].transcript || "").trim();
-    if (t) { input.value = t; $("send").click(); }
+    if (t) { setCallText("Você: " + t); setCallState("thinking"); input.value = t; $("send").click(); }
   };
   rec.onerror = e => {
     listening = false;
@@ -1409,12 +1503,17 @@ function setVoiceMode(on) {
   voiceMode = on;
   $("voiceBtn").classList.toggle("on", on);
   if (on) {
-    addMessage("system", "🎙️ Conversa por voz ligada. Fale e eu respondo em voz alta. Toque em 🎙️ para desligar.");
+    callMuted = false;
+    $("callMute").classList.remove("off");
+    $("call").hidden = false;
+    setCallState("listening");
+    setCallText("");
     startListening();
   } else {
     try { if (rec) rec.abort(); } catch (e) {}
     if ("speechSynthesis" in window) speechSynthesis.cancel();
     speaking = false;
+    $("call").hidden = true;
     sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
   }
 }
@@ -1425,8 +1524,12 @@ function speakText(text, done) {
   speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(spoken);
   u.lang = "pt-BR";
+  const pv = pickVoice();
+  if (pv) u.voice = pv;
   speaking = true;
-  const end = () => { speaking = false; done(); };
+  setCallState("speaking");
+  setCallText(text);
+  const end = () => { speaking = false; if (voiceMode) setCallState(callMuted ? "muted" : "listening"); done(); };
   u.onend = end;
   u.onerror = end;
   speechSynthesis.speak(u);
@@ -1440,6 +1543,14 @@ function voiceDone(before) {
 }
 
 $("voiceBtn").addEventListener("click", () => setVoiceMode(!voiceMode));
+$("callEnd").addEventListener("click", () => setVoiceMode(false));
+$("callMute").addEventListener("click", () => {
+  callMuted = !callMuted;
+  $("callMute").classList.toggle("off", callMuted);
+  if (callMuted) { try { if (rec) rec.abort(); } catch (e) {} setCallState("muted"); }
+  else { setCallState("listening"); startListening(); }
+});
+$("orb").addEventListener("click", () => { if (speaking && "speechSynthesis" in window) speechSynthesis.cancel(); });
 
 // ------------------------------ Galeria de fotos (até 12)
 
@@ -1502,6 +1613,29 @@ $("install").addEventListener("click", () => {
   deferredInstall.prompt();
   deferredInstall = null;
   $("install").hidden = true;
+});
+
+// ------------------------------ Ícones nos botões
+
+const ICONS = {
+  dots: '<circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>',
+  end: '<g transform="rotate(135 12 12)"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></g>',
+  send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+  mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
+  refresh: '<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>',
+  volume: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/>',
+  stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+  power: '<path d="M12 3v8"/><path d="M6.5 6.5a8 8 0 1011 0"/>',
+  weather: '<circle cx="9" cy="9" r="3"/><path d="M9 2v1.5M2 9h1.5M4 4l1 1M14 4l-1 1"/><path d="M8 20a4 4 0 01.5-8 5 5 0 019.5 1.5A3.3 3.3 0 0117.5 20z"/>'
+};
+document.querySelectorAll("[data-ic]").forEach(b => {
+  b.insertAdjacentHTML("afterbegin", '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[b.dataset.ic] || "") + "</svg>");
 });
 
 // ------------------------------ Inicialização
