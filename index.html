@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Rizik AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" crossorigin>
 <script>
 (function () {
   try {
@@ -46,11 +49,6 @@ button:disabled{opacity:.5}
 .system{background:rgba(41,45,64,.78);color:#c4c9db;align-self:center;font-size:13px}
 .composer{position:sticky;bottom:0;background:rgba(16,17,26,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
 textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;border-radius:14px;border:1px solid #383c50;background:#1b1e2b;color:white;padding:13px;font:inherit}
-.sources{align-self:flex-start;max-width:95%;background:rgba(27,30,43,.86);border:1px solid #383c50;border-radius:14px;padding:10px 12px;font-size:13px;color:#c4c9db;line-height:1.5}
-.src-head{font-weight:bold;color:#f5f5fa}
-.src-item{display:flex;gap:6px;align-items:baseline;margin-top:6px;overflow-wrap:anywhere}
-.src-item a{color:#a99cff;text-decoration:none}
-.src-item small{color:#9299b0;white-space:nowrap}
 .copy{padding:8px 12px;font-size:13px;align-self:flex-start}
 .info{font-size:12px;color:#9299b0;margin-top:12px;line-height:1.5}
 .hright{display:flex;align-items:center;gap:10px}
@@ -65,7 +63,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .menu-actions button{padding:10px 6px;font-size:13px}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.message,.sources,.actions{animation:fade .25s ease}
+.message,.actions{animation:fade .25s ease}
 .msg-time{display:block;margin-top:6px;font-size:11px;opacity:.6}
 .notime .msg-time{display:none}
 .dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:#9299b0;animation:blink 1.2s infinite ease-in-out}
@@ -87,8 +85,6 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .attach-preview[hidden]{display:none}
 .attach-preview span{flex:1;overflow-wrap:anywhere}
 .attach-preview button{padding:5px 10px;font-size:12px;border-radius:8px}
-.timerline{display:flex;align-items:center;gap:8px}
-.timerline .body{flex:none}
 .gen-cancel{width:24px;height:24px;padding:0;border-radius:50%;background:#44293a;color:#ff9db0;font-size:13px;line-height:1;flex:none;box-shadow:none;border:1px solid rgba(255,140,160,.35)}
 .hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 .hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
@@ -164,13 +160,59 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
 .gallery.n1 video{aspect-ratio:4/3}
 .badge{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.6);border-radius:8px;padding:2px 7px;font-size:12px}
 .viewer video{max-width:96vw;max-height:92vh;border-radius:14px}
+
+/* ===== v23: fontes, texto bonito, painel de atividade, boas-vindas ===== */
+body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
+button,textarea,select,input{font-family:inherit}
+h1{font-weight:800;letter-spacing:-.03em;background:linear-gradient(90deg,#fff,#b9a9ff 60%,#6ff0d8);-webkit-background-clip:text;background-clip:text;color:transparent}
+header small{color:#9aa1bb}
+.message{font-size:15.5px;line-height:1.62;border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.user{background:linear-gradient(135deg,rgba(124,96,240,.96),rgba(84,60,206,.96));border-color:rgba(255,255,255,.16);border-bottom-right-radius:6px}
+.assistant{background:linear-gradient(180deg,rgba(38,41,60,.92),rgba(28,31,46,.92));border-bottom-left-radius:6px}
+.system{box-shadow:none;border-color:transparent}
+.txt{margin:0 0 .55em}
+.txt:last-child{margin-bottom:0}
+.message strong{font-weight:700;color:#fff}
+.md-h{font-weight:700;font-size:16.5px;margin:.7em 0 .35em;letter-spacing:-.01em}
+.md-list{margin:.3em 0 .6em;padding-left:1.25em;white-space:normal}
+.md-list li{margin:.22em 0;padding-left:.15em}
+.ic-code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.88em;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);padding:1px 6px;border-radius:6px}
+.codeblock{box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.codeblock pre,.filechip pre{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+textarea{font-size:15.5px;transition:border-color .2s,box-shadow .2s}
+textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,255,.25)}
+.activity{align-self:flex-start;width:min(580px,96%);background:rgba(20,22,34,.82);border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:fade .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.act-head{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;user-select:none;-webkit-user-select:none}
+.act-title{flex:1;min-width:0;overflow-wrap:anywhere}
+.act-time{color:#9aa1bb;font-weight:500;font-variant-numeric:tabular-nums}
+.act-chev{color:#9aa1bb;width:12px;text-align:center}
+.act-spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(169,156,255,.3);border-top-color:#a99cff;animation:spin .8s linear infinite;flex:none;text-align:center;font-size:12px;line-height:11px}
+.activity.done .act-spin{animation:none;border:0;color:#35d49a;font-size:14px;line-height:15px}
+.activity.fail .act-spin{color:#ff8fa3}
+@keyframes spin{to{transform:rotate(360deg)}}
+.act-list{border-top:1px solid rgba(255,255,255,.07);padding:6px 0 8px}
+.activity.collapsed .act-list{display:none}
+.act-item{display:flex;gap:8px;align-items:baseline;padding:3px 12px;font-size:12.5px;line-height:1.45;color:#c9cee0;overflow-wrap:anywhere;animation:fade .2s ease}
+.act-ic{width:14px;flex:none;text-align:center;font-size:12px}
+.act-ic.run{display:inline-block;width:10px;height:10px;margin:0 2px;border-radius:50%;border:2px solid rgba(169,156,255,.3);border-top-color:#a99cff;animation:spin .8s linear infinite;align-self:center}
+.act-ic.ok{color:#35d49a}
+.act-ic.fail{color:#ff8fa3}
+.act-label{flex:1;min-width:0}
+.act-item a{color:#a99cff;text-decoration:none}
+.act-item small{color:#8f96af;white-space:nowrap;font-variant-numeric:tabular-nums}
+.welcome{align-self:center;text-align:center;margin:5vh 0 2vh;max-width:540px;animation:fade .4s ease}
+.welcome h2{font-size:28px;margin:0 0 8px;letter-spacing:-.03em;font-weight:800}
+.welcome p{color:#aeb4ca;margin:0 0 18px;line-height:1.55;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{border-radius:999px;padding:10px 15px;font-size:13.5px;font-weight:500}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 22</small>
+    <small>Seu assistente pessoal · versão 23</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -294,7 +336,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
   </div>
   <div class="info">
     Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
-    A pesquisa e o clima precisam de internet.
+    A pesquisa e o clima precisam de internet. Textos e arquivos grandes são lidos por um leitor rápido que separa os trechos mais importantes.
   </div>
 </main>
 
@@ -332,8 +374,8 @@ function saveSettings() {
   catch (e) { console.warn("Erro ao salvar configurações:", e); }
 }
 
-const SYSTEM_CHAT = "Você é Rizik AI, assistente pessoal que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda curto e direto. Se o pedido for vago, faça UMA pergunta curta para esclarecer antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\". Quando escrever código, coloque sempre dentro de um bloco de código com três crases.";
-const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre o código corrigido em um bloco de três crases e explique como testar. Se faltar informação, peça o erro exato.";
+const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático e inteligente que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
+const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre o código corrigido em um bloco de três crases com o nome da linguagem e explique em poucas linhas como testar. Se faltar informação, peça o erro exato.";
 
 const KNOWLEDGE = [
   { keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
@@ -349,7 +391,13 @@ const KNOWLEDGE = [
   { keys: /python|indentation|modulenotfound|pip|nameerror/i,
     text: "Erros comuns de Python: IndentationError = confira os espaços do bloco; ModuleNotFoundError = instale com pip install nome; NameError = variável usada antes de ser definida." },
   { keys: /html|css|layout|celular|responsiv|botão|botao/i,
-    text: "Layout no celular: use <meta name=viewport>, flex com flex-wrap, max-width:100% e unidades relativas (rem, %). Teste com a tela estreita." }
+    text: "Layout no celular: use <meta name=viewport>, flex com flex-wrap, max-width:100% e unidades relativas (rem, %). Teste com a tela estreita." },
+  { keys: /localstorage|salvar|armazen|guardar dados/i,
+    text: "localStorage guarda texto (chave/valor) no navegador: use JSON.stringify para salvar objetos e JSON.parse para ler, sempre dentro de try/catch. O limite é de uns 5 MB." },
+  { keys: /async|await|promise|assíncron|assincron/i,
+    text: "async/await: coloque async antes da função e await antes de cada Promise. Use try/catch para erros. Sem o await, você recebe a Promise e não o valor." },
+  { keys: /git |git$|branch|merge|pull request|push/i,
+    text: "Git básico: git add . (prepara), git commit -m \"mensagem\" (salva), git push (envia). Para ver mudanças use git status e git diff." }
 ];
 
 function pickTips(text) {
@@ -375,7 +423,14 @@ function fmtTime(t) {
   return new Date(t || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function scrollEnd() { window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
+function nearBottom() { return window.innerHeight + window.scrollY >= document.body.scrollHeight - 240; }
+function scrollEnd(force) { if (force || nearBottom()) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
+// Mantém a tela colada no fim só se a pessoa já estava lá embaixo (não puxa quem está lendo mais acima).
+function keepBottom(fn, force) {
+  const was = force || nearBottom();
+  fn();
+  if (was) window.scrollTo(0, document.body.scrollHeight);
+}
 
 async function copyText(text, button, label) {
   let ok = false;
@@ -426,13 +481,13 @@ function checkSyntax(code, lang) {
   return null;
 }
 
-function makeCodeBlock(code, lang) {
+function makeCodeBlock(code, lang, live) {
   const box = document.createElement("div");
   box.className = "codeblock";
   const head = document.createElement("div");
   head.className = "code-head";
   const name = document.createElement("span");
-  const chk = checkSyntax(code, lang);
+  const chk = live ? null : checkSyntax(code, lang);
   name.textContent = (lang || "código") + (chk ? (chk.ok ? " · ✅ sintaxe ok" : " · ⚠️ " + chk.msg.slice(0, 60)) : "");
   const btn = document.createElement("button");
   btn.textContent = "📋 Copiar código";
@@ -444,28 +499,91 @@ function makeCodeBlock(code, lang) {
   return box;
 }
 
-function renderRich(container, text) {
+// Markdown simples e seguro (só **negrito**, `código`, títulos e listas), sempre via textContent.
+function inlineMd(parent, s) {
+  const re = /(\*\*[^*\n]+\*\*|`[^`\n]+`)/g;
+  let last = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) parent.appendChild(document.createTextNode(s.slice(last, m.index)));
+    const tok = m[0];
+    if (tok[0] === "*") { const b = document.createElement("strong"); b.textContent = tok.slice(2, -2); parent.appendChild(b); }
+    else { const c = document.createElement("code"); c.className = "ic-code"; c.textContent = tok.slice(1, -1); parent.appendChild(c); }
+    last = m.index + tok.length;
+  }
+  if (last < s.length) parent.appendChild(document.createTextNode(s.slice(last)));
+}
+
+function renderText(container, text) {
+  let list = null, listType = "", para = [];
+  const flushPara = () => {
+    if (!para.length) return;
+    const p = document.createElement("div");
+    p.className = "txt";
+    inlineMd(p, para.join("\n"));
+    container.appendChild(p);
+    para = [];
+  };
+  for (const ln of String(text).replace(/\r/g, "").split("\n")) {
+    const hd = ln.match(/^\s*#{1,3}\s+(.*)$/);
+    const ul = ln.match(/^\s*[-*•]\s+(.*)$/);
+    const ol = ln.match(/^\s*\d+[.)]\s+(.*)$/);
+    if (hd) {
+      flushPara(); list = null; listType = "";
+      const h = document.createElement("div");
+      h.className = "md-h";
+      inlineMd(h, hd[1]);
+      container.appendChild(h);
+    } else if (ul || ol) {
+      flushPara();
+      const type = ul ? "ul" : "ol";
+      if (!list || listType !== type) {
+        list = document.createElement(type);
+        list.className = "md-list";
+        container.appendChild(list);
+        listType = type;
+      }
+      const li = document.createElement("li");
+      inlineMd(li, (ul || ol)[1]);
+      list.appendChild(li);
+    } else if (!ln.trim()) {
+      flushPara(); list = null; listType = "";
+    } else {
+      list = null; listType = "";
+      para.push(ln);
+    }
+  }
+  flushPara();
+}
+
+function renderRich(container, text, live, md) {
   container.textContent = "";
   String(text).split(FENCE).forEach((part, i) => {
     if (i % 2 === 1) {
       const { lang, code } = parseFence(part);
-      if (code) container.appendChild(makeCodeBlock(code, lang));
+      if (code) container.appendChild(makeCodeBlock(code, lang, live));
     } else if (part.trim()) {
-      const p = document.createElement("div");
-      p.className = "txt";
-      p.textContent = part.trim();
-      container.appendChild(p);
+      if (md) renderText(container, part.trim());
+      else {
+        const p = document.createElement("div");
+        p.className = "txt";
+        p.textContent = part.trim();
+        container.appendChild(p);
+      }
     }
   });
 }
 
-function setBody(div, text) {
+function setBody(div, text, live) {
   const body = div.querySelector(".body");
-  if (String(text).includes(FENCE)) renderRich(body, text);
+  const md = div.classList.contains("assistant");
+  if (md || String(text).includes(FENCE)) renderRich(body, text, live, md);
   else body.textContent = text;
 }
 
+function clearWelcome() { const w = chat.querySelector(".welcome"); if (w) w.remove(); }
+
 function addMessage(role, text, t) {
+  clearWelcome();
   const div = document.createElement("div");
   div.className = "message " + role;
   const body = document.createElement("div");
@@ -477,66 +595,113 @@ function addMessage(role, text, t) {
     time.textContent = fmtTime(t);
     div.appendChild(time);
   }
-  chat.appendChild(div);
-  setBody(div, text);
-  scrollEnd();
+  keepBottom(() => { chat.appendChild(div); setBody(div, text); }, role === "user");
   return div;
 }
 
-function createSourcesBox() {
-  const box = document.createElement("div");
-  box.className = "sources";
-  chat.appendChild(box);
-  return box;
-}
-
-function renderSources(box, sources, title, startedAt, done) {
-  box.textContent = "";
-  const seconds = ((performance.now() - startedAt) / 1000).toFixed(1);
-  const head = document.createElement("div");
-  head.className = "src-head";
-  head.textContent = done ? "🔎 " + title + " · " + seconds + "s" : "⏳ " + title + "... " + seconds + "s";
-  box.appendChild(head);
-
-  sources.forEach(src => {
+// ---- Painel de atividade: mostra ao vivo o que a IA está fazendo (arquivos, internet, sites, modelo...)
+class Activity {
+  constructor(title) {
+    clearWelcome();
+    this.t0 = performance.now();
+    this.items = [];
+    this.finished = false;
+    this.cancelBtn = null;
+    const el = document.createElement("div");
+    el.className = "activity";
+    const head = document.createElement("div");
+    head.className = "act-head";
+    this.spin = document.createElement("span");
+    this.spin.className = "act-spin";
+    this.titleEl = document.createElement("span");
+    this.titleEl.className = "act-title";
+    this.titleEl.textContent = title;
+    this.timeEl = document.createElement("small");
+    this.timeEl.className = "act-time";
+    this.chev = document.createElement("span");
+    this.chev.className = "act-chev";
+    this.chev.textContent = "▾";
+    head.append(this.spin, this.titleEl, this.timeEl, this.chev);
+    this.list = document.createElement("div");
+    this.list.className = "act-list";
+    el.append(head, this.list);
+    head.addEventListener("click", () => {
+      el.classList.toggle("collapsed");
+      this.chev.textContent = el.classList.contains("collapsed") ? "▸" : "▾";
+    });
+    this.el = el;
+    this.head = head;
+    keepBottom(() => chat.appendChild(el));
+    this.timer = setInterval(() => this.tick(), 250);
+    this.tick();
+  }
+  tick() {
+    const now = performance.now();
+    this.timeEl.textContent = ((now - this.t0) / 1000).toFixed(1) + "s";
+    this.items.forEach(it => { if (it.state === "run") it.timeEl.textContent = ((now - it.t0) / 1000).toFixed(1) + "s"; });
+  }
+  title(t) { this.titleEl.textContent = t; }
+  step(label, url) {
+    const it = { state: "run", t0: performance.now() };
     const row = document.createElement("div");
-    row.className = "src-item";
-    const icon = document.createElement("span");
-    icon.textContent = src.state === "loading" ? "⏳" : src.state === "ok" ? "✅" : "❌";
-    row.appendChild(icon);
-
-    let label;
-    if (/^https:\/\//.test(src.url || "")) {
-      label = document.createElement("a");
-      label.href = src.url; label.target = "_blank"; label.rel = "noopener noreferrer";
-    } else label = document.createElement("span");
-    label.textContent = src.name;
-    row.appendChild(label);
-
-    if (src.state !== "loading") {
-      const time = document.createElement("small");
-      time.textContent = (src.ms / 1000).toFixed(1) + "s";
-      row.appendChild(time);
-    }
-    box.appendChild(row);
-  });
+    row.className = "act-item";
+    it.icEl = document.createElement("span");
+    it.icEl.className = "act-ic run";
+    const safe = /^https:\/\//.test(url || "");
+    if (safe) {
+      it.labelEl = document.createElement("a");
+      it.labelEl.href = url; it.labelEl.target = "_blank"; it.labelEl.rel = "noopener noreferrer";
+    } else it.labelEl = document.createElement("span");
+    it.labelEl.classList.add("act-label");
+    it.labelEl.textContent = label;
+    it.timeEl = document.createElement("small");
+    row.append(it.icEl, it.labelEl, it.timeEl);
+    it.set = t => { it.labelEl.textContent = t; };
+    it.done = (ok, extra) => {
+      if (it.state !== "run") return;
+      it.state = ok ? "ok" : "fail";
+      it.icEl.className = "act-ic " + it.state;
+      it.icEl.textContent = ok ? "✓" : "✕";
+      if (extra && extra.name) it.labelEl.textContent = extra.name;
+      if (extra && extra.url && it.labelEl.tagName === "A" && /^https:\/\//.test(extra.url)) it.labelEl.href = extra.url;
+      it.timeEl.textContent = ((performance.now() - it.t0) / 1000).toFixed(1) + "s";
+    };
+    keepBottom(() => this.list.appendChild(row));
+    this.items.push(it);
+    return it;
+  }
+  setCancel(fn) {
+    this.clearCancel();
+    const b = document.createElement("button");
+    b.className = "gen-cancel";
+    b.textContent = "✕";
+    b.title = "Parar a resposta";
+    b.setAttribute("aria-label", "Parar a resposta");
+    b.addEventListener("click", e => { e.stopPropagation(); b.disabled = true; b.textContent = "…"; fn(); });
+    this.head.insertBefore(b, this.chev);
+    this.cancelBtn = b;
+  }
+  clearCancel() { if (this.cancelBtn) { this.cancelBtn.remove(); this.cancelBtn = null; } }
+  finish(summary, ok = true) {
+    if (this.finished) return;
+    this.finished = true;
+    clearInterval(this.timer);
+    this.tick();
+    this.clearCancel();
+    this.items.forEach(it => it.done(ok));
+    if (summary) this.titleEl.textContent = summary;
+    this.el.classList.add("done");
+    if (!ok) this.el.classList.add("fail");
+    this.spin.textContent = ok ? "✓" : "✕";
+    setTimeout(() => { this.el.classList.add("collapsed"); this.chev.textContent = "▸"; }, 900);
+  }
 }
 
-function newSource(name, url, sources, onChange) {
-  const item = { name, url, state: "loading", ms: 0, started: performance.now() };
-  sources.push(item);
-  if (onChange) onChange();
-  return item;
-}
+const NULL_ACT = { step: () => ({ done() {}, set() {} }) };
+function newSource(name, url, act) { return (act && typeof act.step === "function" ? act : NULL_ACT).step(name, url); }
+function finishSource(item, ok, _cb, extra) { item.done(ok, extra); }
 
-function finishSource(item, ok, onChange, extra) {
-  item.state = ok ? "ok" : "fail";
-  item.ms = performance.now() - item.started;
-  if (extra) { if (extra.name) item.name = extra.name; if (extra.url) item.url = extra.url; }
-  if (onChange) onChange();
-}
-
-function addActions(text) {
+function addActions(text, question) {
   const row = document.createElement("div");
   row.className = "actions";
   const all = document.createElement("button");
@@ -553,7 +718,22 @@ function addActions(text) {
     only.addEventListener("click", () => copyText(code, only, "💻 Copiar só o código"));
     row.appendChild(only);
   }
-  chat.appendChild(row);
+
+  if (question) {
+    chat.querySelectorAll(".regen").forEach(b => b.remove());
+    const regen = document.createElement("button");
+    regen.className = "copy regen";
+    regen.textContent = "🔄 Refazer";
+    regen.addEventListener("click", async () => {
+      if (busy || resetting || searching) return;
+      if (history.length && history[history.length - 1].role === "assistant") history.pop();
+      if (history.length && history[history.length - 1].role === "user") history.pop();
+      saveHistory();
+      await generate(question, "", { skipUser: true });
+    });
+    row.appendChild(regen);
+  }
+  keepBottom(() => chat.appendChild(row));
 }
 
 function updateButtons() {
@@ -562,6 +742,185 @@ function updateButtons() {
   $("restart").disabled = busy || resetting || !!loadingPromise;
   $("weather").disabled = busy;
   $("attachBtn").disabled = busy;
+}
+
+// ------------------------------ Boas-vindas
+
+const SUGGESTIONS = [
+  "Que horas são?",
+  "Como está o clima hoje?",
+  "Quem foi Santos Dumont?",
+  "Me explique o que é uma API",
+  "Conte uma piada"
+];
+
+function showWelcome() {
+  if (chat.children.length) return;
+  const w = document.createElement("div");
+  w.className = "welcome";
+  w.innerHTML = "<h2>Olá! Eu sou o Rizik ✨</h2><p>Converso, pesquiso na internet, leio textos e arquivos grandes, vejo o clima e ajudo com código, tudo rodando no seu aparelho.</p>";
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  SUGGESTIONS.forEach(q => {
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.textContent = q;
+    b.addEventListener("click", () => { input.value = q; $("send").click(); });
+    chips.appendChild(b);
+  });
+  w.appendChild(chips);
+  chat.appendChild(w);
+}
+
+// ------------------------------ Leitor rápido (programa secundário em Web Worker)
+// Lê o texto INTEIRO em milissegundos, sem usar a IA: divide em trechos, pontua cada um com BM25
+// (o mesmo método de buscadores) e entrega à IA só os trechos mais relevantes, na ordem original.
+// Função pura: roda tanto no Worker quanto na página (se o Worker não estiver disponível).
+function rankChunks(p) {
+  var t0 = performance.now();
+  var text = String(p.text || ""), query = String(p.query || "");
+  var budget = Math.max(600, p.budget | 0);
+  var norm = function (s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
+  var STOP = Object.create(null);
+  "para como que com uma por dos das nos nas isso esse essa este esta sobre qual quais faz fazer explique resuma resumo arquivo texto codigo conteudo aponte erros provaveis trecho corrigido the and what this".split(" ").forEach(function (w) { STOP[w] = 1; });
+  var words = function (s) { return norm(s).replace(/[^a-z0-9_$]+/g, " ").split(" ").filter(function (w) { return w.length > 2 && !STOP[w]; }); };
+
+  var lines = text.split("\n"), segs = [];
+  for (var i = 0; i < lines.length; i++) {
+    var ln = lines[i];
+    while (ln.length > 500) {
+      var cut = ln.lastIndexOf(". ", 400);
+      if (cut < 120) cut = ln.lastIndexOf(" ", 400);
+      if (cut < 120) cut = 400;
+      segs.push([i, ln.slice(0, cut + 1)]);
+      ln = ln.slice(cut + 1);
+    }
+    segs.push([i, ln]);
+  }
+
+  var chunks = [], cur = [], len = 0, a = 0;
+  var flush = function (lastLine) {
+    if (cur.length) { var t = cur.join("\n"); if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t }); }
+    cur = []; len = 0;
+  };
+  for (var s = 0; s < segs.length; s++) {
+    if (!cur.length) a = segs[s][0];
+    cur.push(segs[s][1]); len += segs[s][1].length + 1;
+    var blank = !segs[s][1].trim();
+    if (len >= 450 || (blank && len >= 200)) flush(segs[s][0]);
+  }
+  flush(segs.length ? segs[segs.length - 1][0] : 0);
+
+  var N = chunks.length;
+  if (!N) return { text: "", outline: [], chars: text.length, lines: lines.length, chunks: 0, picked: 0, coverage: 0, ms: 0 };
+
+  var q = [], seen = Object.create(null), qset = Object.create(null);
+  words(query).forEach(function (w) { if (!seen[w]) { seen[w] = 1; q.push(w); qset[w] = 1; } });
+
+  var totalLen = 0;
+  chunks.forEach(function (c) {
+    var ws = words(c.text);
+    c.len = ws.length || 1; totalLen += c.len; c.tf = Object.create(null); c.score = 0;
+    ws.forEach(function (w) { if (qset[w]) c.tf[w] = (c.tf[w] || 0) + 1; });
+  });
+  var avg = totalLen / N || 1;
+  q.forEach(function (w) {
+    var df = 0;
+    chunks.forEach(function (c) { if (c.tf[w]) df++; });
+    if (!df) return;
+    var idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
+    chunks.forEach(function (c) {
+      var f = c.tf[w];
+      if (f) c.score += idf * (f * 2.5) / (f + 1.5 * (0.25 + 0.75 * c.len / avg));
+    });
+  });
+
+  var sig = /(erro|error|exception|throw|bug|fixme|todo|falha|warning|aviso|undefined|null)/i;
+  var def = /^\s*(export\s+)?(async\s+)?(function|class|def|interface)\s/m;
+  chunks.forEach(function (c) {
+    var h = 0;
+    if (sig.test(c.text)) h += 0.25;
+    if (def.test(c.text)) h += 0.15;
+    c.score += q.length ? h * 0.3 : h;
+  });
+
+  var picked = Object.create(null), used = 0, count = 0;
+  var add = function (i) {
+    if (i < 0 || i >= N || picked[i]) return;
+    var l = chunks[i].text.length + 42;
+    if (used + l > budget) return;
+    picked[i] = 1; used += l; count++;
+  };
+  var idx = [];
+  for (var k = 1; k < N - 1; k++) idx.push(k);
+  if (q.length) {
+    // Com pergunta: os trechos que mais combinam entram primeiro; início e fim só se sobrar espaço.
+    var top = [];
+    for (var z = 0; z < N; z++) top.push(z);
+    top.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
+    for (var y2 = 0; y2 < 3 && y2 < top.length; y2++) { if (chunks[top[y2]].score > 0.5) add(top[y2]); }
+  }
+  add(0); add(N - 1);
+  if (!q.length) {
+    var per = Math.max(2, Math.floor(budget / (text.length / N + 42)));
+    var cov = Math.floor(per / 2);
+    for (var j = 1; j <= cov; j++) add(Math.floor(j * N / (cov + 1)));
+  }
+  idx.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
+  for (var m = 0; m < idx.length; m++) add(idx[m]);
+
+  var out = "", prev = -2, usedChars = 0;
+  for (var n = 0; n < N; n++) {
+    if (!picked[n]) continue;
+    if (prev !== -2) {
+      if (n !== prev + 1) out += "\n[… trecho omitido: linhas " + (chunks[prev].b + 1) + "–" + (chunks[n].a - 1) + " …]\n";
+      else out += "\n";
+    }
+    out += chunks[n].text;
+    usedChars += chunks[n].text.length;
+    prev = n;
+  }
+
+  var outline = [];
+  for (var o = 0; o < lines.length && outline.length < 24; o++) {
+    if (/^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+/.test(lines[o]) || /^#{1,3}\s+\S/.test(lines[o])) outline.push(lines[o].trim().slice(0, 70));
+  }
+
+  return {
+    text: out, outline: outline, chars: text.length, lines: lines.length, chunks: N, picked: count,
+    coverage: Math.min(100, Math.round(usedChars / Math.max(1, text.length) * 100)),
+    ms: Math.round(performance.now() - t0)
+  };
+}
+
+let rworker = null, rid = 0;
+const rpending = new Map();
+
+function getReaderWorker() {
+  if (rworker !== null) return rworker || null;
+  try {
+    const src = rankChunks.toString() + ";self.onmessage=function(e){var d=e.data,r;try{r=rankChunks(d.payload)}catch(x){r={error:String(x)}}self.postMessage({id:d.id,r:r})};";
+    rworker = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+    rworker.onmessage = e => { const f = rpending.get(e.data.id); if (f) { rpending.delete(e.data.id); f(e.data.r); } };
+    rworker.onerror = () => {
+      rworker = false;
+      for (const f of rpending.values()) f({ error: "worker" });
+      rpending.clear();
+    };
+  } catch (e) { rworker = false; }
+  return rworker || null;
+}
+
+function fastRead(text, query, budget) {
+  return new Promise(resolve => {
+    const payload = { text, query, budget };
+    const w = getReaderWorker();
+    if (!w) { resolve(rankChunks(payload)); return; }
+    const id = ++rid;
+    const timer = setTimeout(() => { rpending.delete(id); resolve(rankChunks(payload)); }, 10000);
+    rpending.set(id, r => { clearTimeout(timer); resolve(r && !r.error ? r : rankChunks(payload)); });
+    w.postMessage({ id, payload });
+  });
 }
 
 // ------------------------------ Histórico
@@ -606,7 +965,8 @@ function limitText(text, maxChars) {
 
 function buildMessages(text, extraContext) {
   const isCode = !extraContext && looksLikeCode(text);
-  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
+  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + " Hoje é " + today + "." + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
 
   const recent = (isCode && text.length > 1200) ? [] : history.slice(-4);
   for (const item of recent) messages.push({ role: item.role, content: limitText(item.content, 240) });
@@ -639,7 +999,7 @@ async function destroyAI() {
   }
 }
 
-async function loadAI() {
+async function loadAI(parentAct) {
   if (ready && ai) { sayStatus("A IA já está carregada!"); return true; }
   if (loadingPromise) return loadingPromise;
 
@@ -647,15 +1007,22 @@ async function loadAI() {
 
   loadingPromise = (async () => {
     let newAI = null;
+    const own = !(parentAct && typeof parentAct.step === "function");
+    const act = own ? new Activity("Carregando a IA") : parentAct;
+    const t0 = performance.now();
+    let sEngine = null, sModel = null;
     try {
       sayStatus("Preparando o motor da IA...");
+      sEngine = act.step("⚙️ Preparando o motor (Wllama)");
       newAI = new Wllama(WasmFromCDN);
       newAI.setCompat("default");
       ai = newAI;
       ready = false;
+      sEngine.done(true);
 
       try { localStorage.setItem("rizik_loading", "1"); } catch (e) {}
       sayStatus("Carregando " + MODELS[settings.model].name + "...");
+      sModel = act.step("⬇️ Carregando " + MODELS[settings.model].name + " (do cache ou da internet)");
 
       await newAI.loadModelFromUrl(MODELS[settings.model].url, {
         n_ctx: settings.ctx,
@@ -663,17 +1030,22 @@ async function loadAI() {
         n_threads: THREADS,
         n_gpu_layers: 0,
         progressCallback: ({ loaded, total }) => {
-          if (total > 0) sayStatus("Baixando modelo: " + Math.round(loaded / total * 100) + "%");
-          else sayStatus("Baixando modelo...");
+          if (total > 0) {
+            const pct = Math.round(loaded / total * 100);
+            sayStatus("Baixando modelo: " + pct + "%");
+            sModel.set("⬇️ Baixando " + MODELS[settings.model].name + ": " + pct + "% (" + Math.round(loaded / 1048576) + " de " + Math.round(total / 1048576) + " MB)");
+          } else sayStatus("Baixando modelo...");
         }
       });
 
-      if (ai !== newAI) { try { await newAI.exit(); } catch (_) {} return false; }
+      if (ai !== newAI) { try { await newAI.exit(); } catch (_) {} if (own) act.finish("Carregamento cancelado", false); return false; }
 
       ready = true;
+      sModel.done(true, { name: "✅ " + MODELS[settings.model].name + " carregado" });
       try { localStorage.removeItem("rizik_loading"); localStorage.setItem("rizik_autoload", "1"); } catch (e) {}
 
       sayStatus("Rizik está pronto!");
+      if (own) act.finish("IA pronta · " + ((performance.now() - t0) / 1000).toFixed(1) + "s");
       addMessage("system",
         "Rizik AI carregado com sucesso! 🚀\nModelo: " + MODELS[settings.model].name +
         "\nNúcleos em uso: " + THREADS + (self.crossOriginIsolated ? " (modo rápido ativo)" : " (modo rápido inativo)"));
@@ -686,6 +1058,8 @@ async function loadAI() {
       if (ai === newAI) ai = null;
       ready = false;
       sayStatus("Falha ao carregar a IA.");
+      if (sModel) sModel.done(false); else if (sEngine) sEngine.done(false);
+      if (own) act.finish("Falha ao carregar a IA", false);
       addMessage("system", "Erro ao carregar: " + (err?.message || String(err)));
       return false;
 
@@ -719,32 +1093,38 @@ async function restartAI() {
   }
 }
 
-// ------------------------------ Gerar resposta
+// ------------------------------ Gerar resposta (com painel de atividade e resposta em tempo real)
 
 async function generate(text, extraContext = "", opts = {}) {
-  if (busy || resetting) return;
+  if (busy || resetting) { if (opts.act) opts.act.finish("Ocupado, tente de novo", false); return; }
   busy = true;
   cancelRequested = false;
   updateButtons();
 
   const shown = opts.shown || text;
-  let answerBox = null, currentEngine = null, thinkTimer = null, thinkStart = 0, cancelBtn = null;
+  let act = opts.act || null;
+  let answerBox = null, currentEngine = null;
 
   try {
     if (!opts.skipUser) addMessage("user", shown);
     if (text.length > maxChars()) addMessage("system", "Texto grande: li só os primeiros " + maxChars() + " caracteres.");
+    if (!act) act = new Activity("Pensando");
 
     if (!ready || !ai) {
       sayStatus("Carregando a IA...");
-      const loaded = await loadAI();
+      const loaded = await loadAI(act);
       if (!loaded || !ready || !ai) {
         addMessage("system", "Não consegui iniciar a IA. Abra ⋮ > Reiniciar IA e tente novamente.");
+        act.finish("Não consegui iniciar a IA", false);
         return;
       }
     }
 
     currentEngine = ai;
+    const stCtx = act.step("📝 Montando o contexto da conversa");
     const messages = buildMessages(text, extraContext);
+    const approx = Math.round(messages.reduce((s, m) => s + m.content.length, 0) / 3.2);
+    stCtx.done(true, { name: "📝 Contexto pronto · cerca de " + approx.toLocaleString("pt-BR") + " tokens" });
 
     if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 9000), t: Date.now() });
     saveHistory();
@@ -752,39 +1132,13 @@ async function generate(text, extraContext = "", opts = {}) {
     answerBox = addMessage("assistant", "");
     answerBox.querySelector(".body").innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
 
-    const timerBox = document.createElement("div");
-    timerBox.className = "message system timerline";
-    timerBox.style.alignSelf = "flex-start";
-    const timerBody = document.createElement("div");
-    timerBody.className = "body";
-    timerBody.textContent = "⏱ 0s · lendo a pergunta...";
-    cancelBtn = document.createElement("button");
-    cancelBtn.className = "gen-cancel";
-    cancelBtn.textContent = "✕";
-    cancelBtn.title = "Parar a resposta";
-    cancelBtn.setAttribute("aria-label", "Parar a resposta");
-    cancelBtn.addEventListener("click", () => {
-      cancelRequested = true;
-      cancelBtn.disabled = true;
-      cancelBtn.textContent = "…";
-      sayStatus("Parando a resposta...");
-    });
-    timerBox.append(timerBody, cancelBtn);
-    chat.appendChild(timerBox);
-    scrollEnd();
+    const readStep = act.step("🧠 Lendo a pergunta e o contexto");
+    let writeStep = null;
+    act.setCancel(() => { cancelRequested = true; sayStatus("Parando a resposta..."); });
+    sayStatus("Rizik está pensando...");
 
-    thinkStart = performance.now();
-    let tokenCount = 0, firstTokenAt = 0;
-
-    const showTimer = () => {
-      const s = (performance.now() - thinkStart) / 1000;
-      timerBody.textContent = !firstTokenAt
-        ? "⏱ " + Math.round(s) + "s · lendo a pergunta... (toque em ✕ para parar)"
-        : "⏱ " + Math.round(s) + "s · escrevendo a resposta · " + tokenCount + " partes";
-      sayStatus("Rizik está pensando... " + Math.round(s) + "s");
-    };
-    showTimer();
-    thinkTimer = setInterval(showTimer, 500);
+    const startAt = performance.now();
+    let tokenCount = 0, firstTokenAt = 0, lastPaint = 0;
 
     const stream = await currentEngine.createChatCompletion({
       messages,
@@ -803,30 +1157,38 @@ async function generate(text, extraContext = "", opts = {}) {
       const piece = choice?.delta?.content ?? "";
       if (choice?.finish_reason === "length") truncated = true;
       if (piece) {
-        if (!firstTokenAt) firstTokenAt = performance.now();
+        const now = performance.now();
+        if (!firstTokenAt) {
+          firstTokenAt = now;
+          readStep.done(true, { name: "🧠 Leitura concluída em " + ((now - startAt) / 1000).toFixed(1) + "s" });
+          writeStep = act.step("✍️ Escrevendo a resposta");
+        }
         tokenCount++;
         answer += piece;
+        if (now - lastPaint > 70) {
+          lastPaint = now;
+          const secs = (now - firstTokenAt) / 1000;
+          writeStep.set("✍️ Escrevendo · " + tokenCount + " partes · " + (secs > 0.5 ? (tokenCount / secs).toFixed(1) : "…") + "/s");
+          keepBottom(() => setBody(answerBox, answer + " ▍", true));
+        }
       }
     }
 
     answer = answer.trim();
     if (!answer) answer = cancelRequested ? "⏹ Resposta interrompida antes de gerar qualquer texto." : "Não consegui gerar uma resposta.";
     else if (cancelRequested) answer += "\n\n⏹ (interrompida por você)";
-    clearInterval(thinkTimer);
-    thinkTimer = null;
-    if (cancelBtn) cancelBtn.remove();
 
-    setBody(answerBox, answer);
+    keepBottom(() => setBody(answerBox, answer));
     answerBox.querySelector(".msg-time").textContent = fmtTime();
     lastAnswer = answer;
 
-    const totalSeconds = (performance.now() - thinkStart) / 1000;
-    const waitSeconds = firstTokenAt ? (firstTokenAt - thinkStart) / 1000 : totalSeconds;
-
-    timerBody.textContent =
-      "⏱ Total " + totalSeconds.toFixed(1) + "s · leitura " + waitSeconds.toFixed(1) + "s · " +
-      tokenCount + " partes" +
-      (cancelRequested ? " · interrompida" : truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
+    const now2 = performance.now();
+    const total = (now2 - startAt) / 1000;
+    const genSecs = firstTokenAt ? (now2 - firstTokenAt) / 1000 : 0;
+    const speed = genSecs > 0.3 ? (tokenCount / genSecs).toFixed(1) : "–";
+    if (writeStep) writeStep.done(true, { name: "✍️ Resposta escrita · " + tokenCount + " partes · " + speed + "/s" });
+    if (truncated) act.step("✂️ Resposta cortada pelo limite (aumente em ⋮ Configurações › Tamanho da resposta)").done(false);
+    act.finish((cancelRequested ? "⏹ Interrompida" : "✅ Pronto") + " · " + total.toFixed(1) + "s · " + speed + " partes/s");
 
     if (extraContext && !opts.noReview) {
       const note = reviewNote(answer, extraContext);
@@ -836,8 +1198,7 @@ async function generate(text, extraContext = "", opts = {}) {
       }
     }
 
-    addActions(answer);
-    scrollEnd();
+    addActions(answer, (!extraContext && !opts.shown) ? text : null);
 
     history.push({ role: "assistant", content: limitText(answer, 9000), t: Date.now() });
     saveHistory();
@@ -855,12 +1216,12 @@ async function generate(text, extraContext = "", opts = {}) {
       text2 = "Erro ao responder: " + (err?.message || String(err));
     }
 
+    if (act) act.finish("❌ Erro ao responder", false);
     if (answerBox) setBody(answerBox, text2);
     else addMessage("system", text2);
 
   } finally {
-    if (thinkTimer) clearInterval(thinkTimer);
-    if (cancelBtn && cancelBtn.parentNode) cancelBtn.remove();
+    if (act) act.finish();
     cancelRequested = false;
     busy = false;
     updateButtons();
@@ -913,7 +1274,7 @@ function hideAttachPreview() {
 
 $("attachRemove").addEventListener("click", () => { pendingAttachment = null; hideAttachPreview(); });
 
-$("load").addEventListener("click", loadAI);
+$("load").addEventListener("click", () => loadAI());
 
 $("restart").addEventListener("click", () => { closeMenu(); restartAI(); });
 
@@ -1081,6 +1442,7 @@ $("clear").addEventListener("click", () => {
   chat.innerHTML = "";
   lastAnswer = "";
   saveHistory();
+  showWelcome();
 });
 
 // ----- Histórico de perguntas
@@ -1205,6 +1567,13 @@ function quickReply(text) {
   if (t === "boa tarde") return "Boa tarde! Em que posso ajudar?";
   if (t === "boa noite") return "Boa noite! Em que posso ajudar?";
   if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
+  if (/^(tudo bem|tudo certo|como vai|como voc[eê] est[aá])$/.test(t)) return "Tudo ótimo por aqui! E com você? Em que posso ajudar?";
+  if (/^(quem [eé] voc[eê]|qual (é )?o seu nome|qual (é )?seu nome|o que voc[eê] faz)$/.test(t)) {
+    return "Eu sou o **Rizik AI**, um assistente que roda direto no seu aparelho.\n- Converso e respondo dúvidas\n- Pesquiso na internet\n- Leio textos, PDFs e códigos grandes\n- Mostro o clima\n- Ajudo a achar erros em programas";
+  }
+  if (/^(ajuda|o que voc[eê] sabe fazer|o que voc[eê] pode fazer|comandos)$/.test(t)) {
+    return "Posso te ajudar assim:\n- Digite uma pergunta e eu respondo\n- Toque em **+** para anexar arquivos, fotos ou pesquisar na internet\n- Toque em **Clima** para a previsão\n- Toque em **Conversar** para falar comigo por voz\n- Cole um texto ou código grande: eu leio tudo bem rápido";
+  }
   if (/^(que horas s[aã]o|que horas|hora certa)$/.test(t)) return "Agora são " + fmtTime() + ".";
   if (/^(que dia [eé] hoje|data de hoje|qual [eé] a data)$/.test(t)) {
     return "Hoje é " + new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ".";
@@ -1242,7 +1611,7 @@ function cleanWebText(t) {
 async function searchWikipedia(query, words) {
   const url = "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
     "&gsrsearch=" + encodeURIComponent(query) +
-    "&gsrlimit=4&prop=extracts&exintro=1&explaintext=1&exchars=900&format=json&origin=*";
+    "&gsrlimit=4&prop=extracts&exintro=1&explaintext=1&exchars=1100&format=json&origin=*";
 
   const response = await fetch(url);
   if (!response.ok) throw new Error("Wikipedia respondeu HTTP " + response.status);
@@ -1280,12 +1649,17 @@ async function searchStack(query) {
 
 async function searchDuck(query) {
   const raw = await fetchTextWithTimeout("https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), 20000);
-  const text = cleanWebText(raw).slice(0, 900);
-  if (text.length < 100) throw new Error("Pesquisa sem resultados suficientes.");
-  return { text: "Resultados da web:\n" + text };
+  const cleaned = cleanWebText(raw);
+  if (cleaned.length < 100) throw new Error("Pesquisa sem resultados suficientes.");
+  // O leitor rápido varre a página toda e separa só os trechos que combinam com a pergunta.
+  const r = await fastRead(cleaned, query, 1500);
+  return {
+    text: "Resultados da web:\n" + (r.text || cleaned.slice(0, 900)),
+    note: "li " + cleaned.length.toLocaleString("pt-BR") + " caracteres em " + r.ms + "ms e escolhi os melhores trechos"
+  };
 }
 
-async function searchWeb(query, words, sources, onChange) {
+async function searchWeb(query, words, act) {
   const tech = /python|javascript|\bjs\b|html|css|java|erro|error|c[oó]digo|programa|\bapi\b|fetch|npm|git|sql|react|node|bug|comando/i.test(query);
 
   const providers = [];
@@ -1296,13 +1670,16 @@ async function searchWeb(query, words, sources, onChange) {
   let lastError = null;
 
   for (const provider of providers) {
-    const source = newSource(provider.name, provider.site, sources, onChange);
+    const source = act.step("🌐 Consultando " + provider.name, provider.site);
     try {
       const result = await provider.run();
-      finishSource(source, true, onChange, result.title ? { name: provider.name + " → " + result.title, url: result.url } : undefined);
+      source.done(true, {
+        name: "🌐 " + provider.name + (result.title ? " → " + result.title : "") + (result.note ? " · " + result.note : ""),
+        url: result.url
+      });
       return result.text;
     } catch (err) {
-      finishSource(source, false, onChange);
+      source.done(false, { name: "🌐 " + provider.name + " · sem resultado útil" });
       lastError = err;
       console.warn("Fonte de pesquisa falhou:", provider.name, err);
     }
@@ -1324,40 +1701,20 @@ async function runSearch(rawQuery, opts = {}) {
 
   const words = keywords(original);
   const query = (cleanQuery(original) || original) + (settings.place && /perto|aqui|minha cidade|minha regi|próxim|proxim/i.test(original) ? " " + settings.place.name : "");
-  const sources = [];
-  const searchStart = performance.now();
-  const box = createSourcesBox();
-  let searchDone = false;
-
-  const refresh = () => renderSources(box, sources, "Pesquisando na internet", searchStart, searchDone);
-
-  const searchTimer = setInterval(() => {
-    refresh();
-    sayStatus("Pesquisando na internet... " + Math.round((performance.now() - searchStart) / 1000) + "s");
-  }, 500);
-
-  refresh();
-  scrollEnd();
+  const act = new Activity("Pesquisando na internet");
+  sayStatus("Pesquisando na internet...");
+  act.step("🔤 Palavras da busca: " + query).done(true);
 
   try {
-    const results = await searchWeb(query, words, sources, refresh);
-
-    clearInterval(searchTimer);
-    searchDone = true;
-    renderSources(box, sources, "Fontes consultadas", searchStart, true);
+    const results = await searchWeb(query, words, act);
     searching = false;
-
-    await generate(original, results, { shown: original, skipUser: true, noUserHistory: !!opts.silent });
-
-    chat.appendChild(box);
-    scrollEnd();
+    act.title("Lendo as fontes e respondendo");
+    await generate(original, results, { shown: original, skipUser: true, noUserHistory: !!opts.silent, act });
 
   } catch (err) {
-    clearInterval(searchTimer);
-    searchDone = true;
-    renderSources(box, sources, "Fontes consultadas", searchStart, true);
     console.error("Erro na pesquisa:", err);
     sayStatus("Pesquisa indisponível.");
+    act.finish("Pesquisa sem resultado", false);
     addMessage("system", "Não achei nada confiável sobre isso: " + (err.message || String(err)));
 
   } finally {
@@ -1385,18 +1742,13 @@ function shortDate(iso) {
 }
 
 async function runWeather(city) {
-  const started = performance.now();
-  const sources = [];
-  const box = createSourcesBox();
-  const refresh = () => renderSources(box, sources, "Consultando a previsão", started, false);
-
-  refresh();
+  const act = new Activity("Consultando a previsão do tempo");
   sayStatus("Consultando previsão do tempo...");
 
   try {
-    const place = await resolvePlace(city, sources, refresh);
+    const place = await resolvePlace(city, act, null);
 
-    const weatherSrc = newSource("api.open-meteo.com", "https://open-meteo.com", sources, refresh);
+    const weatherSrc = act.step("🌤️ Baixando a previsão (api.open-meteo.com)", "https://open-meteo.com");
 
     const weatherUrl =
       "https://api.open-meteo.com/v1/forecast?latitude=" + place.latitude + "&longitude=" + place.longitude +
@@ -1405,7 +1757,7 @@ async function runWeather(city) {
       "&timezone=auto&forecast_days=3";
 
     const weatherResponse = await fetch(weatherUrl);
-    finishSource(weatherSrc, weatherResponse.ok, refresh);
+    weatherSrc.done(weatherResponse.ok);
     if (!weatherResponse.ok) throw new Error("Erro ao consultar previsão.");
 
     const data = await weatherResponse.json();
@@ -1423,16 +1775,14 @@ async function runWeather(city) {
       "Umidade " + c.relative_humidity_2m + "% · Vento " + c.wind_speed_10m + " km/h · Chuva agora " + c.precipitation + " mm\n\n" +
       days;
 
+    act.finish("Previsão pronta · " + place.name);
     addMessage("assistant", report);
     lastAnswer = report;
-
-    renderSources(box, sources, "Fontes da previsão", started, true);
-    chat.appendChild(box);
     sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
 
   } catch (err) {
     console.error("Erro no clima:", err);
-    renderSources(box, sources, "Fontes da previsão", started, true);
+    act.finish("Erro ao consultar o clima", false);
     sayStatus("Erro ao consultar o clima.");
     addMessage("system", err.message || String(err));
   }
@@ -1443,9 +1793,10 @@ $("weather").addEventListener("click", async () => {
   await runWeather("");
 });
 
-// ------------------------------ Textos grandes como arquivo
+// ------------------------------ Textos grandes como arquivo (leitor rápido)
 
 function addFileMessage(text, label) {
+  clearWelcome();
   const div = document.createElement("div");
   div.className = "message user";
   const box = document.createElement("div");
@@ -1457,7 +1808,7 @@ function addFileMessage(text, label) {
   const btn = document.createElement("button");
   btn.textContent = "Ver";
   const pre = document.createElement("pre");
-  pre.textContent = text;
+  pre.textContent = text.length > 60000 ? text.slice(0, 60000) + "\n[… pré-visualização cortada …]" : text;
   pre.hidden = true;
   btn.addEventListener("click", () => { pre.hidden = !pre.hidden; btn.textContent = pre.hidden ? "Ver" : "Ocultar"; });
   head.append(name, btn);
@@ -1467,8 +1818,7 @@ function addFileMessage(text, label) {
   time.className = "msg-time";
   time.textContent = fmtTime();
   div.appendChild(time);
-  chat.appendChild(div);
-  scrollEnd();
+  keepBottom(() => chat.appendChild(div), true);
 }
 
 async function handleLong(text, customLabel, customQuestion) {
@@ -1478,53 +1828,30 @@ async function handleLong(text, customLabel, customQuestion) {
   const marker = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
   const limit = maxChars();
   const question = customQuestion || "Explique o que este conteúdo faz e aponte erros prováveis, com o trecho corrigido.";
+  const n = text.length.toLocaleString("pt-BR");
+  const act = new Activity("Lendo o conteúdo");
 
   if (text.length <= limit - 150) {
-    await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true });
+    act.step("📂 Lendo " + label + " · " + n + " caracteres (cabe inteiro)").done(true);
+    await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true, act });
     return;
   }
 
-  if (!ready || !ai) {
-    sayStatus("Carregando a IA...");
-    if (!(await loadAI())) { addMessage("system", "Não consegui iniciar a IA. Abra ⋮ > Reiniciar IA."); return; }
-  }
+  // Texto grande: o leitor rápido (Web Worker) varre tudo e a IA recebe só o que importa. Uma única chamada à IA.
+  const s1 = act.step("⚡ Leitor rápido: varrendo " + n + " caracteres");
+  const r = await fastRead(text, customQuestion || "", Math.max(1500, limit - question.length - 800));
+  s1.done(true, { name: "⚡ Li " + n + " caracteres em " + r.ms + "ms · " + r.chunks + " trechos · enviei os " + r.picked + " mais relevantes (" + r.coverage + "% do texto)" });
 
-  busy = true;
-  updateButtons();
-  const size = Math.floor(limit * 0.6);
-  const parts = [];
-  for (let i = 0; i < text.length; i += size) parts.push(text.slice(i, i + size));
-  const notes = [];
-  const note = addMessage("system", "");
-  const engine = ai;
+  const outline = (r.outline || []).join(" | ").slice(0, 600);
+  if (outline) act.step("🧭 Estrutura encontrada: " + outline.slice(0, 140) + (outline.length > 140 ? "…" : "")).done(true);
 
-  try {
-    for (let i = 0; i < parts.length; i++) {
-      note.querySelector(".body").textContent = "📖 Lendo parte " + (i + 1) + " de " + parts.length + "...";
-      sayStatus("Lendo parte " + (i + 1) + " de " + parts.length + "...");
-      const r = await engine.createChatCompletion({
-        messages: [
-          { role: "system", content: SYSTEM_CODE },
-          { role: "user", content: "Resuma em até 5 linhas o que esta parte faz e liste erros prováveis:\n\n" + parts[i] }
-        ],
-        max_tokens: 160, temperature: 0.2, stream: false
-      });
-      notes.push("Parte " + (i + 1) + ": " + String(r?.choices?.[0]?.message?.content || "").trim());
-    }
-  } catch (err) {
-    console.error("Erro na leitura longa:", err);
-    if (isEngineCrash(err)) await destroyAI();
-    note.querySelector(".body").textContent = "Erro ao ler o texto grande: " + (err?.message || String(err)) + ". Tente ⋮ > Reiniciar IA.";
-    busy = false;
-    updateButtons();
-    sayStatus("Erro na leitura.");
-    return;
-  }
+  const prompt =
+    question +
+    "\n(O conteúdo é grande: abaixo estão os trechos mais importantes, com '[… trecho omitido …]' nos cortes.)" +
+    (outline ? "\nEstrutura: " + outline : "") +
+    "\n\n" + r.text;
 
-  busy = false;
-  updateButtons();
-  note.querySelector(".body").textContent = "✅ Li as " + parts.length + " partes.";
-  await generate(question + "\nO conteúdo é grande e foi resumido por partes.", notes.join("\n"), { shown: marker, skipUser: true });
+  await generate(prompt, "", { shown: marker, skipUser: true, act });
 }
 
 // ------------------------------ Conversa por voz
@@ -1644,7 +1971,7 @@ let speakToken = 0;
 
 function speakText(text, done) {
   if (!("speechSynthesis" in window)) { done(); return; }
-  const spoken = String(text).split(FENCE).map((p, i) => i % 2 ? " (código omitido) " : p).join(" ");
+  const spoken = String(text).split(FENCE).map((p, i) => i % 2 ? " (código omitido) " : p).join(" ").replace(/[*#`]/g, "");
   const sentences = spoken.replace(/\s+/g, " ").trim().match(/[^.!?\n]+[.!?]*/g) || [spoken];
   const parts = [];
   let cur = "";
@@ -1728,6 +2055,7 @@ $("viewerVid").addEventListener("click", e => e.stopPropagation());
 $("viewer").addEventListener("click", () => { $("viewerVid").pause(); $("viewer").hidden = true; });
 
 function addGallery(files) {
+  clearWelcome();
   const div = document.createElement("div");
   div.className = "message user";
   const grid = document.createElement("div");
@@ -1772,12 +2100,13 @@ function addGallery(files) {
   b.addEventListener("click", () => runVision(files, b));
   row.appendChild(b);
   chat.appendChild(row);
-  scrollEnd();
+  scrollEnd(true);
 }
 
 const TEXT_FILE_RE = /\.(txt|md|markdown|csv|json|js|jsx|ts|tsx|py|html|htm|css|xml|yml|yaml|log|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat|ini|env)$/i;
-const MAX_FILE_BYTES = 400 * 1024;
-const MAX_PDF_BYTES = 15 * 1024 * 1024;
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_PDF_BYTES = 25 * 1024 * 1024;
+const MAX_PDF_PAGES = 200;
 
 let pdfLib = null;
 async function loadPdfJs() {
@@ -1791,15 +2120,16 @@ async function extractPdfText(file, setMsg) {
   const lib = await loadPdfJs();
   const buffer = await file.arrayBuffer();
   const doc = await lib.getDocument({ data: buffer }).promise;
-  const maxPages = Math.min(doc.numPages, 40);
-  let text = "";
+  const maxPages = Math.min(doc.numPages, MAX_PDF_PAGES);
+  const pages = [];
   for (let i = 1; i <= maxPages; i++) {
-    if (setMsg) setMsg("📄 Lendo página " + i + " de " + maxPages + "...");
+    if (setMsg) setMsg("📄 Lendo página " + i + " de " + maxPages);
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
-    text += content.items.map(it => it.str).join(" ") + "\n\n";
+    pages.push(content.items.map(it => it.str).join(" "));
   }
-  if (doc.numPages > maxPages) text += "\n[PDF truncado: li " + maxPages + " de " + doc.numPages + " páginas.]";
+  let text = pages.join("\n\n");
+  if (doc.numPages > maxPages) text += "\n\n[PDF truncado: li " + maxPages + " de " + doc.numPages + " páginas.]";
   return text.trim();
 }
 
@@ -1820,32 +2150,34 @@ $("fileInput").addEventListener("change", async () => {
     return;
   }
   if (!isPdf && file.size > MAX_FILE_BYTES) {
-    addMessage("system", "Arquivo grande demais: o limite é " + Math.round(MAX_FILE_BYTES / 1024) + " KB de texto.");
+    addMessage("system", "Arquivo grande demais: o limite é " + Math.round(MAX_FILE_BYTES / 1024 / 1024) + " MB de texto.");
     return;
   }
 
-  const loadingBox = isPdf ? addMessage("system", "📄 Abrindo o PDF...") : null;
+  const act = new Activity("Abrindo o arquivo");
+  const sOpen = act.step((isPdf ? "📄 Abrindo o PDF " : "📂 Abrindo ") + file.name + " (" + Math.max(1, Math.round(file.size / 1024)).toLocaleString("pt-BR") + " KB)");
   let text = "";
   try {
     text = isPdf
-      ? await extractPdfText(file, t => { if (loadingBox) loadingBox.querySelector(".body").textContent = t; })
+      ? await extractPdfText(file, t => sOpen.set(t))
       : await file.text();
+    sOpen.done(true, { name: (isPdf ? "📄 " : "📂 ") + file.name + " lido por inteiro" });
   } catch (err) {
     console.error("Erro ao ler arquivo:", err);
-    const msg = "Não consegui ler esse arquivo: " + (err?.message || String(err));
-    if (loadingBox) loadingBox.querySelector(".body").textContent = msg;
-    else addMessage("system", msg);
+    sOpen.done(false);
+    act.finish("Não consegui ler o arquivo", false);
+    addMessage("system", "Não consegui ler esse arquivo: " + (err?.message || String(err)));
     return;
   }
 
-  if (loadingBox) loadingBox.remove();
-
   if (!text.trim()) {
+    act.finish("Arquivo sem texto", false);
     addMessage("system", isPdf ? "Não encontrei texto nesse PDF (pode ser só imagens digitalizadas)." : "Esse arquivo parece estar vazio.");
     return;
   }
 
-  pendingAttachment = { label: "📄 " + file.name, text };
+  act.finish("Arquivo pronto · " + text.length.toLocaleString("pt-BR") + " caracteres");
+  pendingAttachment = { label: file.name, text };
   showAttachPreview(file.name);
 });
 
@@ -1953,40 +2285,40 @@ function getPosition() {
   });
 }
 
-async function gpsPlace(sources, refresh) {
-  const src = newSource("GPS do aparelho", "", sources, refresh);
+async function gpsPlace(act, _cb) {
+  const src = newSource("📡 GPS do aparelho", "", act);
   let pos;
-  try { pos = await getPosition(); finishSource(src, true, refresh); }
-  catch (e) { finishSource(src, false, refresh); throw e; }
+  try { pos = await getPosition(); src.done(true); }
+  catch (e) { src.done(false); throw e; }
 
   const lat = pos.coords.latitude, lon = pos.coords.longitude;
   let name = "Minha localização", admin1 = "";
-  const rs = newSource("api.bigdatacloud.net", "https://www.bigdatacloud.com", sources, refresh);
+  const rs = newSource("📍 Descobrindo o nome do lugar (api.bigdatacloud.net)", "https://www.bigdatacloud.com", act);
   try {
     const r = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + lat + "&longitude=" + lon + "&localityLanguage=pt");
     if (r.ok) {
       const j = await r.json();
       name = j.city || j.locality || name;
       admin1 = j.principalSubdivision || "";
-      finishSource(rs, true, refresh);
-    } else finishSource(rs, false, refresh);
-  } catch (e) { finishSource(rs, false, refresh); }
+      rs.done(true);
+    } else rs.done(false);
+  } catch (e) { rs.done(false); }
   return { name, admin1, latitude: lat, longitude: lon };
 }
 
-async function resolvePlace(city, sources, refresh) {
+async function resolvePlace(city, act, _cb) {
   if (!city) {
     if (settings.gpsAuto) {
-      try { return await gpsPlace(sources, refresh); }
+      try { return await gpsPlace(act); }
       catch (e) { if (!settings.place && !settings.city) throw e; }
     }
     if (settings.place) return settings.place;
     if (settings.city) city = settings.city;
-    else return await gpsPlace(sources, refresh);
+    else return await gpsPlace(act);
   }
-  const geoSrc = newSource("geocoding-api.open-meteo.com", "https://open-meteo.com", sources, refresh);
+  const geoSrc = newSource("🗺️ Localizando " + city + " (geocoding-api.open-meteo.com)", "https://open-meteo.com", act);
   const resp = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(city) + "&count=5&language=pt&format=json");
-  finishSource(geoSrc, resp.ok, refresh);
+  geoSrc.done(resp.ok);
   if (!resp.ok) throw new Error("Erro ao localizar cidade.");
   const geo = await resp.json();
   if (!geo.results || !geo.results.length) throw new Error("Cidade não encontrada.");
@@ -2000,7 +2332,7 @@ $("gpsBtn").addEventListener("click", async () => {
   list.hidden = false;
   list.textContent = "Pegando o GPS...";
   try {
-    savePlace(await gpsPlace([], null));
+    savePlace(await gpsPlace(null));
     list.hidden = true;
   } catch (e) { list.textContent = e.message || String(e); }
 });
@@ -2115,24 +2447,33 @@ async function runVision(files, btn) {
   if (busy || resetting || searching || visionBusy) return;
   visionBusy = true;
   btn.disabled = true;
-  const box = addMessage("system", "🔍 Preparando o leitor de imagens...");
-  const setMsg = t => { box.querySelector(".body").textContent = t; sayStatus(t); };
+  const act = new Activity("Analisando fotos e vídeos");
+  let cur = act.step("🔍 Preparando o leitor de imagens...");
+  const setMsg = t => {
+    if (/^🔍 Analisando/.test(t)) { cur.done(true); cur = act.step(t); }
+    else cur.set(t);
+    sayStatus(t);
+  };
   let ctxText = "";
   try {
     ctxText = await analyzeMedia(files, setMsg);
-    setMsg("✅ Análise pronta: " + files.length + (files.length === 1 ? " arquivo." : " arquivos."));
+    cur.done(true);
+    act.step("✅ Análise pronta: " + files.length + (files.length === 1 ? " arquivo" : " arquivos")).done(true);
     visionContext = ctxText;
   } catch (err) {
     console.error("Erro na visão:", err);
-    setMsg("Não consegui analisar: " + (err.message || String(err)));
+    cur.done(false);
+    act.finish("Não consegui analisar", false);
+    addMessage("system", "Não consegui analisar: " + (err.message || String(err)));
   }
   visionBusy = false;
   btn.disabled = false;
   if (ctxText) {
+    act.title("Escrevendo a descrição");
     await generate(
       "Descreva em português, de forma curta, o que aparece em cada foto ou vídeo. Traduza as legendas em inglês. Use somente as análises.",
       ctxText,
-      { shown: "🔍 Identificar " + files.length + (files.length === 1 ? " arquivo" : " arquivos"), noReview: true }
+      { shown: "🔍 Identificar " + files.length + (files.length === 1 ? " arquivo" : " arquivos"), noReview: true, act }
     );
   }
 }
@@ -2182,6 +2523,7 @@ applySettings();
 showPlace();
 tickClock();
 restoreHistory();
+showWelcome();
 updateButtons();
 
 if (prevCrash) {
