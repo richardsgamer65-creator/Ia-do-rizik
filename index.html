@@ -54,7 +54,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 10</small>
+    <small>Seu assistente pessoal · versão 12</small>
   </div>
   <button id="clear">Limpar</button>
 </header>
@@ -79,7 +79,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
   </div>
 
   <div class="info">
-    Modelo local Qwen 0.5B. Primeiro carregamento: aproximadamente 398 MB. Use Wi-Fi.
+    Modelo local Qwen2.5 Coder 1.5B. Primeiro carregamento: aproximadamente 986 MB. Use Wi-Fi.
     A pesquisa e o clima precisam de internet.
     Configuração otimizada para reduzir o consumo de memória no iPhone.
   </div>
@@ -96,13 +96,20 @@ const status = $("status");
 const input = $("prompt");
 
 const MODEL_URL =
-"https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf";
+"https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf";
 
-const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal. Responda em português brasileiro, de forma curta e direta. Não invente fatos.`;
+// Para conversa geral em vez de código, troque a linha acima por:
+// "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
 
-const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro.
-Ao receber código com problema: 1) diga a causa provável; 2) explique a correção; 3) entregue o código atualizado e completo dentro de um bloco de código (três crases), sem remover funções; 4) diga como testar. Use as dicas úteis quando existirem.
-Não invente bibliotecas nem resultados de testes. Se faltar informação, peça o erro exato.`;
+// Limites (ajuste se o iPhone travar: volte n_ctx para 1536 ou 1024).
+const N_CTX = 1536;
+const MAX_USER_CHARS = 2500;
+const MAX_TOKENS = 512;
+
+// Modelos pequenos precisam de ordens explícitas e curtas.
+const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda curto e direto. Se não souber, diga "não sei".`;
+
+const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre a correção em um bloco de código e explique como testar. Se faltar informação, peça o erro exato.`;
 
 // Notas internas de programação. O Rizik recebe só as 2 mais parecidas
 // com o pedido (o modelo é pequeno e o contexto é curto).
@@ -121,7 +128,7 @@ const KNOWLEDGE = [
   },
   {
     keys: /lent|trav|demor|memória|memoria|iphone|crash|out of memory/i,
-    text: "IA lenta ou travando no iPhone: use modelo pequeno (0.5B), n_ctx entre 512 e 1024, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta."
+    text: "IA lenta ou travando no iPhone: use modelo pequeno (0.5B), n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta."
   },
   {
     keys: /fetch|api|cors|json|requisição|requisicao/i,
@@ -146,8 +153,10 @@ function pickTips(text) {
   return picked.join("\n").slice(0, 650);
 }
 
+// Só sinais fortes de código. Palavras comuns ("erro", "java", "let ")
+// não ativam mais o modo programação sem querer.
 function looksLikeCode(text) {
-  return /```|<\/?[a-z]+[^>]*>|function\s|const\s|let\s|def\s|class\s|import\s|erro|error|exception|código|codigo|bug|corrij|corrigi|programa|script|html|css|python|java/i.test(text);
+  return /```|<\/?[a-z]+[^>]*>|function\s*\(|\bconst\s+\w+\s*=|\blet\s+\w+\s*=|\bdef\s+\w+\(|console\.|Uncaught|Traceback|TypeError|ReferenceError|SyntaxError/i.test(text);
 }
 
 // Vários núcleos só funcionam com isolamento de origem cruzada
@@ -332,17 +341,18 @@ function limitText(text, maxChars) {
 }
 
 function buildMessages(text, extraContext) {
+  const isCode = !extraContext && looksLikeCode(text);
+
   const messages = [
     {
       role: "system",
-      content: (extraContext || !looksLikeCode(text))
-        ? SYSTEM_CHAT
-        : SYSTEM_CODE
+      content: isCode ? SYSTEM_CODE : SYSTEM_CHAT
     }
   ];
 
-  // Apenas as duas mensagens mais recentes.
-  const recent = history.slice(-2);
+  // Mensagens longas (código) não entram no histórico enviado,
+  // para sobrar espaço no contexto.
+  const recent = isCode ? [] : history.slice(-2);
 
   for (const item of recent) {
     messages.push({
@@ -351,8 +361,8 @@ function buildMessages(text, extraContext) {
     });
   }
 
-  const safeText = limitText(text, 700);
-  const tips = (!extraContext && looksLikeCode(text)) ? pickTips(text) : "";
+  const safeText = limitText(text, MAX_USER_CHARS);
+  const tips = isCode ? pickTips(text) : "";
   const safeResearch = extraContext
     ? limitText(extraContext, 450)
     : "";
@@ -433,8 +443,7 @@ async function loadAI() {
       sayStatus("Carregando modelo Qwen...");
 
       await newAI.loadModelFromUrl(MODEL_URL, {
-        // Configuração mais leve para iPhone.
-        n_ctx: 1024,
+        n_ctx: N_CTX,
         n_batch: 256,
         n_threads: THREADS,
         n_gpu_layers: 0,
@@ -610,8 +619,8 @@ async function generate(text, extraContext = "") {
 
     const stream = await currentEngine.createChatCompletion({
       messages,
-      max_tokens: 256,
-      temperature: 0.6,
+      max_tokens: MAX_TOKENS,
+      temperature: 0.3,
       top_p: 0.9,
       stream: true
     });
@@ -706,6 +715,34 @@ async function generate(text, extraContext = "") {
 }
 
 // ------------------------------
+// Clima: detectar pergunta e cidade
+// ------------------------------
+
+const WEATHER_WORDS = /\b(tempo de chuva|clima|chuva|chover|chovendo|previs[aã]o|temperatura|calor|frio)\b/i;
+
+function isWeatherQuestion(text) {
+  return WEATHER_WORDS.test(text);
+}
+
+// Pega o texto depois da ÚLTIMA preposição de lugar (em, para, na, no).
+// Se não achar, tenta "de/da/do". Se ainda não achar, usa a cidade padrão.
+function extractCity(text) {
+  const clean = String(text).trim();
+
+  let m = clean.match(/^.*\b(?:em|para|na|no)\s+([A-Za-zÀ-ú\s'-]+?)\s*[?!.]*\s*$/i);
+  if (!m) m = clean.match(/^.*\b(?:de|da|do)\s+([A-Za-zÀ-ú\s'-]+?)\s*[?!.]*\s*$/i);
+
+  const city = m ? m[1].trim() : "";
+
+  // Evita pegar palavras que não são cidade (ex.: "tempo de chuva").
+  if (!city || WEATHER_WORDS.test(city) || /^(hoje|amanh[ãa]|agora)$/i.test(city)) {
+    return "Nova Esperança";
+  }
+
+  return city;
+}
+
+// ------------------------------
 // Eventos principais
 // ------------------------------
 
@@ -719,6 +756,16 @@ $("send").addEventListener("click", async () => {
   if (!text || busy || resetting) return;
 
   input.value = "";
+
+  // Perguntas sobre o tempo usam a previsão real, não o modelo.
+  if (isWeatherQuestion(text) && !looksLikeCode(text)) {
+    const city = extractCity(text);
+    addMessage("user", text);
+    addMessage("system", "Pergunta sobre o tempo: consultando a previsão de " + city);
+    await runWeather(city);
+    return;
+  }
+
   await generate(text);
 });
 
@@ -898,14 +945,11 @@ $("search").addEventListener("click", async () => {
   if (!query || !query.trim()) return;
 
   // Perguntas sobre tempo/chuva usam a previsão de verdade.
-  if (/tempo|clima|chuva|previs|temperatura|calor|frio|chover/i.test(query)) {
-    const match = query.trim().match(
-      /(?:em|para|de|da|do)\s+([A-Za-zÀ-ú\s]+?)\s*\??\s*$/i
-    );
-    const city = match ? match[1].trim() : "Nova Esperança";
+  if (isWeatherQuestion(query)) {
+    const city = extractCity(query);
 
     addMessage("system", "Pergunta sobre o tempo: consultando a previsão de " + city);
-    await runWeather(city || "Nova Esperança");
+    await runWeather(city);
     return;
   }
 
