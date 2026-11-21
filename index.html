@@ -2,18 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" content="#10111a">
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="color-scheme" content="dark">
 <title>Rizik AI</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" crossorigin>
+
 <script>
 (function () {
+  // Ativa o modo rápido (vários núcleos) no GitHub Pages.
   try {
     if (self.crossOriginIsolated || !("serviceWorker" in navigator)) return;
     if (sessionStorage.getItem("rizik_coi") === "1") return;
@@ -25,37 +21,41 @@
   } catch (e) { console.warn(e); }
 })();
 </script>
+
 <style>
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;color:#f5f5fa;font-family:system-ui,sans-serif;background-color:#10111a;background-image:var(--wp);background-attachment:fixed;background-size:cover;-webkit-text-size-adjust:100%;overscroll-behavior-y:none;--wp:radial-gradient(60% 50% at 15% 8%,rgba(114,89,232,.45),transparent 60%),radial-gradient(50% 45% at 92% 22%,rgba(0,200,170,.28),transparent 60%),radial-gradient(60% 50% at 50% 100%,rgba(232,89,160,.28),transparent 60%)}
-body.wp-ocean{--wp:radial-gradient(70% 50% at 10% 0%,rgba(0,140,255,.40),transparent 60%),radial-gradient(60% 50% at 100% 60%,rgba(0,220,200,.28),transparent 60%),linear-gradient(180deg,#07121f,#0a1c2e)}
-body.wp-sunset{--wp:radial-gradient(70% 50% at 85% 0%,rgba(255,140,60,.38),transparent 60%),radial-gradient(60% 55% at 0% 70%,rgba(232,70,150,.32),transparent 60%),linear-gradient(180deg,#1a0f24,#2a1430)}
-body.wp-night{--wp:radial-gradient(1px 1px at 20px 30px,rgba(255,255,255,.75),transparent),radial-gradient(1.5px 1.5px at 120px 80px,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 70px 150px,rgba(255,255,255,.65),transparent),linear-gradient(180deg,#0b0c16,#151833);background-size:200px 200px,200px 200px,200px 200px,cover}
-header{position:sticky;top:0;z-index:15;padding:calc(16px + env(safe-area-inset-top)) 16px 16px;background:rgba(25,27,41,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:flex;justify-content:space-between;align-items:center}
+body{margin:0;background:#10111a;color:#f5f5fa;font-family:system-ui,sans-serif}
+header{padding:16px;background:#191b29;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:22px;margin:0}
 main{max-width:850px;margin:auto;padding:14px}
 #status{font-size:13px;color:#aeb4ca;margin:10px 0;overflow-wrap:anywhere}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-button{border:0;border-radius:12px;padding:12px;background:#292d40;color:white;font-size:14px;transition:transform .12s ease,opacity .2s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-button:active:not(:disabled){transform:scale(.96)}
+button{border:0;border-radius:12px;padding:12px;background:#292d40;color:white;font-size:14px}
 button:disabled{opacity:.5}
 .primary,#send{background:#7259e8}
 #send{font-weight:bold}
 #chat{display:flex;flex-direction:column;gap:12px;min-height:48vh;padding-bottom:15px}
-.message{padding:13px 15px;border-radius:16px;max-width:95%;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
-.user{background:rgba(98,75,209,.94);align-self:flex-end}
-.assistant{background:rgba(32,35,51,.86);align-self:flex-start}
-.system{background:rgba(41,45,64,.78);color:#c4c9db;align-self:center;font-size:13px}
-.composer{position:sticky;bottom:0;background:rgba(16,17,26,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.message{padding:13px 15px;border-radius:16px;max-width:95%;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5}
+.user{background:#624bd1;align-self:flex-end}
+.assistant{background:#202333;align-self:flex-start}
+.system{background:#292d40;color:#c4c9db;align-self:center;font-size:13px}
+.composer{position:sticky;bottom:0;background:#10111a;padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
 textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;border-radius:14px;border:1px solid #383c50;background:#1b1e2b;color:white;padding:13px;font:inherit}
+.sources{align-self:flex-start;max-width:95%;background:#1b1e2b;border:1px solid #383c50;border-radius:14px;padding:10px 12px;font-size:13px;color:#c4c9db;line-height:1.5}
+.src-head{font-weight:bold;color:#f5f5fa}
+.src-item{display:flex;gap:6px;align-items:baseline;margin-top:6px;overflow-wrap:anywhere}
+.src-item a{color:#a99cff;text-decoration:none}
+.src-item small{color:#9299b0;white-space:nowrap}
 .copy{padding:8px 12px;font-size:13px;align-self:flex-start}
 .info{font-size:12px;color:#9299b0;margin-top:12px;line-height:1.5}
+
+html{scroll-behavior:smooth}
+header{position:relative}
 .hright{display:flex;align-items:center;gap:10px}
 #clock{font-size:15px;color:#aeb4ca;font-variant-numeric:tabular-nums}
 #menuBtn{padding:6px 14px;font-size:22px;line-height:1}
-.menu{position:absolute;right:12px;top:100%;z-index:20;width:min(300px,calc(100vw - 24px));max-height:80vh;overflow-y:auto;background:#1b1e2b;border:1px solid #383c50;border-radius:16px;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:10px;animation:fade .18s ease}
-.menu[hidden],.hist[hidden]{display:none}
+.menu{position:absolute;right:12px;top:100%;z-index:20;width:min(300px,calc(100vw - 24px));background:#1b1e2b;border:1px solid #383c50;border-radius:16px;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:10px;animation:fade .18s ease}
+.menu[hidden]{display:none}
 .menu-title{font-weight:bold}
 .menu label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#c4c9db}
 .menu label.check{flex-direction:row;align-items:center;gap:8px}
@@ -63,7 +63,8 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .menu-actions button{padding:10px 6px;font-size:13px}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.message,.actions{animation:fade .25s ease}
+.message,.sources,.actions{animation:fade .25s ease}
+.message{min-width:0}
 .msg-time{display:block;margin-top:6px;font-size:11px;opacity:.6}
 .notime .msg-time{display:none}
 .dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:#9299b0;animation:blink 1.2s infinite ease-in-out}
@@ -76,329 +77,192 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .code-head button{padding:5px 10px;font-size:12px;border-radius:8px}
 .codeblock pre{margin:0;padding:10px 12px;overflow-x:auto;font:12.5px/1.45 ui-monospace,Menlo,monospace;white-space:pre}
 .actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start}
-.attach-wrap{position:relative}
-.attach-menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:25;background:#1b1e2b;border:1px solid #383c50;border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px;min-width:230px;box-shadow:0 12px 32px rgba(0,0,0,.45);animation:fade .18s ease}
-.attach-menu[hidden]{display:none}
-.attach-menu button{display:flex;align-items:center;gap:10px;justify-content:flex-start;padding:11px 12px;font-size:14px;width:100%}
-.attach-menu button.active{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
-.attach-preview{display:flex;align-items:center;gap:10px;background:#1b1e2b;border:1px solid #383c50;border-radius:12px;padding:9px 12px;font-size:13px;color:#c4c9db}
-.attach-preview[hidden]{display:none}
-.attach-preview span{flex:1;overflow-wrap:anywhere}
-.attach-preview button{padding:5px 10px;font-size:12px;border-radius:8px}
-.gen-cancel{width:24px;height:24px;padding:0;border-radius:50%;background:#44293a;color:#ff9db0;font-size:13px;line-height:1;flex:none;box-shadow:none;border:1px solid rgba(255,140,160,.35)}
+#webToggle{padding:0 14px;font-size:20px}
+#webToggle.on{background:#7259e8;box-shadow:0 0 0 2px #a99cff inset}
 .hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.hist[hidden]{display:none}
 .hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
-.hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px;gap:8px}
+.hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}
 .hist-head button{padding:6px 12px;font-size:13px}
-.hist-head .hh{display:flex;gap:8px}
 .hist-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 .hist-item{text-align:left;background:#292d40;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
 .hist-item small{display:block;color:#9299b0;font-size:11px;margin-bottom:2px}
-button{background:linear-gradient(180deg,#343850,#252839);border:1px solid rgba(255,255,255,.1);box-shadow:0 4px 12px rgba(0,0,0,.3);font-weight:600;letter-spacing:.2px}
-.primary,#send{background:linear-gradient(135deg,#8f70ff,#5a3de0);border-color:rgba(255,255,255,.2);box-shadow:0 6px 18px rgba(114,89,232,.5)}
-#attachBtn.on{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
-.composer button{border-radius:16px}
-.ic{padding:0 12px;font-size:20px}
-#voiceBtn.on{background:linear-gradient(135deg,#ff6b8b,#e0345e);animation:pulse 1.3s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,80,120,.55)}50%{box-shadow:0 0 0 10px rgba(255,80,120,0)}}
-.hist-item{background:#292d40;box-shadow:none;font-weight:400}
-.filechip{display:flex;flex-direction:column;gap:6px;min-width:200px}
-.filehead{display:flex;align-items:center;gap:8px;justify-content:space-between}
-.filehead button{padding:6px 10px;font-size:12px;border-radius:10px}
-.filechip pre{margin:0;max-height:240px;overflow:auto;font:12px/1.4 ui-monospace,Menlo,monospace;background:rgba(0,0,0,.3);padding:8px;border-radius:10px;white-space:pre-wrap}
-.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:min(320px,78vw)}
-.gallery.n1{grid-template-columns:1fr}
-.gallery.n2,.gallery.n4{grid-template-columns:repeat(2,1fr)}
-.gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
-.gallery.n1 img{aspect-ratio:4/3}
-.viewer{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center}
-.viewer[hidden]{display:none}
-.viewer img{max-width:96vw;max-height:92vh;border-radius:14px}
-.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-button[data-ic]{display:inline-flex;align-items:center;justify-content:center;gap:8px}
-#menuBtn{width:44px;height:44px;padding:0}
-.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.toolbar button{min-height:48px}
-.composer{flex-direction:column;align-items:stretch;gap:10px;padding-left:2px;padding-right:2px}
-.tools{display:flex;align-items:center;gap:10px}
-.row{display:flex;align-items:flex-end;gap:10px}
-#attachBtn{width:46px;height:46px;padding:0}
-#voiceBtn{height:46px;padding:0 18px;margin-left:auto;background:linear-gradient(135deg,#1fd1ab,#0b8f86);border-color:rgba(255,255,255,.2);box-shadow:0 6px 16px rgba(20,190,160,.4)}
-#send{width:52px;height:48px;padding:0;flex:none}
-.menu{top:calc(100% + 8px);width:min(360px,calc(100vw - 24px));padding:16px;gap:14px}
-.menu label{gap:6px}
-.menu select,.menu input[type=text]{width:100%;min-height:42px}
-.menu label.check{min-height:36px;gap:10px}
-.menu-actions{gap:10px}
-.menu-actions button{min-height:46px;padding:10px 8px;font-size:13px}
-.menu-actions .i{width:18px;height:18px}
-#clear,#install{grid-column:1/-1}
-.call{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(40px + env(safe-area-inset-top)) 24px calc(40px + env(safe-area-inset-bottom));background:radial-gradient(80% 60% at 50% 35%,#2a2160,#10111a 72%)}
-.call[hidden]{display:none}
-.call-top{text-align:center}
-.call-top b{display:block;font-size:22px}
-.call-top small{color:#aeb4ca;font-size:14px}
-.orb{width:200px;height:200px;border-radius:50%;border:0;padding:0;background:radial-gradient(circle at 35% 30%,#c9bcff,#7259e8 55%,#3a22a8);box-shadow:0 0 60px rgba(114,89,232,.6);animation:orbIdle 3s ease-in-out infinite}
-.call[data-state=listening] .orb{animation:orbListen 1.6s ease-in-out infinite}
-.call[data-state=thinking] .orb{animation:orbThink 1.2s linear infinite;filter:hue-rotate(40deg)}
-.call[data-state=speaking] .orb{animation:orbSpeak .55s ease-in-out infinite}
-.call[data-state=muted] .orb{filter:grayscale(.8);animation:none;opacity:.7}
-@keyframes orbIdle{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-@keyframes orbListen{0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(114,89,232,.5)}50%{transform:scale(1.08);box-shadow:0 0 90px rgba(114,89,232,.85)}}
-@keyframes orbThink{0%{transform:scale(1) rotate(0)}50%{transform:scale(.94) rotate(180deg)}100%{transform:scale(1) rotate(360deg)}}
-@keyframes orbSpeak{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
-.call-text{max-width:520px;text-align:center;color:#c4c9db;font-size:15px;line-height:1.5;min-height:90px;max-height:22vh;overflow:auto}
-.call-actions{display:flex;gap:28px}
-.round{width:68px;height:68px;border-radius:50%;padding:0}
-.round .i{width:28px;height:28px}
-.round.end{background:linear-gradient(135deg,#ff6b6b,#d62839)}
-.round.off{background:#fff;color:#111}
-.city-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}
-.city-list[hidden]{display:none}
-.placenow{color:#9299b0;font-size:12px;line-height:1.4}
-.cell{position:relative}
-.gallery video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
-.gallery.n1 video{aspect-ratio:4/3}
-.badge{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.6);border-radius:8px;padding:2px 7px;font-size:12px}
-.viewer video{max-width:96vw;max-height:92vh;border-radius:14px}
 
-/* ===== v23: fontes, texto bonito, painel de atividade, boas-vindas ===== */
-body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;letter-spacing:-.005em;-webkit-font-smoothing:antialiased}
-button,textarea,select,input{font-family:inherit}
-h1{font-weight:800;letter-spacing:-.03em;background:linear-gradient(90deg,#fff,#b9a9ff 60%,#6ff0d8);-webkit-background-clip:text;background-clip:text;color:transparent}
-header small{color:#9aa1bb}
-.message{font-size:15.5px;line-height:1.62;border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 24px rgba(0,0,0,.22)}
-.user{background:linear-gradient(135deg,rgba(124,96,240,.96),rgba(84,60,206,.96));border-color:rgba(255,255,255,.16);border-bottom-right-radius:6px}
-.assistant{background:linear-gradient(180deg,rgba(38,41,60,.92),rgba(28,31,46,.92));border-bottom-left-radius:6px}
-.system{box-shadow:none;border-color:transparent}
-.txt{margin:0 0 .55em}
-.txt:last-child{margin-bottom:0}
-.message strong{font-weight:700;color:#fff}
-.md-h{font-weight:700;font-size:16.5px;margin:.7em 0 .35em;letter-spacing:-.01em}
-.md-list{margin:.3em 0 .6em;padding-left:1.25em;white-space:normal}
-.md-list li{margin:.22em 0;padding-left:.15em}
-.ic-code{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.88em;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);padding:1px 6px;border-radius:6px}
-.codeblock{box-shadow:0 6px 18px rgba(0,0,0,.3)}
-.codeblock pre,.filechip pre{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
-textarea{font-size:15.5px;transition:border-color .2s,box-shadow .2s}
-textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,255,.25)}
-.activity{align-self:flex-start;width:min(580px,96%);background:rgba(20,22,34,.82);border:1px solid rgba(255,255,255,.09);border-radius:16px;overflow:hidden;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:fade .25s ease;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-.act-head{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;user-select:none;-webkit-user-select:none}
-.act-title{flex:1;min-width:0;overflow-wrap:anywhere}
-.act-time{color:#9aa1bb;font-weight:500;font-variant-numeric:tabular-nums}
-.act-chev{color:#9aa1bb;width:12px;text-align:center}
-.act-spin{width:15px;height:15px;border-radius:50%;border:2px solid rgba(169,156,255,.3);border-top-color:#a99cff;animation:spin .8s linear infinite;flex:none;text-align:center;font-size:12px;line-height:11px}
-.activity.done .act-spin{animation:none;border:0;color:#35d49a;font-size:14px;line-height:15px}
-.activity.fail .act-spin{color:#ff8fa3}
-@keyframes spin{to{transform:rotate(360deg)}}
-.act-list{border-top:1px solid rgba(255,255,255,.07);padding:6px 0 8px}
-.activity.collapsed .act-list{display:none}
-.act-item{display:flex;gap:8px;align-items:baseline;padding:3px 12px;font-size:12.5px;line-height:1.45;color:#c9cee0;overflow-wrap:anywhere;animation:fade .2s ease}
-.act-ic{width:14px;flex:none;text-align:center;font-size:12px}
-.act-ic.run{display:inline-block;width:10px;height:10px;margin:0 2px;border-radius:50%;border:2px solid rgba(169,156,255,.3);border-top-color:#a99cff;animation:spin .8s linear infinite;align-self:center}
-.act-ic.ok{color:#35d49a}
-.act-ic.fail{color:#ff8fa3}
-.act-label{flex:1;min-width:0}
-.act-item a{color:#a99cff;text-decoration:none}
-.act-item small{color:#8f96af;white-space:nowrap;font-variant-numeric:tabular-nums}
-.welcome{align-self:center;text-align:center;margin:5vh 0 2vh;max-width:540px;animation:fade .4s ease}
-.welcome h2{font-size:28px;margin:0 0 8px;letter-spacing:-.03em;font-weight:800}
-.welcome p{color:#aeb4ca;margin:0 0 18px;line-height:1.55;font-size:15px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.chip{border-radius:999px;padding:10px 15px;font-size:13.5px;font-weight:500}
-/* ===== v24: menu em seções ===== */
-.menu{max-height:calc(100vh - 96px);gap:12px}
-.menu-head{display:flex;justify-content:space-between;align-items:center}
-.menu-title{font-size:16px;font-weight:700;letter-spacing:-.01em}
-.xbtn{width:34px;height:34px;padding:0;border-radius:50%;font-size:14px}
-.sec{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#9aa1bb;font-weight:700;padding-top:12px;border-top:1px solid rgba(255,255,255,.09)}
-.sec.first{padding-top:4px}
-.hint{color:#8f96af;font-size:12px;line-height:1.4;font-weight:400}
-.meter{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
-.meter-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
-.meter-top small{color:#aeb4ca;font-weight:500;text-align:right}
-.meter-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
-.meter-bar i{display:block;height:100%;width:2%;border-radius:99px;background:linear-gradient(90deg,#6ff0d8,#8f70ff);transition:width .4s ease}
-.meter-bar i.warm{background:linear-gradient(90deg,#ffd166,#ff9f43)}
-.meter-bar i.hot{background:linear-gradient(90deg,#ff9f43,#ff5d73)}
-.menu label.check{flex-direction:row;justify-content:space-between;align-items:center;min-height:40px;gap:12px}
-.menu input[type=checkbox]{-webkit-appearance:none;appearance:none;width:46px;height:27px;border-radius:999px;background:#3a3f57;position:relative;flex:none;margin:0;border:0;cursor:pointer;transition:background .2s}
-.menu input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.35)}
-.menu input[type=checkbox]:checked{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
-.menu input[type=checkbox]:checked::after{transform:translateX(19px)}
-.menu textarea{width:100%;min-height:72px;border-radius:10px;border:1px solid #383c50;background:#10111a;color:#fff;padding:9px;font:inherit;font-size:14px;resize:vertical}
-details.adv{border-top:1px solid rgba(255,255,255,.09);padding-top:12px}
-details.adv summary{cursor:pointer;font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#9aa1bb;list-style:none;display:flex;justify-content:space-between}
-details.adv summary::-webkit-details-marker{display:none}
-details.adv summary::after{content:"▾"}
-details.adv[open] summary::after{content:"▴"}
-details.adv[open]>*:not(summary){margin-top:12px}
-.danger{color:#ff9db0}
-#clear,#install{grid-column:auto}
-/* ===== v25: conversas com exclusão ===== */
-.conv-row{display:flex;gap:8px;align-items:stretch}
-.conv-row .hist-item{flex:1;min-width:0}
-.conv-row .conv-del{width:48px;padding:0;flex:none;color:#ff9db0;font-size:16px}
-.conv-row.cur .hist-item{outline:2px solid #8f70ff}
-.hist-head .hh button[hidden]{display:none}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+body{background-color:#10111a;background-image:var(--wp);background-attachment:fixed;background-size:cover;--wp:radial-gradient(60% 50% at 15% 8%,rgba(114,89,232,.45),transparent 60%),radial-gradient(50% 45% at 92% 22%,rgba(0,200,170,.28),transparent 60%),radial-gradient(60% 50% at 50% 100%,rgba(232,89,160,.28),transparent 60%);-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
+body.wp-aurora{--wp:radial-gradient(60% 50% at 15% 8%,rgba(114,89,232,.45),transparent 60%),radial-gradient(50% 45% at 92% 22%,rgba(0,200,170,.28),transparent 60%),radial-gradient(60% 50% at 50% 100%,rgba(232,89,160,.28),transparent 60%)}
+body.wp-ocean{--wp:radial-gradient(70% 50% at 10% 0%,rgba(0,140,255,.40),transparent 60%),radial-gradient(60% 50% at 100% 60%,rgba(0,220,200,.28),transparent 60%),linear-gradient(180deg,#07121f,#0a1c2e)}
+body.wp-sunset{--wp:radial-gradient(70% 50% at 85% 0%,rgba(255,140,60,.38),transparent 60%),radial-gradient(60% 55% at 0% 70%,rgba(232,70,150,.32),transparent 60%),linear-gradient(180deg,#1a0f24,#2a1430)}
+body.wp-night{--wp:radial-gradient(1px 1px at 20px 30px,rgba(255,255,255,.75),transparent),radial-gradient(1.5px 1.5px at 120px 80px,rgba(255,255,255,.55),transparent),radial-gradient(1px 1px at 70px 150px,rgba(255,255,255,.65),transparent),linear-gradient(180deg,#0b0c16,#151833);background-size:200px 200px,200px 200px,200px 200px,cover}
+header{position:sticky;top:0;z-index:15;padding-top:calc(16px + env(safe-area-inset-top));background:rgba(25,27,41,.78);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.composer{background:rgba(16,17,26,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.assistant{background:rgba(32,35,51,.86)}
+.user{background:rgba(98,75,209,.94)}
+.system{background:rgba(41,45,64,.78)}
+.sources{background:rgba(27,30,43,.86)}
+button{transition:transform .12s ease,opacity .2s ease,background .2s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:active:not(:disabled){transform:scale(.96)}
+.menu{max-height:80vh;overflow-y:auto}
+:root{color-scheme:dark}
+html{overscroll-behavior-y:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+select option{background:#1b1e2b;color:#fff}
+body{--ac:#7259e8;--ac2:rgba(98,75,209,.94);--fs:1}
+body.ac-blue{--ac:#2f7df6;--ac2:rgba(42,98,201,.94)}
+body.ac-green{--ac:#19a974;--ac2:rgba(19,128,90,.94)}
+body.ac-pink{--ac:#e8509a;--ac2:rgba(194,58,126,.94)}
+.primary,#send,#webToggle.on{background:var(--ac)}
+.user{background:var(--ac2)}
+main{font-size:calc(16px * var(--fs))}
+.system{font-size:calc(13px * var(--fs))}
+.codeblock pre{font-size:calc(12.5px * var(--fs))}
+body.wp-forest{--wp:radial-gradient(70% 50% at 10% 0%,rgba(40,180,110,.35),transparent 60%),radial-gradient(60% 50% at 100% 70%,rgba(20,120,120,.30),transparent 60%),linear-gradient(180deg,#07140e,#0b1f17)}
+body.wp-graphite{--wp:linear-gradient(160deg,#14161d,#1d212b 55%,#14161d)}
+.plus-menu{position:absolute;left:0;bottom:calc(100% + 6px);z-index:25;display:flex;flex-direction:column;gap:6px;background:#1b1e2b;border:1px solid #383c50;border-radius:14px;padding:8px;box-shadow:0 12px 32px rgba(0,0,0,.45);animation:fade .15s ease}
+.plus-menu[hidden]{display:none}
+.plus-menu button{text-align:left;white-space:nowrap}
+#webToggle{font-size:24px;line-height:1}
+.menu details{border:1px solid #383c50;border-radius:12px;padding:8px 10px}
+.menu summary{cursor:pointer;font-weight:600;font-size:14px}
+.menu details[open]{display:flex;flex-direction:column;gap:10px}
+.meminfo{font-size:12px;color:#9299b0}
+body.lite *,body.lite *::before,body.lite *::after{animation:none!important;transition:none!important}
+body.lite header,body.lite .composer{-webkit-backdrop-filter:none;backdrop-filter:none;background:#191b29}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
+
 <body>
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 25</small>
+    <small>Seu assistente pessoal · versão 20</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
-    <button id="menuBtn" data-ic="dots" aria-label="Configurações"></button>
+    <button id="menuBtn" aria-label="Configurações">⋮</button>
   </div>
+
   <div id="menu" class="menu" hidden>
-    <div class="menu-head"><span class="menu-title">Configurações</span><button id="menuClose" class="xbtn" aria-label="Fechar">✕</button></div>
-    <div class="meter">
-      <div class="meter-top"><span>🧠 Memória da conversa</span><small id="meterTxt"></small></div>
-      <div class="meter-bar"><i id="meterFill"></i></div>
-      <small id="meterHint" class="hint"></small>
-    </div>
+    <div class="menu-title">Configurações</div>
 
-    <div class="sec first">Conversa</div>
-    <div class="menu-actions">
-      <button id="histBtn" data-ic="history">Conversas</button>
-      <button id="exportBtn" data-ic="download">Exportar</button>
-      <button id="speak" data-ic="volume">Ler resposta</button>
-      <button id="clear" data-ic="plus">Nova conversa</button>
-    </div>
-
-    <div class="sec">Inteligência</div>
-    <label>Modelo
-      <select id="setModel">
-        <option value="fast">Modelo Rápido</option>
-        <option value="code">Código · Leve</option>
-        <option value="chat">Modelo Equilibrado</option>
-        <option value="chat3">Modelo Inteligente</option>
-        <option value="code3">Código · Forte</option>
-      </select>
-      <small class="hint">Os maiores respondem melhor, mas demoram mais. Para código, use um dos modelos "Código".</small>
-    </label>
-    <label>Tamanho da resposta
-      <select id="setTokens">
-        <option value="256">Curta</option>
-        <option value="384">Média</option>
-        <option value="512">Longa</option>
-        <option value="1024">Muito longa (código)</option>
-      </select>
-    </label>
-    <label>Tamanho da leitura
-      <select id="setCtx">
-        <option value="2048">Normal</option>
-        <option value="4096">Grande</option>
-        <option value="8192">Máximo (gasta mais memória)</option>
-      </select>
-      <small class="hint">Quanto texto a IA recebe de uma vez. Maior lê mais, mas usa mais memória.</small>
-    </label>
-    <label>Estilo
-      <select id="setTemp">
-        <option value="0.3">Precisa</option>
-        <option value="0.5">Equilibrada</option>
-        <option value="0.8">Criativa</option>
-      </select>
-    </label>
-
-    <div class="sec">Pesquisa e região</div>
-    <label class="check"><span>Pesquisar na internet sozinho</span><input id="setAuto" type="checkbox"></label>
-    <label>Região (clima e buscas)
-      <input id="setCity" type="text" placeholder="Digite a cidade">
-    </label>
-    <div class="menu-actions">
-      <button id="cityFind" data-ic="search">Buscar cidade</button>
-      <button id="gpsBtn" data-ic="pin">Usar GPS</button>
-    </div>
-    <div id="cityList" class="city-list" hidden></div>
-    <small id="placeNow" class="placenow"></small>
-    <label class="check"><span>Usar o GPS ao pedir o clima</span><input id="setGps" type="checkbox"></label>
-
-    <div class="sec">Aparência e voz</div>
-    <label>Papel de parede
-      <select id="setWall">
-        <option value="aurora">Aurora</option>
-        <option value="ocean">Oceano</option>
-        <option value="sunset">Pôr do sol</option>
-        <option value="night">Noite estrelada</option>
-      </select>
-    </label>
-    <label>Voz da IA
-      <select id="setVoice"></select>
-    </label>
-    <label class="check"><span>Mostrar horas nas mensagens</span><input id="setTime" type="checkbox"></label>
-
-    <details class="adv">
-      <summary>Avançado</summary>
-      <label>Instruções personalizadas
-        <textarea id="setCustom" rows="3" maxlength="400" placeholder="Ex.: responda sempre em até 3 frases"></textarea>
-        <small class="hint">A IA segue isso em todas as conversas (até 400 caracteres).</small>
+    <details open>
+      <summary>🧠 IA</summary>
+      <label>Modelo
+        <select id="setModel">
+          <option value="fast">Rápido · Qwen 0.5B (398 MB)</option>
+          <option value="code">Código · Coder 1.5B (986 MB)</option>
+          <option value="chat">Geral · Qwen 1.5B (986 MB)</option>
+        </select>
       </label>
-      <label class="check"><span>Carregar a IA ao abrir</span><input id="setAutoload" type="checkbox"></label>
-      <div class="menu-actions">
-        <button id="restart" data-ic="refresh">Reiniciar IA</button>
-        <button id="install" data-ic="download">Instalar app</button>
-      </div>
+      <label>Tamanho da resposta
+        <select id="setTokens">
+          <option value="256">Curta</option>
+          <option value="384">Média</option>
+          <option value="768">Longa</option>
+          <option value="max">Máxima</option>
+        </select>
+      </label>
+      <label>Estilo
+        <select id="setTemp">
+          <option value="0.3">Precisa</option>
+          <option value="0.5">Equilibrada</option>
+          <option value="0.8">Criativa</option>
+        </select>
+      </label>
+      <label class="check"><input id="setAuto" type="checkbox"> Pesquisar na internet sozinho</label>
+      <label class="check"><input id="setAutoload" type="checkbox"> Carregar a IA ao abrir</label>
+      <label class="check"><input id="setParallel" type="checkbox"> 2 IAs lendo textos grandes (experimental)</label>
+      <div id="memInfo" class="meminfo"></div>
     </details>
+
+    <details>
+      <summary>🎨 Aparência</summary>
+      <label>Papel de parede
+        <select id="setWall">
+          <option value="aurora">Aurora</option>
+          <option value="ocean">Oceano</option>
+          <option value="sunset">Pôr do sol</option>
+          <option value="night">Noite estrelada</option>
+          <option value="forest">Floresta</option>
+          <option value="graphite">Grafite</option>
+        </select>
+      </label>
+      <label>Cor de destaque
+        <select id="setAccent">
+          <option value="purple">Roxo</option>
+          <option value="blue">Azul</option>
+          <option value="green">Verde</option>
+          <option value="pink">Rosa</option>
+        </select>
+      </label>
+      <label>Tamanho da letra
+        <select id="setScale">
+          <option value="100">Normal</option>
+          <option value="115">Grande</option>
+          <option value="130">Muito grande</option>
+        </select>
+      </label>
+      <label class="check"><input id="setLite" type="checkbox"> Modo leve (menos efeitos, mais fluido)</label>
+      <label class="check"><input id="setTime" type="checkbox"> Mostrar horas nas mensagens</label>
+    </details>
+
+    <details>
+      <summary>⚙️ Geral</summary>
+      <label>Cidade padrão do clima
+        <input id="setCity" type="text">
+      </label>
+      <label class="check"><input id="setEnter" type="checkbox"> Enter envia a mensagem</label>
+      <label class="check"><input id="setExt" type="checkbox"> Usar extensão do navegador</label>
+      <div id="extInfo" class="meminfo"></div>
+    </details>
+
+    <div class="menu-actions">
+      <button id="restart">🔄 Reiniciar IA</button>
+      <button id="speak">🔊 Ler resposta</button>
+      <button id="stop">⏹ Parar voz</button>
+      <button id="histBtn">📜 Histórico</button>
+      <button id="exportBtn">📤 Exportar conversa</button>
+      <button id="clear">🗑 Limpar conversa</button>
+    </div>
   </div>
 </header>
 
 <div id="hist" class="hist" hidden>
   <div class="hist-box">
-    <div class="hist-head"><span id="histTitle">Conversas</span><span class="hh"><button id="histAll" class="danger">Apagar tudo</button><button id="histClose">Fechar</button></span></div>
+    <div class="hist-head">
+      <span id="histTitle">Histórico</span>
+      <button id="histClose">Fechar</button>
+    </div>
     <div id="histList" class="hist-list"></div>
   </div>
 </div>
 
-<div id="call" class="call" hidden data-state="listening">
-  <div class="call-top"><b>Rizik AI</b><small id="callState">Ouvindo...</small></div>
-  <button id="orb" class="orb" aria-label="Toque para interromper"></button>
-  <div id="callText" class="call-text"></div>
-  <div class="call-actions">
-    <button id="callMute" class="round" data-ic="mic" aria-label="Silenciar microfone"></button>
-    <button id="callEnd" class="round end" data-ic="end" aria-label="Encerrar chamada"></button>
-  </div>
-</div>
-
-<div id="viewer" class="viewer" hidden><img id="viewerImg" alt=""><video id="viewerVid" controls playsinline hidden></video></div>
-
 <main>
   <div id="status">Rizik está aguardando.</div>
+
   <div class="toolbar">
-    <button id="load" class="primary" data-ic="power">Carregar IA</button>
-    <button id="weather" data-ic="weather">Clima</button>
+    <button id="load" class="primary">Carregar IA</button>
+    <button id="weather">🌤️ Clima</button>
   </div>
+
   <div id="chat"></div>
+
   <div class="composer">
-    <div id="attachPreview" class="attach-preview" hidden>
-      <span id="attachPreviewName"></span>
-      <button id="attachRemove">✕ Remover</button>
+    <button id="webToggle" aria-label="Adicionar" aria-pressed="false" title="Mais opções">+</button>
+    <div id="plusMenu" class="plus-menu" hidden>
+      <button id="plusPhoto">📷 Foto</button>
+      <button id="plusFile">📎 Arquivo</button>
+      <button id="plusWeb">🌐 Pesquisar na internet</button>
     </div>
-    <div class="tools">
-      <div class="attach-wrap">
-        <button id="attachBtn" data-ic="plus" title="Anexar" aria-label="Anexar" aria-haspopup="true" aria-expanded="false"></button>
-        <div id="attachMenu" class="attach-menu" hidden>
-          <button id="attPhoto" data-ic="image">Fotos e vídeos</button>
-          <button id="attFile" data-ic="file">Arquivos</button>
-          <button id="attWeb" data-ic="globe">Pesquisar na internet</button>
-        </div>
-      </div>
-      <button id="voiceBtn" data-ic="phone" title="Conversar por voz"><span>Conversar</span></button>
-      <input id="photoInput" type="file" accept="image/*,video/*" multiple hidden>
-      <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.pdf,.js,.mjs,.jsx,.ts,.tsx,.py,.html,.htm,.css,.xml,.yml,.yaml,.log,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.sql,.sh,text/*,application/pdf,application/json" hidden>
-    </div>
-    <div class="row">
-      <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
-      <button id="send" data-ic="send" aria-label="Enviar"></button>
-    </div>
+    <input id="photoInput" type="file" accept="image/*" hidden>
+    <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.js,.mjs,.ts,.py,.html,.css,.xml,.log,.java,.c,.cpp,.sh,.sql,.yml,.yaml,text/*" hidden>
+    <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
+    <button id="send">Enviar</button>
   </div>
+
   <div class="info">
-    Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
-    A pesquisa e o clima precisam de internet. Códigos e textos grandes passam por 3 etapas: um analisador local (regras, sem IA) acha erros de sintaxe, um leitor rápido separa os trechos importantes com o número da linha, e a IA explica. No computador, você também pode arrastar o arquivo para a tela.
+    Modelo local Qwen2.5 (escolha em ⋮): de 398 MB a 986 MB no primeiro carregamento. Use Wi-Fi.
+    A pesquisa e o clima precisam de internet.
+    Funciona no iPhone (Safari) e no Android (Chrome). No Android, abra pelo Chrome, não por navegadores dentro de apps.
   </div>
 </main>
 
@@ -407,34 +271,55 @@ import { Wllama } from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.13.0/esm/i
 import WasmFromCDN from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.13.0/esm/wasm-from-cdn.js";
 
 const $ = id => document.getElementById(id);
+
 const chat = $("chat");
 const status = $("status");
 const input = $("prompt");
 
-// Três crases montadas por código (não se corrompem ao copiar/colar).
-const FENCE = String.fromCharCode(96).repeat(3);
-
-// Aparelho: iPhone/iPad (Safari mata páginas que usam muita memória), Android e computador.
-const UA = navigator.userAgent || "";
-const IS_IOS = /iphone|ipad|ipod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-const IS_ANDROID = /android/i.test(UA);
-const LOW_MEM = IS_IOS || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4);
-
 const MODELS = {
-  fast: { name: "Modelo Rápido", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
-  code: { name: "Código · Leve", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
-  chat: { name: "Modelo Equilibrado", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" },
-  chat3: { name: "Modelo Inteligente", url: "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf" },
-  code3: { name: "Código · Forte", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf" }
+  fast: { name: "Qwen2.5 0.5B (rápido)", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
+  code: { name: "Qwen2.5 Coder 1.5B (código)", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
+  chat: { name: "Qwen2.5 1.5B (geral)", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" }
 };
 
-// Se o iPhone travar, reduza N_CTX para 1024.
-// Limite de leitura em caracteres: piso de 1200, cresce com o contexto escolhido.
-const maxChars = () => Math.max(1200, Math.floor(((loadedCtx || settings.ctx) - settings.tokens - 500) * 2.6));
+// Limites (se o iPhone travar, reduza N_CTX para 1024).
+const UA = navigator.userAgent || "";
+const IS_ANDROID = /Android/i.test(UA);
+const IS_IOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const DEVICE = IS_ANDROID ? "Android" : IS_IOS ? "iPhone/iPad" : "computador";
+const DEVICE_MEM = navigator.deviceMemory || 0; // só o Chrome informa (0 = desconhecido)
+const LOW_MEM = DEVICE_MEM > 0 && DEVICE_MEM <= 3;
+
+// Velocidade de leitura (caracteres por segundo): valor inicial e o medido neste aparelho.
+const DEFAULT_RATE = { fast: 120, code: 15, chat: 15 };
+const measuredRate = {};
+
+// Leitor rápido: quantos caracteres do texto grande chegam até a IA (conforme o modelo).
+const READ_BUDGET = { fast: 3500, code: 1500, chat: 1500 };
+const BIG_TEXT = 1500;
+const MAX_INPUT_CHARS = 12000;
+
+const SEARCH_PHASES = [
+  "🌐 Pesquisando na internet...",
+  "🔎 Procurando fontes...",
+  "🧹 Limpando os resultados...",
+  "🧠 Conferindo se combina com a pergunta..."
+];
+
+const N_CTX = LOW_MEM ? 2048 : 4096;
+
+// Contexto por modelo: o 0.5B usa pouca memória por token e aguenta mais.
+function ctxFor(model) {
+  return LOW_MEM ? 2048 : (model === "fast" ? 8192 : 4096);
+}
+const MAX_USER_CHARS = LOW_MEM ? 3000 : 6000;
 
 const settings = Object.assign(
-  { ctx: LOW_MEM ? 2048 : 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true, custom: "" },
-  (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
+  { tokens: 384, temp: 0.3, city: "Nova Esperança", time: true, model: "fast", wall: "aurora", auto: true, autoload: true, scale: 100, enter: true, accent: "purple", parallel: false, lite: LOW_MEM, ext: false, ver: 0 },
+  (() => {
+    try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); }
+    catch (e) { return {}; }
+  })()
 );
 
 function saveSettings() {
@@ -442,83 +327,175 @@ function saveSettings() {
   catch (e) { console.warn("Erro ao salvar configurações:", e); }
 }
 
-const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático e inteligente que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
-const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Regras: (1) use SOMENTE o código mostrado na mensagem; se algo não aparece nos trechos, diga \"não aparece nos trechos\" e NÃO invente; (2) as linhas aparecem como \"123| código\": cite sempre esse número real; (3) NUNCA reescreva o arquivo inteiro: mostre só o pequeno trecho a corrigir, em um bloco de três crases com o nome da linguagem; (4) diga a causa provável e como testar em poucas linhas; (5) se faltar informação, peça o erro exato.";
+// Nesta versão o tamanho da resposta passa a ser "Máxima".
+if ((settings.ver || 0) < 20) {
+  settings.tokens = "max";
+  settings.ver = 20;
+  saveSettings();
+}
 
+// ----- Memória de até 50.000 caracteres -----
+// Guarda as conversas antigas e traz de volta só as parecidas com a pergunta atual
+// (o modelo não lê 50.000 de uma vez: seria lento e passa do limite dele).
+const MEMORY_CHARS = 50000;
+let memory = [];
+try {
+  memory = JSON.parse(localStorage.getItem("rizik_memory") || "[]");
+  if (!Array.isArray(memory)) memory = [];
+} catch (e) { memory = []; }
+
+const memSize = () => memory.reduce((n, m) => n + m.q.length + m.a.length, 0);
+
+function updateMemInfo() {
+  const el = $("memInfo");
+  if (el) el.textContent = "Memória: " + memSize().toLocaleString("pt-BR") + " de " + MEMORY_CHARS.toLocaleString("pt-BR") + " caracteres";
+}
+
+function saveMemory() {
+  while (memory.length > 1 && memSize() > MEMORY_CHARS) memory.shift();
+  try { localStorage.setItem("rizik_memory", JSON.stringify(memory)); } catch (e) {}
+  updateMemInfo();
+}
+
+function recall(text) {
+  const words = keywords(text);
+  if (!words.length || memory.length < 3) return "";
+
+  const found = memory.slice(0, -2) // as mais recentes já vão no histórico normal
+    .map((m, i) => {
+      const hay = new Set(keywords(m.q + " " + m.a));
+      return { m, i, hits: words.filter(w => hay.has(w)).length };
+    })
+    .filter(x => x.hits >= (words.length <= 2 ? 1 : 2))
+    .sort((a, b) => b.hits - a.hits || b.i - a.i)
+    .slice(0, 3);
+
+  return found.map(x => "- " + x.m.q.slice(0, 160) + " → " + x.m.a.slice(0, 240)).join("\n").slice(0, 800);
+}
+
+// Tokens da resposta: o limite escolhido, ou o máximo que cabe no contexto.
+function maxTokensFor(messages, withSearch) {
+  const room = Math.max(128, ctxFor(settings.model) - Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 2.6) - 72);
+  let want = settings.tokens === "max" ? 4096 : (Number(settings.tokens) || 384);
+  if (withSearch) want = Math.max(want, 768); // com pesquisa na internet a resposta costuma ser maior
+  return Math.min(want, room);
+}
+
+// Modelos pequenos precisam de ordens explícitas e curtas.
+const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda curto e direto. Se não souber, diga "não sei". Quando escrever código, coloque sempre dentro de um bloco de código com três crases.`;
+
+const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro. Faça exatamente o que o usuário pediu sobre o código. Se pedir explicação, explique em tópicos curtos. Se pedir correção, diga a causa e mostre o código corrigido em um bloco de três crases. Não invente erros que não existem. Se faltar informação, peça.`;
+
+// Notas internas de programação. O Rizik recebe só as 2 mais parecidas
+// com o pedido (o modelo é pequeno e o contexto é curto).
 const KNOWLEDGE = [
-  { keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
-    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true; 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js." },
-  { keys: /github|pages|publicar|site.*(não|nao).*atualiz|cache|commit/i,
-    text: "Publicar no GitHub Pages: coloque o index.html na raiz do repositório, faça o commit, espere 1 a 2 minutos e abra o link com ?v=2 no final (troque o número a cada versão) para fugir do cache do Safari." },
-  { keys: /not defined|undefined|null|cannot read|constant|const|import|syntax|erro|error|bug|console/i,
-    text: "Erros comuns de JavaScript: 'X is not defined' = variável não declarada ou fora do escopo; 'Cannot read properties of null' = elemento não existe, confira o id; 'Assignment to constant variable' = troque const por let; erro de import = confira a URL e a versão da biblioteca. Leia sempre a primeira linha vermelha do console." },
-  { keys: /lent|trav|demor|memória|memoria|iphone|crash|out of memory/i,
-    text: "IA lenta ou travando no iPhone: use o modelo Rápido, n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta." },
-  { keys: /fetch|api|cors|json|requisição|requisicao/i,
-    text: "fetch: use await dentro de try/catch e confira response.ok antes de response.json(). Erro de CORS significa que o servidor não permite a origem: use uma API que libere CORS (origin=*)." },
-  { keys: /python|indentation|modulenotfound|pip|nameerror/i,
-    text: "Erros comuns de Python: IndentationError = confira os espaços do bloco; ModuleNotFoundError = instale com pip install nome; NameError = variável usada antes de ser definida." },
-  { keys: /html|css|layout|celular|responsiv|botão|botao/i,
-    text: "Layout no celular: use <meta name=viewport>, flex com flex-wrap, max-width:100% e unidades relativas (rem, %). Teste com a tela estreita." },
-  { keys: /localstorage|salvar|armazen|guardar dados/i,
-    text: "localStorage guarda texto (chave/valor) no navegador: use JSON.stringify para salvar objetos e JSON.parse para ler, sempre dentro de try/catch. O limite é de uns 5 MB." },
-  { keys: /async|await|promise|assíncron|assincron/i,
-    text: "async/await: coloque async antes da função e await antes de cada Promise. Use try/catch para erros. Sem o await, você recebe a Promise e não o valor." },
-  { keys: /git |git$|branch|merge|pull request|push/i,
-    text: "Git básico: git add . (prepara), git commit -m \"mensagem\" (salva), git push (envia). Para ver mudanças use git status e git diff." }
+  {
+    keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
+    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno (Qwen2.5 0.5B Q4_K_M, cerca de 398 MB) com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true; 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js."
+  },
+  {
+    keys: /github|pages|publicar|site.*(não|nao).*atualiz|cache|commit/i,
+    text: "Publicar no GitHub Pages: coloque o index.html na raiz do repositório, faça o commit, espere 1 a 2 minutos e abra o link com ?v=2 no final (troque o número a cada versão) para fugir do cache do Safari."
+  },
+  {
+    keys: /not defined|undefined|null|cannot read|constant|const|import|syntax|erro|error|bug|console/i,
+    text: "Erros comuns de JavaScript: 'X is not defined' = variável não declarada ou fora do escopo; 'Cannot read properties of null' = elemento não existe, confira o id; 'Assignment to constant variable' = troque const por let; erro de import = confira a URL e a versão da biblioteca. Leia sempre a primeira linha vermelha do console."
+  },
+  {
+    keys: /lent|trav|demor|memória|memoria|iphone|crash|out of memory/i,
+    text: "IA lenta ou travando no iPhone: use modelo pequeno (0.5B), n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta."
+  },
+  {
+    keys: /fetch|api|cors|json|requisição|requisicao/i,
+    text: "fetch: use await dentro de try/catch e confira response.ok antes de response.json(). Erro de CORS significa que o servidor não permite a origem: use uma API que libere CORS (origin=*)."
+  },
+  {
+    keys: /python|indentation|modulenotfound|pip|nameerror/i,
+    text: "Erros comuns de Python: IndentationError = confira os espaços do bloco; ModuleNotFoundError = instale com pip install nome; NameError = variável usada antes de ser definida."
+  },
+  {
+    keys: /html|css|layout|celular|responsiv|botão|botao/i,
+    text: "Layout no celular: use <meta name=viewport>, flex com flex-wrap, max-width:100% e unidades relativas (rem, %). Teste com a tela estreita."
+  }
 ];
 
 function pickTips(text) {
-  return KNOWLEDGE.filter(i => i.keys.test(text)).slice(0, 2).map(i => i.text).join("\n").slice(0, 400);
+  const picked = KNOWLEDGE
+    .filter(item => item.keys.test(text))
+    .slice(0, 2)
+    .map(item => item.text);
+
+  return picked.join("\n").slice(0, 400);
 }
 
+// Só sinais fortes de código. Palavras comuns ("erro", "java", "let ")
+// não ativam mais o modo programação sem querer.
 function looksLikeCode(text) {
-  return text.includes(FENCE) || /<\/?[a-z]+[^>]*>|function\s*\(|\bconst\s+\w+\s*=|\blet\s+\w+\s*=|\bdef\s+\w+\(|console\.|Uncaught|Traceback|TypeError|ReferenceError|SyntaxError/i.test(text);
+  return /```|<\/?[a-z]+[^>]*>|function\s*\(|\bconst\s+\w+\s*=|\blet\s+\w+\s*=|\bdef\s+\w+\(|console\.|Uncaught|Traceback|TypeError|ReferenceError|SyntaxError/i.test(text);
 }
 
+// Vários núcleos só funcionam com isolamento de origem cruzada
+// (ativado pelo arquivo coi-serviceworker.js).
 const THREADS = self.crossOriginIsolated
-  ? Math.max(2, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2)))
+  ? Math.max(2, Math.min(LOW_MEM ? 2 : 4, navigator.hardwareConcurrency || 2))
   : 1;
 
-let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
-let history = [], lastAnswer = "";
-let convs = [], curId = "";
-let loadedCtx = 0, lastTokens = 0;
+// Modo 2 IAs: cada instância usa metade dos núcleos. Só com o modelo Rápido e memória suficiente.
+const THREADS_EACH = Math.max(1, Math.floor(THREADS / 2));
+const parallelOn = () => !!settings.parallel && settings.model === "fast" && !LOW_MEM && THREADS >= 4;
 
-// Mantém a tela do celular acesa enquanto a IA trabalha (o aparelho dormindo derruba a geração).
-let wake = null;
+let ai = null;
+let ready = false;
+let loadingPromise = null;
+let busy = false;
+let resetting = false;
+let history = [];
+let lastAnswer = "";
+
+// ------------------------------
+// Interface
+// ------------------------------
+
+let wakeLock = null;
+
 async function keepAwake(on) {
   try {
-    if (on) { if (!wake && navigator.wakeLock) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } }
-    else if (wake) { const w = wake; wake = null; await w.release(); }
-  } catch (e) { wake = null; }
+    if (on && "wakeLock" in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    } else if (!on && wakeLock) {
+      await wakeLock.release();
+      wakeLock = null;
+    }
+  } catch (e) { wakeLock = null; }
 }
 
-// ------------------------------ Interface
-
-function sayStatus(t) { status.textContent = t; }
+function sayStatus(text) {
+  status.textContent = text;
+}
 
 function fmtTime(t) {
   return new Date(t || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function nearBottom() { return window.innerHeight + window.scrollY >= document.body.scrollHeight - 240; }
-function scrollEnd(force) { if (force || nearBottom()) window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }
-// Mantém a tela colada no fim só se a pessoa já estava lá embaixo (não puxa quem está lendo mais acima).
-function keepBottom(fn, force) {
-  const was = force || nearBottom();
-  fn();
-  if (was) window.scrollTo(0, document.body.scrollHeight);
+function scrollEnd() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: settings.lite ? "auto" : "smooth" });
 }
 
 async function copyText(text, button, label) {
   let ok = false;
-  try { await navigator.clipboard.writeText(text); ok = true; }
-  catch (err) {
+  try {
+    await navigator.clipboard.writeText(text);
+    ok = true;
+  } catch (err) {
     try {
       const ta = document.createElement("textarea");
-      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
-      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
       ok = document.execCommand("copy");
       document.body.removeChild(ta);
     } catch (e) {}
@@ -527,18 +504,24 @@ async function copyText(text, button, label) {
   setTimeout(() => { button.textContent = label; }, 2000);
 }
 
+// Separa "```linguagem\ncódigo" em { lang, code }.
 function parseFence(part) {
   const nl = part.indexOf("\n");
-  let lang = "", code = part;
+  let lang = "";
+  let code = part;
   if (nl !== -1) {
     const first = part.slice(0, nl).trim();
-    if (first.length <= 15 && /^[\w+#.-]*$/.test(first)) { lang = first; code = part.slice(nl + 1); }
+    if (first.length <= 15 && /^[\w+#.-]*$/.test(first)) {
+      lang = first;
+      code = part.slice(nl + 1);
+    }
   }
   return { lang, code: code.replace(/\s+$/, "") };
 }
 
+// Só os blocos de código da resposta (sem o texto ao redor).
 function extractCode(text) {
-  const parts = String(text).split(FENCE);
+  const parts = String(text).split("```");
   const blocks = [];
   for (let i = 1; i < parts.length; i += 2) {
     const { code } = parseFence(parts[i]);
@@ -554,235 +537,164 @@ function checkSyntax(code, lang) {
     if (["js", "javascript", "node"].includes(l)) { new Function(code); return { ok: true }; }
   } catch (e) {
     const msg = String((e && e.message) || e);
-    if (/import|export|await|unexpected end/i.test(msg)) return null;
+    if (/import|export|await/i.test(msg)) return null;
     return { ok: false, msg };
   }
   return null;
 }
 
-function makeCodeBlock(code, lang, live) {
+function makeCodeBlock(code, lang) {
   const box = document.createElement("div");
   box.className = "codeblock";
+
   const head = document.createElement("div");
   head.className = "code-head";
+
   const name = document.createElement("span");
-  const chk = live ? null : checkSyntax(code, lang);
-  name.textContent = (lang || "código") + (chk ? (chk.ok ? " · ✅ sintaxe ok" : " · ⚠️ " + chk.msg.slice(0, 60)) : "");
+  const chk = code.split("\n").length >= 4 ? checkSyntax(code, lang) : null;
+  name.textContent = (lang || "código") +
+    (chk ? (chk.ok ? " · ✅ sintaxe ok" : " · ⚠️ " + chk.msg.slice(0, 60)) : "");
+
   const btn = document.createElement("button");
   btn.textContent = "📋 Copiar código";
   btn.addEventListener("click", () => copyText(code, btn, "📋 Copiar código"));
+
   head.append(name, btn);
+
   const pre = document.createElement("pre");
   pre.textContent = code;
+
   box.append(head, pre);
   return box;
 }
 
-// Markdown simples e seguro (só **negrito**, `código`, títulos e listas), sempre via textContent.
-function inlineMd(parent, s) {
-  const re = /(\*\*[^*\n]+\*\*|`[^`\n]+`)/g;
-  let last = 0, m;
-  while ((m = re.exec(s))) {
-    if (m.index > last) parent.appendChild(document.createTextNode(s.slice(last, m.index)));
-    const tok = m[0];
-    if (tok[0] === "*") { const b = document.createElement("strong"); b.textContent = tok.slice(2, -2); parent.appendChild(b); }
-    else { const c = document.createElement("code"); c.className = "ic-code"; c.textContent = tok.slice(1, -1); parent.appendChild(c); }
-    last = m.index + tok.length;
-  }
-  if (last < s.length) parent.appendChild(document.createTextNode(s.slice(last)));
-}
-
-function renderText(container, text) {
-  let list = null, listType = "", para = [];
-  const flushPara = () => {
-    if (!para.length) return;
-    const p = document.createElement("div");
-    p.className = "txt";
-    inlineMd(p, para.join("\n"));
-    container.appendChild(p);
-    para = [];
-  };
-  for (const ln of String(text).replace(/\r/g, "").split("\n")) {
-    const hd = ln.match(/^\s*#{1,3}\s+(.*)$/);
-    const ul = ln.match(/^\s*[-*•]\s+(.*)$/);
-    const ol = ln.match(/^\s*\d+[.)]\s+(.*)$/);
-    if (hd) {
-      flushPara(); list = null; listType = "";
-      const h = document.createElement("div");
-      h.className = "md-h";
-      inlineMd(h, hd[1]);
-      container.appendChild(h);
-    } else if (ul || ol) {
-      flushPara();
-      const type = ul ? "ul" : "ol";
-      if (!list || listType !== type) {
-        list = document.createElement(type);
-        list.className = "md-list";
-        container.appendChild(list);
-        listType = type;
-      }
-      const li = document.createElement("li");
-      inlineMd(li, (ul || ol)[1]);
-      list.appendChild(li);
-    } else if (!ln.trim()) {
-      flushPara(); list = null; listType = "";
-    } else {
-      list = null; listType = "";
-      para.push(ln);
-    }
-  }
-  flushPara();
-}
-
-function renderRich(container, text, live, md) {
+function renderRich(container, text) {
   container.textContent = "";
-  String(text).split(FENCE).forEach((part, i) => {
+  String(text).split("```").forEach((part, i) => {
     if (i % 2 === 1) {
       const { lang, code } = parseFence(part);
-      if (code) container.appendChild(makeCodeBlock(code, lang, live));
+      if (code) container.appendChild(makeCodeBlock(code, lang));
     } else if (part.trim()) {
-      if (md) renderText(container, part.trim());
-      else {
-        const p = document.createElement("div");
-        p.className = "txt";
-        p.textContent = part.trim();
-        container.appendChild(p);
-      }
+      const p = document.createElement("div");
+      p.className = "txt";
+      p.textContent = part.trim();
+      container.appendChild(p);
     }
   });
 }
 
-function setBody(div, text, live) {
+function setBody(div, text) {
   const body = div.querySelector(".body");
-  const md = div.classList.contains("assistant");
-  if (md || String(text).includes(FENCE)) renderRich(body, text, live, md);
+  if (div.classList.contains("assistant") && String(text).includes("```")) renderRich(body, text);
   else body.textContent = text;
 }
 
-function clearWelcome() { const w = chat.querySelector(".welcome"); if (w) w.remove(); }
-
 function addMessage(role, text, t) {
-  clearWelcome();
   const div = document.createElement("div");
   div.className = "message " + role;
+
   const body = document.createElement("div");
   body.className = "body";
   div.appendChild(body);
+
   if (role === "user" || role === "assistant") {
     const time = document.createElement("small");
     time.className = "msg-time";
     time.textContent = fmtTime(t);
     div.appendChild(time);
   }
-  keepBottom(() => { chat.appendChild(div); setBody(div, text); }, role === "user");
+
+  chat.appendChild(div);
+  const shownText = (role === "user" && text.length > 800)
+    ? text.slice(0, 800) + "\n… (+" + (text.length - 800) + " caracteres)"
+    : text;
+  setBody(div, shownText);
+  scrollEnd();
   return div;
 }
 
-// ---- Painel de atividade: mostra ao vivo o que a IA está fazendo (arquivos, internet, sites, modelo...)
-class Activity {
-  constructor(title) {
-    clearWelcome();
-    this.t0 = performance.now();
-    this.items = [];
-    this.finished = false;
-    this.cancelBtn = null;
-    const el = document.createElement("div");
-    el.className = "activity";
-    const head = document.createElement("div");
-    head.className = "act-head";
-    this.spin = document.createElement("span");
-    this.spin.className = "act-spin";
-    this.titleEl = document.createElement("span");
-    this.titleEl.className = "act-title";
-    this.titleEl.textContent = title;
-    this.timeEl = document.createElement("small");
-    this.timeEl.className = "act-time";
-    this.chev = document.createElement("span");
-    this.chev.className = "act-chev";
-    this.chev.textContent = "▾";
-    head.append(this.spin, this.titleEl, this.timeEl, this.chev);
-    this.list = document.createElement("div");
-    this.list.className = "act-list";
-    el.append(head, this.list);
-    head.addEventListener("click", () => {
-      el.classList.toggle("collapsed");
-      this.chev.textContent = el.classList.contains("collapsed") ? "▸" : "▾";
-    });
-    this.el = el;
-    this.head = head;
-    keepBottom(() => chat.appendChild(el));
-    this.timer = setInterval(() => this.tick(), 250);
-    this.tick();
-  }
-  tick() {
-    const now = performance.now();
-    this.timeEl.textContent = ((now - this.t0) / 1000).toFixed(1) + "s";
-    this.items.forEach(it => { if (it.state === "run") it.timeEl.textContent = ((now - it.t0) / 1000).toFixed(1) + "s"; });
-  }
-  title(t) { this.titleEl.textContent = t; }
-  step(label, url) {
-    const it = { state: "run", t0: performance.now() };
-    const row = document.createElement("div");
-    row.className = "act-item";
-    it.icEl = document.createElement("span");
-    it.icEl.className = "act-ic run";
-    const safe = /^https:\/\//.test(url || "");
-    if (safe) {
-      it.labelEl = document.createElement("a");
-      it.labelEl.href = url; it.labelEl.target = "_blank"; it.labelEl.rel = "noopener noreferrer";
-    } else it.labelEl = document.createElement("span");
-    it.labelEl.classList.add("act-label");
-    it.labelEl.textContent = label;
-    it.timeEl = document.createElement("small");
-    row.append(it.icEl, it.labelEl, it.timeEl);
-    it.set = t => { it.labelEl.textContent = t; };
-    it.done = (ok, extra) => {
-      if (it.state !== "run") return;
-      it.state = ok ? "ok" : "fail";
-      it.icEl.className = "act-ic " + it.state;
-      it.icEl.textContent = ok ? "✓" : "✕";
-      if (extra && extra.name) it.labelEl.textContent = extra.name;
-      if (extra && extra.url && it.labelEl.tagName === "A" && /^https:\/\//.test(extra.url)) it.labelEl.href = extra.url;
-      it.timeEl.textContent = ((performance.now() - it.t0) / 1000).toFixed(1) + "s";
-    };
-    keepBottom(() => this.list.appendChild(row));
-    this.items.push(it);
-    return it;
-  }
-  setCancel(fn) {
-    this.clearCancel();
-    const b = document.createElement("button");
-    b.className = "gen-cancel";
-    b.textContent = "✕";
-    b.title = "Parar a resposta";
-    b.setAttribute("aria-label", "Parar a resposta");
-    b.addEventListener("click", e => { e.stopPropagation(); b.disabled = true; b.textContent = "…"; fn(); });
-    this.head.insertBefore(b, this.chev);
-    this.cancelBtn = b;
-  }
-  clearCancel() { if (this.cancelBtn) { this.cancelBtn.remove(); this.cancelBtn = null; } }
-  finish(summary, ok = true) {
-    if (this.finished) return;
-    this.finished = true;
-    clearInterval(this.timer);
-    this.tick();
-    this.clearCancel();
-    this.items.forEach(it => it.done(ok));
-    if (summary) this.titleEl.textContent = summary;
-    this.el.classList.add("done");
-    if (!ok) this.el.classList.add("fail");
-    this.spin.textContent = ok ? "✓" : "✕";
-    setTimeout(() => { this.el.classList.add("collapsed"); this.chev.textContent = "▸"; }, 900);
-  }
+function createSourcesBox() {
+  const box = document.createElement("div");
+  box.className = "sources";
+  chat.appendChild(box);
+  return box;
 }
 
-const NULL_ACT = { step: () => ({ done() {}, set() {} }) };
-function newSource(name, url, act) { return (act && typeof act.step === "function" ? act : NULL_ACT).step(name, url); }
-function finishSource(item, ok, _cb, extra) { item.done(ok, extra); }
+function renderSources(box, sources, title, startedAt, done) {
+  box.textContent = "";
 
-function addActions(text, question) {
+  const seconds = ((performance.now() - startedAt) / 1000).toFixed(1);
+
+  const head = document.createElement("div");
+  head.className = "src-head";
+  head.textContent = done
+    ? "🔎 " + title + " · " + seconds + "s"
+    : "⏳ " + title + "... " + seconds + "s";
+  box.appendChild(head);
+
+  sources.forEach(src => {
+    const row = document.createElement("div");
+    row.className = "src-item";
+
+    const icon = document.createElement("span");
+    icon.textContent =
+      src.state === "loading" ? "⏳" : src.state === "ok" ? "✅" : "❌";
+    row.appendChild(icon);
+
+    let label;
+
+    if (/^https:\/\//.test(src.url || "")) {
+      label = document.createElement("a");
+      label.href = src.url;
+      label.target = "_blank";
+      label.rel = "noopener noreferrer";
+    } else {
+      label = document.createElement("span");
+    }
+
+    label.textContent = src.name;
+    row.appendChild(label);
+
+    if (src.state !== "loading") {
+      const time = document.createElement("small");
+      time.textContent = (src.ms / 1000).toFixed(1) + "s";
+      row.appendChild(time);
+    }
+
+    box.appendChild(row);
+  });
+}
+
+function newSource(name, url, sources, onChange) {
+  const item = {
+    name,
+    url,
+    state: "loading",
+    ms: 0,
+    started: performance.now()
+  };
+
+  sources.push(item);
+  if (onChange) onChange();
+  return item;
+}
+
+function finishSource(item, ok, onChange, extra) {
+  item.state = ok ? "ok" : "fail";
+  item.ms = performance.now() - item.started;
+
+  if (extra) {
+    if (extra.name) item.name = extra.name;
+    if (extra.url) item.url = extra.url;
+  }
+
+  if (onChange) onChange();
+}
+
+function addActions(text) {
   const row = document.createElement("div");
   row.className = "actions";
+
   const all = document.createElement("button");
   all.className = "copy";
   all.textContent = "📋 Copiar resposta";
@@ -798,21 +710,7 @@ function addActions(text, question) {
     row.appendChild(only);
   }
 
-  if (question) {
-    chat.querySelectorAll(".regen").forEach(b => b.remove());
-    const regen = document.createElement("button");
-    regen.className = "copy regen";
-    regen.textContent = "🔄 Refazer";
-    regen.addEventListener("click", async () => {
-      if (busy || resetting || searching) return;
-      if (history.length && history[history.length - 1].role === "assistant") history.pop();
-      if (history.length && history[history.length - 1].role === "user") history.pop();
-      saveHistory();
-      await generate(question, "", { skipUser: true });
-    });
-    row.appendChild(regen);
-  }
-  keepBottom(() => chat.appendChild(row));
+  chat.appendChild(row);
 }
 
 function updateButtons() {
@@ -820,679 +718,239 @@ function updateButtons() {
   $("load").disabled = busy || !!loadingPromise;
   $("restart").disabled = busy || resetting || !!loadingPromise;
   $("weather").disabled = busy;
-  $("attachBtn").disabled = busy;
+  $("webToggle").disabled = busy;
 }
 
-// ------------------------------ Boas-vindas
-
-const SUGGESTIONS = [
-  "Que horas são?",
-  "Como está o clima hoje?",
-  "Quem foi Santos Dumont?",
-  "Me explique o que é uma API",
-  "Conte uma piada"
-];
-
-function showWelcome() {
-  if (chat.children.length) return;
-  const w = document.createElement("div");
-  w.className = "welcome";
-  w.innerHTML = "<h2>Olá! Eu sou o Rizik ✨</h2><p>Converso, pesquiso na internet, leio textos e arquivos grandes, vejo o clima e ajudo com código, tudo rodando no seu aparelho.</p>";
-  const chips = document.createElement("div");
-  chips.className = "chips";
-  SUGGESTIONS.forEach(q => {
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.textContent = q;
-    b.addEventListener("click", () => { input.value = q; $("send").click(); });
-    chips.appendChild(b);
-  });
-  w.appendChild(chips);
-  chat.appendChild(w);
-}
-
-// ------------------------------ Etapa 1: Analisador local de código (regras, sem IA)
-// Acha erros de verdade (chaves/parênteses sem par, erro de sintaxe, ids duplicados, ids que não existem,
-// declarações repetidas) e entrega à IA como "achados verificados". A IA só explica: não precisa adivinhar.
-
-const CODE_EXT = /\.(js|mjs|jsx|ts|tsx|py|html?|css|json|xml|ya?ml|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat)$/i;
-
-function makeLineAt(s) {
-  const st = [0];
-  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) === 10) st.push(i + 1);
-  return idx => {
-    let lo = 0, hi = st.length - 1;
-    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (st[mid] <= idx) lo = mid; else hi = mid - 1; }
-    return lo + 1;
-  };
-}
-
-function detectLang(src, name) {
-  const n = String(name || "").toLowerCase();
-  const head = src.slice(0, 4000);
-  if (/\.json$/.test(n)) return "json";
-  if (/\.(html?|xhtml)$/.test(n) || /^\s*<!doctype html|<html[\s>]/i.test(head)) return "html";
-  if (/\.py$/.test(n) || (/^\s*def\s+\w+\(.*\)\s*:\s*$/m.test(head) && !/[{};]\s*$/m.test(head))) return "python";
-  if (/\.(mjs|jsx|tsx?|js)$/.test(n) || /\b(function|const|let|var)\b[^\n]*[;{=]/.test(head) || /=>|document\./.test(head)) return "js";
-  if (/\.css$/.test(n)) return "css";
-  return "text";
-}
-
-// Confere (), [] e {} ignorando textos, comentários, regex e templates. Devolve a linha exata do problema.
-function scanBrackets(src, off) {
-  const issues = [], stack = [], pairs = { ")": "(", "]": "[", "}": "{" };
-  const n = src.length;
-  const REGEX_AFTER = new Set(["", "(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";", "+", "-", "*", "%", "<", ">", "~", "^"]);
-  const KW = new Set(["return", "typeof", "case", "in", "of", "delete", "void", "throw", "new", "else", "do"]);
-  let i = 0, line = 1, prev = "", word = "";
-  const tpl = () => {
-    while (i < n) {
-      const c = src[i];
-      if (c === "\\") { if (src[i + 1] === "\n") line++; i += 2; continue; }
-      if (c === "\n") line++;
-      else if (c === "`") { i++; return false; }
-      else if (c === "$" && src[i + 1] === "{") { stack.push({ ch: "T", line }); i += 2; return true; }
-      i++;
-    }
-    return false;
-  };
-  while (i < n && issues.length < 6) {
-    const c = src[i];
-    if (c === "\n") { line++; i++; continue; }
-    if (c === " " || c === "\t" || c === "\r") { i++; continue; }
-    if (c === "/" && src[i + 1] === "/") { while (i < n && src[i] !== "\n") i++; continue; }
-    if (c === "/" && src[i + 1] === "*") {
-      i += 2;
-      while (i < n && !(src[i] === "*" && src[i + 1] === "/")) { if (src[i] === "\n") line++; i++; }
-      i += 2; continue;
-    }
-    if (c === '"' || c === "'") {
-      i++;
-      while (i < n && src[i] !== c && src[i] !== "\n") { if (src[i] === "\\") { if (src[i + 1] === "\n") line++; i++; } i++; }
-      i++; prev = "a"; word = ""; continue;
-    }
-    if (c === "`") { i++; tpl(); prev = "a"; word = ""; continue; }
-    if (/[A-Za-z_$]/.test(c)) {
-      let j = i;
-      while (j < n && /[\w$]/.test(src[j])) j++;
-      word = src.slice(i, j); i = j; prev = "a"; continue;
-    }
-    if (c >= "0" && c <= "9") { while (i < n && /[\w.]/.test(src[i])) i++; prev = "a"; word = ""; continue; }
-    if (c === "/") {
-      if (REGEX_AFTER.has(prev) || (prev === "a" && KW.has(word))) {
-        i++;
-        let cls = false;
-        while (i < n && src[i] !== "\n") {
-          const d = src[i];
-          if (d === "\\") { i += 2; continue; }
-          if (d === "[") cls = true; else if (d === "]") cls = false; else if (d === "/" && !cls) break;
-          i++;
-        }
-        i++;
-        while (i < n && /[a-z]/i.test(src[i])) i++;
-        prev = "a"; word = ""; continue;
-      }
-      prev = "/"; word = ""; i++; continue;
-    }
-    if (c === "(" || c === "[" || c === "{") { stack.push({ ch: c, line }); prev = c; word = ""; i++; continue; }
-    if (c === ")" || c === "]" || c === "}") {
-      const top = stack[stack.length - 1];
-      if (c === "}" && top && top.ch === "T") { stack.pop(); i++; tpl(); prev = "a"; word = ""; continue; }
-      if (!top || top.ch !== pairs[c]) {
-        issues.push({ line: line + off, msg: "'" + c + "' sem abertura correspondente" + (top && top.ch !== "T" ? " (esperava fechar o '" + top.ch + "' aberto na linha " + (top.line + off) + ")" : "") });
-        if (top) stack.pop();
-      } else stack.pop();
-      prev = c; word = ""; i++; continue;
-    }
-    prev = c; word = ""; i++;
-  }
-  stack.forEach(s => { if (issues.length < 6 && s.ch !== "T") issues.push({ line: s.line + off, msg: "'" + s.ch + "' aberto aqui e nunca fechado" }); });
-  return issues;
-}
-
-function analyzeCode(text, name) {
-  const t0 = performance.now();
-  const src = String(text).replace(/\r/g, "");
-  const total = src.split("\n").length;
-  const lang = detectLang(src, name);
-  const lineAt = makeLineAt(src);
-  const F = [];
-  const add = (sev, line, msg) => { if (F.length < 80) F.push({ sev, line: line || 0, msg }); };
-  const firstLine = s => { const k = src.indexOf(s); return k < 0 ? 0 : lineAt(k); };
-  const parts = [];
-
-  if (lang === "html") {
-    const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
-    let m;
-    while ((m = re.exec(src))) {
-      if (/\bsrc\s*=/.test(m[1])) continue;
-      if (/type\s*=\s*["']?(application\/(ld\+)?json|text\/template|importmap)/i.test(m[1])) continue;
-      const bodyStart = m.index + m[0].indexOf(">") + 1;
-      parts.push({ code: m[2], off: lineAt(bodyStart) - 1, module: /type\s*=\s*["']?module/i.test(m[1]) });
-    }
-    try {
-      const doc = new DOMParser().parseFromString(src, "text/html");
-      const seen = Object.create(null);
-      doc.querySelectorAll("[id]").forEach(el => { seen[el.id] = (seen[el.id] || 0) + 1; });
-      Object.keys(seen).forEach(id => { if (seen[id] > 1) add("erro", firstLine('id="' + id + '"'), "id duplicado: '" + id + "' aparece " + seen[id] + " vezes (o JavaScript só enxerga o primeiro)"); });
-      const hasHelper = /(?:const|let|var)\s+\$\s*=/.test(src);
-      const rr = hasHelper ? /(?:\$|getElementById)\(\s*["']([\w-]+)["']\s*\)/g : /getElementById\(\s*["']([\w-]+)["']\s*\)/g;
-      const refs = Object.create(null);
-      let r;
-      while ((r = rr.exec(src))) if (!(r[1] in refs)) refs[r[1]] = lineAt(r.index);
-      Object.keys(refs).forEach(id => {
-        if (seen[id]) return;
-        if (src.indexOf('id="' + id + '"') >= 0 || src.indexOf("id='" + id + "'") >= 0 || src.indexOf('.id = "' + id) >= 0) return;
-        add("aviso", refs[id], "o JavaScript busca o id '" + id + "' mas nenhum elemento tem esse id (dá erro 'null')");
-      });
-      if (!doc.querySelector('meta[name="viewport"]')) add("aviso", 0, "falta <meta name=\"viewport\"> (a página fica minúscula no celular)");
-      const files = new Set();
-      const fr = /(?:href|src)\s*=\s*["']([^"'#:?]+\.[a-z0-9]{2,5})["']/gi;
-      let f;
-      while ((f = fr.exec(src))) files.add(f[1]);
-      const sw = /register\(\s*["']([^"']+)["']/g;
-      while ((f = sw.exec(src))) files.add(f[1]);
-      if (files.size) add("info", 0, "arquivos que precisam estar publicados junto: " + [...files].slice(0, 8).join(", "));
-    } catch (e) { /* DOMParser indisponível */ }
-  } else if (lang === "js") {
-    parts.push({ code: src, off: 0, module: true });
-  } else if (lang === "json") {
-    try { JSON.parse(src); } catch (e) {
-      const mm = String(e.message).match(/position (\d+)/);
-      add("erro", mm ? lineAt(+mm[1]) : 0, "JSON inválido: " + String(e.message).slice(0, 100));
-    }
-  } else if (lang === "python") {
-    const ls = src.split("\n");
-    let tabs = 0, spaces = 0;
-    ls.forEach((l, k) => {
-      if (/^\t/.test(l)) tabs++; else if (/^ +\S/.test(l)) spaces++;
-      const kw = l.match(/^\s*(if|elif|else|for|while|def|class|try|except|finally|with)\b([^#\n]*?)\s*(#.*)?$/);
-      if (kw && !/:\s*$/.test(kw[0].replace(/\s*#.*$/, "")) && (l.split("(").length === l.split(")").length) && !/[\\,]\s*$/.test(l) && !/^\s*(else|try|finally)\s*$/.test(l)) {
-        add("aviso", k + 1, "possível falta de ':' no fim desta linha");
-      } else if (/^\s*(else|try|finally)\s*$/.test(l)) add("aviso", k + 1, "falta o ':' depois de '" + l.trim() + "'");
-    });
-    if (tabs && spaces) add("erro", 0, "o arquivo mistura TAB e espaços na indentação (causa IndentationError)");
-  }
-
-  const AsyncFn = Object.getPrototypeOf(async function () {}).constructor;
-  parts.forEach(p => {
-    scanBrackets(p.code, p.off).forEach(x => add("erro", x.line, x.msg));
-    let code = p.code;
-    if (p.module) {
-      code = code.replace(/^[ \t]*import\s+(?:[\w*${},\s]+?\s+from\s+)?["'][^"'\n]+["'][ \t]*;?/gm, s => s.replace(/[^\n]/g, ""))
-                 .replace(/^([ \t]*)export\s+(default\s+)?/gm, "$1");
-    }
-    try { new AsyncFn(code); }
-    catch (e) { add("erro", 0, "erro de sintaxe do JavaScript: " + String((e && e.message) || e).slice(0, 110) + " (a linha exata costuma estar nos itens acima)"); }
-
-    const pl = makeLineAt(p.code);
-    const dre = /^(?:async\s+)?function\s*\*?\s*([\w$]+)|^(?:const|let|class)\s+([\w$]+)/gm;
-    const seenFn = Object.create(null), seenVar = Object.create(null);
-    let d;
-    while ((d = dre.exec(p.code))) {
-      const ln = pl(d.index) + p.off;
-      if (d[1]) { if (seenFn[d[1]]) add("aviso", ln, "função '" + d[1] + "' declarada de novo (a primeira, na linha " + seenFn[d[1]] + ", é ignorada)"); else seenFn[d[1]] = ln; }
-      else if (d[2]) { if (seenVar[d[2]]) add("erro", ln, "'" + d[2] + "' já foi declarado na linha " + seenVar[d[2]] + " (SyntaxError: has already been declared)"); else seenVar[d[2]] = ln; }
-    }
-    const warn = (re, msg) => { const x = re.exec(p.code); if (x) add("aviso", pl(x.index) + p.off, msg); };
-    warn(/\beval\s*\(/, "usa eval, que é perigoso e lento");
-    warn(/\bdocument\.write\s*\(/, "usa document.write, que é ruim para a página");
-    warn(/^\s*debugger\s*;?/m, "esqueceu um 'debugger;' no código");
-    const inner = (p.code.match(/\.innerHTML\s*=/g) || []).length;
-    if (inner) add("info", 0, "usa innerHTML " + inner + "x: confira se nunca entra texto digitado pelo usuário (risco de XSS)");
-  });
-
-  const todos = (src.match(/\b(TODO|FIXME|XXX)\b/g) || []).length;
-  if (todos) add("info", 0, todos + " marcações TODO/FIXME no código");
-  const longest = src.split("\n").reduce((a, l) => Math.max(a, l.length), 0);
-  if (longest > 3000) add("info", 0, "tem linha com " + longest.toLocaleString("pt-BR") + " caracteres (código minificado?)");
-
-  const order = { erro: 0, aviso: 1, info: 2 };
-  F.sort((a, b) => order[a.sev] - order[b.sev] || a.line - b.line);
-  const counts = { erro: 0, aviso: 0, info: 0 };
-  F.forEach(x => counts[x.sev]++);
-  const icon = { erro: "❌", aviso: "⚠️", info: "ℹ️" };
-  const fmt = x => icon[x.sev] + " " + (x.line ? "linha " + x.line : "geral") + ": " + x.msg;
-  const report = "🔎 Análise local (sem IA) · " + (name || "código") + " · " + total.toLocaleString("pt-BR") + " linhas · tipo " + lang + "\n" +
-    (F.length ? F.slice(0, 25).map(fmt).join("\n") + (F.length > 25 ? "\n… e mais " + (F.length - 25) + " itens" : "")
-              : "✅ Não achei erro de sintaxe, id duplicado nem chave/parêntese sem par.") +
-    "\n\nEssa checagem é feita por regras, não pela IA: o que aparece aqui é confiável. Erros de lógica dependem da IA e precisam ser conferidos.";
-  const real = F.filter(x => x.sev !== "info");
-  const promptText = real.length
-    ? real.slice(0, 12).map(x => "- " + (x.line ? "linha " + x.line : "geral") + ": " + x.msg).join("\n").slice(0, 900)
-    : "Nenhum erro de sintaxe, id duplicado ou chave sem par foi encontrado pelo analisador local.";
-  return { lang, lines: total, counts, report, promptText, ms: Math.round(performance.now() - t0) };
-}
-
-// ------------------------------ Etapa 3: Verificador (confere a resposta da IA contra o arquivo real)
-function codeCheckNote(answer, source, totalLines) {
-  const parts = String(answer).split(FENCE);
-  const prose = parts.filter((_, i) => i % 2 === 0).join(" ");
-  const blocks = parts.filter((_, i) => i % 2 === 1);
-  const problems = [];
-
-  const big = blocks.find(b => b.split("\n").length > 80);
-  if (big && totalLines > 300) problems.push("a IA tentou reescrever um bloco enorme do arquivo: ignore e use só os trechos e linhas apontados");
-
-  const missing = [];
-  const ids = new Set((prose.match(/`([^`\n]{3,60})`/g) || []).map(t => t.slice(1, -1).trim()));
-  ids.forEach(id => {
-    if (!/^[A-Za-z_$][\w$.]*(\(\))?$/.test(id)) return;
-    const core = id.replace(/\(\)$/, "");
-    if (!(source.includes(core) || source.includes(core.split(".").pop()))) missing.push(id);
-  });
-  if (missing.length) problems.push("não achei no arquivo: " + missing.slice(0, 5).join(", ") + " (podem ser nomes inventados ou código novo sugerido)");
-
-  const badLines = [];
-  (prose.match(/\blinhas?\s+\d{1,7}/gi) || []).forEach(m => { const n = +m.match(/\d+/)[0]; if (n < 1 || n > totalLines) badLines.push(n); });
-  if (badLines.length) problems.push("linha(s) que não existem (o arquivo tem " + totalLines + "): " + [...new Set(badLines)].slice(0, 5).join(", "));
-
-  if (problems.length) return "⚠️ Verificação automática: " + problems.join(" · ") + ". Desconfie dessas partes.";
-  if (ids.size || /\blinhas?\s+\d/i.test(prose)) return "✅ Verificação automática: os nomes e linhas citados existem no arquivo.";
-  return "";
-}
-
-// ------------------------------ Etapa 2: Leitor rápido (programa secundário em Web Worker)
-// Lê o texto INTEIRO em milissegundos, sem usar a IA: divide em trechos nas fronteiras de função/classe
-// (como o chunking por AST, só que leve), pontua cada um com BM25 (o mesmo método de buscadores) e entrega à IA
-// só os trechos mais relevantes, na ordem original e com o número da linha de cada linha.
-// Função pura: roda tanto no Worker quanto na página (se o Worker não estiver disponível).
-function rankChunks(p) {
-  var t0 = performance.now();
-  var text = String(p.text || ""), query = String(p.query || "");
-  var budget = Math.max(600, p.budget | 0);
-  var numbered = !!p.numbered;
-  var norm = function (s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
-  var STOP = Object.create(null);
-  "para como que com uma por dos das nos nas isso esse essa este esta sobre qual quais faz fazer explique resuma resumo arquivo texto codigo conteudo aponte erros provaveis trecho corrigido the and what this".split(" ").forEach(function (w) { STOP[w] = 1; });
-  var words = function (s) { return norm(s).replace(/[^a-z0-9_$]+/g, " ").split(" ").filter(function (w) { return w.length > 2 && !STOP[w]; }); };
-  var FN = /^\s*(export\s+)?(async\s+)?(function\*?|class|def|interface)\s+[\w$]|^\s*(const|let)\s+[\w$]+\s*=\s*(async\s*)?(\(|function)/;
-
-  var lines = text.split("\n"), segs = [];
-  for (var i = 0; i < lines.length; i++) {
-    var ln = lines[i], first = true;
-    while (ln.length > 500) {
-      var cut = ln.lastIndexOf(". ", 400);
-      if (cut < 120) cut = ln.lastIndexOf(" ", 400);
-      if (cut < 120) cut = 400;
-      segs.push([i, ln.slice(0, cut + 1), first]);
-      first = false;
-      ln = ln.slice(cut + 1);
-    }
-    segs.push([i, ln, first]);
-  }
-
-  var chunks = [], cur = [], curN = [], len = 0, a = 0;
-  var flush = function (lastLine) {
-    if (cur.length) {
-      var t = cur.join("\n");
-      if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t, ntext: curN.join("\n") });
-    }
-    cur = []; curN = []; len = 0;
-  };
-  for (var s = 0; s < segs.length; s++) {
-    var sg = segs[s];
-    if (s > 0 && cur.length && len >= 150 && FN.test(sg[1])) flush(segs[s - 1][0]);
-    if (!cur.length) a = sg[0];
-    cur.push(sg[1]);
-    curN.push((sg[2] ? (sg[0] + 1) + "| " : "   | ") + sg[1]);
-    len += sg[1].length + 1;
-    var blank = !sg[1].trim();
-    if (len >= 450 || (blank && len >= 200)) flush(sg[0]);
-  }
-  flush(segs.length ? segs[segs.length - 1][0] : 0);
-
-  var N = chunks.length;
-  if (!N) return { text: "", outline: [], chars: text.length, lines: lines.length, chunks: 0, picked: 0, coverage: 0, ms: 0 };
-
-  var q = [], seen = Object.create(null), qset = Object.create(null);
-  words(query).forEach(function (w) { if (!seen[w]) { seen[w] = 1; q.push(w); qset[w] = 1; } });
-
-  var totalLen = 0;
-  chunks.forEach(function (c) {
-    var ws = words(c.text);
-    c.len = ws.length || 1; totalLen += c.len; c.tf = Object.create(null); c.score = 0;
-    ws.forEach(function (w) { if (qset[w]) c.tf[w] = (c.tf[w] || 0) + 1; });
-  });
-  var avg = totalLen / N || 1;
-  q.forEach(function (w) {
-    var df = 0;
-    chunks.forEach(function (c) { if (c.tf[w]) df++; });
-    if (!df) return;
-    var idf = Math.log(1 + (N - df + 0.5) / (df + 0.5));
-    chunks.forEach(function (c) {
-      var f = c.tf[w];
-      if (f) c.score += idf * (f * 2.5) / (f + 1.5 * (0.25 + 0.75 * c.len / avg));
-    });
-  });
-
-  var sig = /(erro|error|exception|throw|bug|fixme|todo|falha|warning|aviso|undefined|null)/i;
-  var def = /^\s*(export\s+)?(async\s+)?(function|class|def|interface)\s/m;
-  chunks.forEach(function (c) {
-    var h = 0;
-    if (sig.test(c.text)) h += 0.25;
-    if (def.test(c.text)) h += 0.15;
-    c.score += q.length ? h * 0.3 : h;
-  });
-
-  var picked = Object.create(null), used = 0, count = 0;
-  var add = function (i) {
-    if (i < 0 || i >= N || picked[i]) return;
-    var l = (numbered ? chunks[i].ntext.length : chunks[i].text.length) + 42;
-    if (used + l > budget) return;
-    picked[i] = 1; used += l; count++;
-  };
-  var idx = [];
-  for (var k = 1; k < N - 1; k++) idx.push(k);
-  if (q.length) {
-    // Com pergunta: os trechos que mais combinam entram primeiro; início e fim só se sobrar espaço.
-    var top = [];
-    for (var z = 0; z < N; z++) top.push(z);
-    top.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
-    for (var y2 = 0; y2 < 3 && y2 < top.length; y2++) { if (chunks[top[y2]].score > 0.5) add(top[y2]); }
-  }
-  add(0); add(N - 1);
-  if (!q.length) {
-    var per = Math.max(2, Math.floor(budget / (text.length / N + 42)));
-    var cov = Math.floor(per / 2);
-    for (var j = 1; j <= cov; j++) add(Math.floor(j * N / (cov + 1)));
-  }
-  idx.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
-  for (var m = 0; m < idx.length; m++) add(idx[m]);
-
-  var out = "", prev = -2, usedChars = 0;
-  for (var n = 0; n < N; n++) {
-    if (!picked[n]) continue;
-    if (prev !== -2) {
-      if (n !== prev + 1) out += "\n[… trecho omitido: linhas " + (chunks[prev].b + 1) + "–" + (chunks[n].a - 1) + " …]\n";
-      else out += "\n";
-    }
-    out += numbered ? chunks[n].ntext : chunks[n].text;
-    usedChars += chunks[n].text.length;
-    prev = n;
-  }
-
-  var outline = [];
-  var OUT = /^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+|^\s*(const|let)\s+[\w$]+\s*=\s*(async\s*)?(\(|function)|^#{1,3}\s+\S/;
-  for (var o = 0; o < lines.length && outline.length < 24; o++) {
-    if (OUT.test(lines[o])) outline.push("L" + (o + 1) + " " + lines[o].trim().slice(0, 60));
-  }
-
-  return {
-    text: out, outline: outline, chars: text.length, lines: lines.length, chunks: N, picked: count,
-    coverage: Math.min(100, Math.round(usedChars / Math.max(1, text.length) * 100)),
-    ms: Math.round(performance.now() - t0)
-  };
-}
-
-let rworker = null, rid = 0;
-const rpending = new Map();
-
-function getReaderWorker() {
-  if (rworker !== null) return rworker || null;
-  try {
-    const src = rankChunks.toString() + ";self.onmessage=function(e){var d=e.data,r;try{r=rankChunks(d.payload)}catch(x){r={error:String(x)}}self.postMessage({id:d.id,r:r})};";
-    rworker = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
-    rworker.onmessage = e => { const f = rpending.get(e.data.id); if (f) { rpending.delete(e.data.id); f(e.data.r); } };
-    rworker.onerror = () => {
-      rworker = false;
-      for (const f of rpending.values()) f({ error: "worker" });
-      rpending.clear();
-    };
-  } catch (e) { rworker = false; }
-  return rworker || null;
-}
-
-function fastRead(text, query, budget, numbered) {
-  return new Promise(resolve => {
-    const payload = { text, query, budget, numbered: !!numbered };
-    const w = getReaderWorker();
-    if (!w) { resolve(rankChunks(payload)); return; }
-    const id = ++rid;
-    const timer = setTimeout(() => { rpending.delete(id); resolve(rankChunks(payload)); }, 10000);
-    rpending.set(id, r => { clearTimeout(timer); resolve(r && !r.error ? r : rankChunks(payload)); });
-    w.postMessage({ id, payload });
-  });
-}
-
-// ------------------------------ Conversas (várias conversas salvas, cada uma pode ser apagada)
+// ------------------------------
+// Histórico compacto
+// ------------------------------
 
 const MAX_QUESTIONS = 34;
-const MAX_CONVS = 30;
 
+// Mantém no máximo 34 perguntas (cada uma com a sua resposta).
 function trimQuestions(list) {
   let count = list.filter(m => m.role === "user").length;
   let i = 0;
+
   while (count > MAX_QUESTIONS && i < list.length) {
     if (list[i].role === "user") count--;
     i++;
   }
-  if (i > 0) while (i < list.length && list[i].role === "assistant") i++;
-  return list.slice(i);
-}
 
-const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-const titleOf = msgs => {
-  const u = msgs.find(m => m.role === "user");
-  return u ? String(u.content).replace(/\s+/g, " ").trim().slice(0, 60) : "Conversa";
-};
-
-function persistConvs() {
-  convs = convs.filter(c => c.msgs.length).slice(0, MAX_CONVS);
-  for (let tries = 0; tries < 6; tries++) {
-    try {
-      localStorage.setItem("rizik_convs", JSON.stringify(convs));
-      localStorage.setItem("rizik_cur", curId);
-      return;
-    } catch (err) {
-      // Sem espaço: descarta a conversa mais antiga (que não seja a atual) e tenta de novo.
-      const k = convs.length - 1;
-      if (k <= 0) break;
-      const victim = convs[k].id === curId ? k - 1 : k;
-      convs.splice(victim, 1);
-    }
+  // Não deixa uma resposta sem a pergunta no começo.
+  if (i > 0) {
+    while (i < list.length && list[i].role === "assistant") i++;
   }
-  console.warn("Não consegui salvar as conversas.");
+
+  return list.slice(i);
 }
 
 function saveHistory() {
   history = trimQuestions(history);
-  if (!history.length && !curId) return;
-  if (!curId) curId = newId();
-  let c = convs.find(x => x.id === curId);
-  if (!c) { c = { id: curId, t: Date.now(), title: "", msgs: history }; convs.unshift(c); }
-  c.msgs = history;
-  c.t = Date.now();
-  c.title = titleOf(history);
-  convs = [c, ...convs.filter(x => x !== c)];
-  persistConvs();
-}
-
-function loadConvs() {
   try {
-    const c = JSON.parse(localStorage.getItem("rizik_convs") || "null");
-    if (Array.isArray(c)) {
-      convs = c.filter(x => x && x.id && Array.isArray(x.msgs)).map(x => ({
-        id: String(x.id), t: x.t || Date.now(), title: x.title || "",
-        msgs: x.msgs.filter(m => m && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-      }));
-    }
-  } catch (e) { convs = []; }
-  try { curId = localStorage.getItem("rizik_cur") || ""; } catch (e) { curId = ""; }
-  if (!convs.length) {
-    // Migra o histórico antigo (versões até a 24) para a primeira conversa.
-    try {
-      const old = JSON.parse(localStorage.getItem("rizik_history") || "[]");
-      const msgs = Array.isArray(old) ? old.filter(m => m && ["user", "assistant"].includes(m.role) && typeof m.content === "string") : [];
-      if (msgs.length) { curId = newId(); convs = [{ id: curId, t: Date.now(), title: titleOf(msgs), msgs }]; persistConvs(); }
-      localStorage.removeItem("rizik_history");
-    } catch (e) {}
+    localStorage.setItem(
+      "rizik_history",
+      JSON.stringify(history)
+    );
+  } catch (err) {
+    console.warn("Erro ao salvar histórico:", err);
   }
-  if (!convs.find(c => c.id === curId)) curId = convs.length ? convs[0].id : "";
-}
-
-function renderHistory() {
-  chat.textContent = "";
-  history.forEach(m => {
-    addMessage(m.role, m.content, m.t);
-    if (m.role === "assistant") addActions(m.content);
-  });
 }
 
 function restoreHistory() {
   try {
-    loadConvs();
-    const c = convs.find(x => x.id === curId);
-    history = c ? trimQuestions(c.msgs) : [];
-    renderHistory();
-  } catch (err) { history = []; }
-}
+    const saved = JSON.parse(
+      localStorage.getItem("rizik_history") || "[]"
+    );
 
-function newConversation() {
-  curId = "";
-  history = [];
-  lastAnswer = "";
-  chat.textContent = "";
-  try { localStorage.setItem("rizik_cur", ""); } catch (e) {}
-  showWelcome();
-  window.scrollTo(0, 0);
-}
+    history = Array.isArray(saved)
+      ? saved.filter(m =>
+          m &&
+          ["user", "assistant"].includes(m.role) &&
+          typeof m.content === "string"
+        )
+      : [];
 
-function openConv(id) {
-  const c = convs.find(x => x.id === id);
-  if (!c) return;
-  curId = id;
-  history = trimQuestions(c.msgs);
-  lastAnswer = "";
-  renderHistory();
-  try { localStorage.setItem("rizik_cur", curId); } catch (e) {}
-  if (!history.length) showWelcome();
-}
+    history = trimQuestions(history);
 
-function deleteConv(id) {
-  convs = convs.filter(c => c.id !== id);
-  if (id === curId) newConversation();
-  persistConvs();
-}
+    history.forEach(m => {
+      addMessage(m.role, m.content, m.t);
+      if (m.role === "assistant") addActions(m.content);
+    });
 
-function deleteAllConvs() {
-  convs = [];
-  newConversation();
-  persistConvs();
-  try { localStorage.removeItem("rizik_convs"); localStorage.removeItem("rizik_history"); } catch (e) {}
+  } catch (err) {
+    history = [];
+  }
 }
 
 function limitText(text, maxChars) {
   text = String(text || "");
-  return text.length > maxChars ? text.slice(0, maxChars) + "\n[Conteúdo reduzido.]" : text;
+  return text.length > maxChars
+    ? text.slice(0, maxChars) + "\n[Conteúdo reduzido.]"
+    : text;
 }
 
-function buildMessages(text, extraContext) {
-  const isCode = !extraContext && looksLikeCode(text);
-  const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + " Hoje é " + today + "." + (settings.custom ? " Instruções do usuário: " + String(settings.custom).slice(0, 400) : "") + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
+function buildMessages(text, extraContext, kind) {
+  const isDoc = kind === "doc";
+  const isCode = (!extraContext && looksLikeCode(text)) || (isDoc && currentDoc && currentDoc.mode === "código");
 
-  const recent = (text.length > Math.floor(maxChars() * 0.5) || (isCode && text.length > 1200)) ? [] : history.slice(-4);
-  for (const item of recent) messages.push({ role: item.role, content: limitText(item.content, 240) });
+  const messages = [
+    { role: "system", content: isCode ? SYSTEM_CODE : SYSTEM_CHAT }
+  ];
 
-  const tips = (isCode && text.length <= 1200) ? pickTips(text) : "";
-  const research = extraContext ? limitText(extraContext, Math.max(900, Math.floor(maxChars() * 0.6))) : "";
+  // Textos longos (código) ocupam o contexto: sem histórico.
+  const recent = (isCode && text.length > 1200) ? [] : history.slice(-4);
+
+  for (const item of recent) {
+    messages.push({
+      role: item.role,
+      content: limitText(item.content, 240)
+    });
+  }
+
+  const mem = (!isDoc && !extraContext && text.length <= 1500) ? recall(text) : "";
+  const tips = (isCode && text.length <= 1500 && /erro|error|undefined|not defined|cannot|exception|traceback|bug|não funciona|nao funciona|travando|lent/i.test(text)) ? pickTips(text) : "";
+  const safeResearch = extraContext ? (isDoc ? extraContext : limitText(extraContext, 1400)) : "";
 
   messages.push({
     role: "user",
-    content: limitText(text, maxChars()) +
+    content:
+      limitText(text, MAX_USER_CHARS) +
+      (mem ? "\n\nMemória (conversas antigas parecidas):\n" + mem : "") +
       (tips ? "\n\nDicas úteis:\n" + tips : "") +
-      (research ? "\n\nUse as informações abaixo para responder em português, de forma curta.\nInformações:\n" + research : "")
+      (safeResearch
+        ? (isDoc ? "\n\nTexto colado pelo usuário (trechos principais ou notas; o resto foi omitido):\n" : "\n\nUse as informações abaixo se tiverem relação com a pergunta. Se não tiverem, ignore-as e responda normalmente.\nInformações:\n") + safeResearch
+        : "")
   });
+
   return messages;
 }
 
-// ------------------------------ Motor
+// ------------------------------
+// Identificação de falhas
+// ------------------------------
 
 function isEngineCrash(err) {
-  const message = String(err && err.message ? err.message : err);
+  const message = String(
+    err && err.message ? err.message : err
+  );
+
   return /ABORT|wllama has crashed|RuntimeError|memory access out of bounds|unreachable|out of memory/i.test(message);
 }
 
+// ------------------------------
+// Encerrar motor anterior
+// ------------------------------
+
 async function destroyAI() {
   const oldAI = ai;
+
+  // Impede que outra parte do código reutilize a instância.
   ai = null;
   ready = false;
-  loadedCtx = 0;
+  await destroyAI2();
+
   if (oldAI) {
-    try { await oldAI.exit(); } catch (err) { console.warn("O motor anterior já estava encerrado:", err); }
+    try {
+      await oldAI.exit();
+    } catch (err) {
+      console.warn("O motor anterior já estava encerrado:", err);
+    }
   }
 }
 
-async function loadAI(parentAct) {
-  if (ready && ai) { sayStatus("A IA já está carregada!"); return true; }
-  if (loadingPromise) return loadingPromise;
+// ------------------------------
+// Carregar modelo
+// ------------------------------
+
+async function loadAI() {
+  if (ready && ai) {
+    sayStatus("A IA já está carregada!");
+    return true;
+  }
+
+  if (loadingPromise) {
+    return loadingPromise;
+  }
 
   $("load").disabled = true;
+  keepAwake(true);
 
   loadingPromise = (async () => {
     let newAI = null;
-    const own = !(parentAct && typeof parentAct.step === "function");
-    const act = own ? new Activity("Carregando a IA") : parentAct;
-    const t0 = performance.now();
-    let sEngine = null, sModel = null;
+
     try {
       sayStatus("Preparando o motor da IA...");
-      sEngine = act.step("⚙️ Preparando o motor (Wllama)");
+
       newAI = new Wllama(WasmFromCDN);
       newAI.setCompat("default");
+
       ai = newAI;
       ready = false;
-      sEngine.done(true);
 
       try { localStorage.setItem("rizik_loading", "1"); } catch (e) {}
       sayStatus("Carregando " + MODELS[settings.model].name + "...");
-      sModel = act.step("⬇️ Carregando " + MODELS[settings.model].name + " (do cache ou da internet)");
 
       await newAI.loadModelFromUrl(MODELS[settings.model].url, {
-        n_ctx: settings.ctx,
+        n_ctx: ctxFor(settings.model),
         n_batch: 512,
-        n_threads: THREADS,
+        n_threads: parallelOn() ? THREADS_EACH : THREADS,
         n_gpu_layers: 0,
-        progressCallback: ({ loaded, total }) => {
+
+        progressCallback: ({loaded, total}) => {
           if (total > 0) {
-            const pct = Math.round(loaded / total * 100);
-            sayStatus("Baixando modelo: " + pct + "%");
-            sModel.set("⬇️ Baixando " + MODELS[settings.model].name + ": " + pct + "% (" + Math.round(loaded / 1048576) + " de " + Math.round(total / 1048576) + " MB)");
-          } else sayStatus("Baixando modelo...");
+            const percent = Math.round(loaded / total * 100);
+            sayStatus("Baixando modelo: " + percent + "%");
+          } else {
+            sayStatus("Baixando modelo...");
+          }
         }
       });
 
-      if (ai !== newAI) { try { await newAI.exit(); } catch (_) {} if (own) act.finish("Carregamento cancelado", false); return false; }
+      // Confere se a instância continua sendo a atual.
+      if (ai !== newAI) {
+        try { await newAI.exit(); } catch (_) {}
+        return false;
+      }
 
       ready = true;
-      loadedCtx = settings.ctx;
-      lastTokens = 0;
-      updateMeter();
-      sModel.done(true, { name: "✅ " + MODELS[settings.model].name + " carregado" });
       try { localStorage.removeItem("rizik_loading"); localStorage.setItem("rizik_autoload", "1"); } catch (e) {}
 
       sayStatus("Rizik está pronto!");
-      if (own) act.finish("IA pronta · " + ((performance.now() - t0) / 1000).toFixed(1) + "s");
-      addMessage("system",
-        "Rizik AI carregado com sucesso! 🚀\nModelo: " + MODELS[settings.model].name +
-        "\nNúcleos em uso: " + THREADS + (self.crossOriginIsolated ? " (modo rápido ativo)" : " (modo rápido inativo)"));
+      addMessage(
+        "system",
+        "Rizik AI carregado com sucesso! 🚀\nModelo: " + MODELS[settings.model].name + "\nAparelho: " + DEVICE + "\nNúcleos em uso: " + (parallelOn() ? THREADS_EACH + " por IA (modo 2 IAs)" : THREADS) +
+        (self.crossOriginIsolated
+          ? " (modo rápido ativo)"
+          : " (modo rápido inativo)")
+      );
+
       return true;
 
     } catch (err) {
       console.error("Erro ao carregar Wllama:", err);
       try { localStorage.removeItem("rizik_loading"); } catch (e) {}
-      if (newAI) { try { await newAI.exit(); } catch (_) {} }
-      if (ai === newAI) ai = null;
+
+      if (newAI) {
+        try { await newAI.exit(); } catch (_) {}
+      }
+
+      if (ai === newAI) {
+        ai = null;
+      }
+
       ready = false;
+
+      const message = err?.message || String(err);
+
       sayStatus("Falha ao carregar a IA.");
-      if (sModel) sModel.done(false); else if (sEngine) sEngine.done(false);
-      if (own) act.finish("Falha ao carregar a IA", false);
-      addMessage("system", "Erro ao carregar: " + (err?.message || String(err)));
+      addMessage("system", "Erro ao carregar: " + message);
+
       return false;
 
     } finally {
       loadingPromise = null;
+      if (!busy) keepAwake(false);
       updateButtons();
     }
   })();
@@ -1500,18 +958,35 @@ async function loadAI(parentAct) {
   return loadingPromise;
 }
 
+// ------------------------------
+// Reiniciar motor sem atualizar página
+// ------------------------------
+
 async function restartAI() {
-  if (busy || resetting || loadingPromise) return;
+  if (busy || resetting || loadingPromise) {
+    return;
+  }
+
   resetting = true;
   updateButtons();
+
   try {
     sayStatus("Encerrando o motor anterior...");
+
     await destroyAI();
+
     sayStatus("Motor encerrado. Preparando nova instância...");
-    await new Promise(r => setTimeout(r, 300));
+
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     const success = await loadAI();
-    if (success) addMessage("system", "Motor da IA reiniciado com sucesso. 🚀");
-    else sayStatus("Não foi possível reiniciar. Tente novamente.");
+
+    if (success) {
+      addMessage("system", "Motor da IA reiniciado com sucesso. 🚀");
+    } else {
+      sayStatus("Não foi possível reiniciar. Tente novamente.");
+    }
+
   } catch (err) {
     console.error("Erro ao reiniciar:", err);
     sayStatus("Falha ao reiniciar o motor.");
@@ -1521,142 +996,150 @@ async function restartAI() {
   }
 }
 
-// ------------------------------ Cabe no contexto? (conta tokens de verdade e reduz se precisar)
-
-async function countTokens(engine, messages) {
-  const joined = messages.map(m => m.content).join("\n");
-  try {
-    if (engine && typeof engine.tokenize === "function") {
-      const t = await engine.tokenize(joined);
-      if (t && typeof t.length === "number") return t.length + messages.length * 8;
-    }
-  } catch (e) { console.warn("tokenize indisponível, estimando:", e); }
-  return Math.ceil(joined.length / 2.6) + messages.length * 8;
-}
-
-async function fitMessages(engine, messages, ctx, wantNew) {
-  const room = Math.max(200, ctx - wantNew - 24);
-  let trimmed = false, n = await countTokens(engine, messages);
-  for (let i = 0; i < 6 && n > room; i++) {
-    trimmed = true;
-    if (messages.length > 2) { messages.splice(1, messages.length - 2); }
-    else {
-      const last = messages[messages.length - 1];
-      const keep = Math.max(300, Math.floor(last.content.length * (room / n) * 0.9));
-      last.content = last.content.slice(0, keep) + "\n[Conteúdo reduzido para caber na memória da IA.]";
-    }
-    n = await countTokens(engine, messages);
-  }
-  return { messages, tokens: n, trimmed, maxNew: Math.max(48, Math.min(wantNew, ctx - n - 16)) };
-}
-
-// ------------------------------ Gerar resposta (com painel de atividade e resposta em tempo real)
+// ------------------------------
+// Gerar resposta
+// ------------------------------
 
 async function generate(text, extraContext = "", opts = {}) {
-  if (busy || resetting) { if (opts.act) opts.act.finish("Ocupado, tente de novo", false); return; }
+  if (busy || resetting) return;
+
   busy = true;
-  cancelRequested = false;
-  updateButtons();
   keepAwake(true);
+  updateButtons();
 
   const shown = opts.shown || text;
-  let act = opts.act || null;
-  let answerBox = null, currentEngine = null;
+  let answerBox = null;
+  let currentEngine = null;
+  let thinkTimer = null;
+  let thinkStart = 0;
 
   try {
+    const preview = buildMessages(text, extraContext, opts.kind);
+    const promptChars = preview.reduce((n, m) => n + m.content.length, 0);
+    const estimate = promptChars / (measuredRate[settings.model] || DEFAULT_RATE[settings.model]);
+
+    if (estimate > 90 && !opts.skipUser) {
+      const mins = Math.max(1, Math.round(estimate / 60));
+      const go = confirm("Esse texto deve levar uns " + mins + " min só para ser lido neste aparelho. Continuar?\n\nDica: o modelo Rápido (⋮) lê bem mais depressa.");
+      if (!go) {
+        input.value = shown;
+        input.dispatchEvent(new Event("input"));
+        return;
+      }
+    }
+
     if (!opts.skipUser) addMessage("user", shown);
-    if (text.length > maxChars()) addMessage("system", "Texto grande: li só os primeiros " + maxChars() + " caracteres.");
-    if (!act) act = new Activity("Pensando");
+    if (text.length > MAX_USER_CHARS) addMessage("system", "Texto grande: li só os primeiros " + MAX_USER_CHARS + " caracteres.");
 
     if (!ready || !ai) {
-      sayStatus("Carregando a IA...");
-      const loaded = await loadAI(act);
+      sayStatus("Configurando a IA...");
+      const cfgBox = addMessage("system", "⚙️ Configurando a IA (o primeiro carregamento demora um pouco)...");
+      cfgBox.style.alignSelf = "flex-start";
+
+      const loaded = await loadAI();
+      cfgBox.remove();
+
       if (!loaded || !ready || !ai) {
-        addMessage("system", "Não consegui iniciar a IA. Abra ⋮ > Reiniciar IA e tente novamente.");
-        act.finish("Não consegui iniciar a IA", false);
+        addMessage(
+          "system",
+          "Não consegui iniciar a IA. Abra ⋮ > Reiniciar IA e tente novamente."
+        );
         return;
       }
     }
 
     currentEngine = ai;
-    const stCtx = act.step("📝 Montando o contexto da conversa");
-    const ctxSize = loadedCtx || settings.ctx;
-    const fit = await fitMessages(currentEngine, buildMessages(text, extraContext), ctxSize, settings.tokens);
-    const messages = fit.messages;
-    lastTokens = fit.tokens;
-    updateMeter();
-    stCtx.done(true, { name: "📝 Contexto pronto · " + fit.tokens.toLocaleString("pt-BR") + " de " + ctxSize.toLocaleString("pt-BR") + " tokens" + (fit.trimmed ? " (reduzi o texto para caber)" : "") });
 
-    if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 9000), t: Date.now() });
+    const messages = buildMessages(text, extraContext, opts.kind);
+
+    if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 4000), t: Date.now() });
     saveHistory();
 
+    // Os três pontinhos animados ficam até a resposta ficar pronta.
     answerBox = addMessage("assistant", "");
-    answerBox.querySelector(".body").innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+    answerBox.querySelector(".body").innerHTML =
+      '<span class="dots"><span></span><span></span><span></span></span>';
 
-    const readStep = act.step("🧠 Lendo a pergunta e o contexto");
-    let writeStep = null;
-    act.setCancel(() => { cancelRequested = true; sayStatus("Parando a resposta..."); });
-    sayStatus("Rizik está pensando...");
+    const timerBox = addMessage("system", "⏱ 0s · lendo a pergunta...");
+    timerBox.style.alignSelf = "flex-start";
 
-    const startAt = performance.now();
-    let tokenCount = 0, firstTokenAt = 0, lastPaint = 0;
+    thinkStart = performance.now();
+    let tokenCount = 0;
+    let firstTokenAt = 0;
 
-    // Código pede resposta mais "fria": menos criatividade, menos invenção.
-    const temp = (opts.verify || (!extraContext && looksLikeCode(text))) ? Math.min(settings.temp, 0.2) : settings.temp;
+    let answer = "";
+    let truncated = false;
+
+    const PHASES = extraContext
+      ? (opts.kind === "doc"
+          ? ["📄 Lendo o texto que você mandou...", "🧩 Entendendo o que ele faz...", "🔧 Ajustando o contexto..."]
+          : ["📚 Lendo as fontes encontradas...", "🔎 Conferindo os dados...", "🧩 Entendendo o que importa..."])
+      : ["📖 Lendo a pergunta...", "🧩 Entendendo o pedido...", "⚙️ Configurando a resposta...", "🔧 Ajustando os detalhes..."];
+
+    const showTimer = () => {
+      const seconds = (performance.now() - thinkStart) / 1000;
+
+      const phase = !firstTokenAt
+        ? PHASES[Math.floor(seconds / 4) % PHASES.length]
+        : (answer.includes("```") ? "💻 Programando o código..." : "✍️ Escrevendo a resposta...");
+
+      timerBox.textContent =
+        phase + "\n⏱ " + Math.round(seconds) + "s" +
+        (firstTokenAt ? " · " + tokenCount + " partes" : "");
+
+      sayStatus(phase.replace(/\.\.\.$/, "") + " " + Math.round(seconds) + "s");
+    };
+
+    showTimer();
+    thinkTimer = setInterval(showTimer, 500);
 
     const stream = await currentEngine.createChatCompletion({
       messages,
-      max_tokens: fit.maxNew,
-      temperature: temp,
+      max_tokens: maxTokensFor(messages, !!extraContext && opts.kind !== "doc"),
+      temperature: settings.temp,
       top_p: 0.9,
       stream: true
     });
 
-    let answer = "", truncated = false;
-
+    // A resposta é montada por inteiro; só aparece quando termina.
     for await (const chunk of stream) {
-      if (ai !== currentEngine || !ready) throw new Error("O motor foi reiniciado durante a geração.");
-      if (cancelRequested) break;
+      if (ai !== currentEngine || !ready) {
+        throw new Error("O motor foi reiniciado durante a geração.");
+      }
+
       const choice = chunk?.choices?.[0];
       const piece = choice?.delta?.content ?? "";
+
       if (choice?.finish_reason === "length") truncated = true;
+
       if (piece) {
-        const now = performance.now();
-        if (!firstTokenAt) {
-          firstTokenAt = now;
-          readStep.done(true, { name: "🧠 Leitura concluída em " + ((now - startAt) / 1000).toFixed(1) + "s" });
-          writeStep = act.step("✍️ Escrevendo a resposta");
-        }
+        if (!firstTokenAt) firstTokenAt = performance.now();
         tokenCount++;
         answer += piece;
-        if (now - lastPaint > 70) {
-          lastPaint = now;
-          const secs = (now - firstTokenAt) / 1000;
-          writeStep.set("✍️ Escrevendo · " + tokenCount + " partes · " + (secs > 0.5 ? (tokenCount / secs).toFixed(1) : "…") + "/s");
-          keepBottom(() => setBody(answerBox, answer + " ▍", true));
-        }
       }
     }
 
-    answer = answer.trim();
-    if (!answer) answer = cancelRequested ? "⏹ Resposta interrompida antes de gerar qualquer texto." : "Não consegui gerar uma resposta.";
-    else if (cancelRequested) answer += "\n\n⏹ (interrompida por você)";
+    answer = answer.trim() || "Não consegui gerar uma resposta.";
 
-    keepBottom(() => setBody(answerBox, answer));
+    clearInterval(thinkTimer);
+    thinkTimer = null;
+
+    setBody(answerBox, answer);
     answerBox.querySelector(".msg-time").textContent = fmtTime();
     lastAnswer = answer;
-    lastTokens = fit.tokens + tokenCount;
-    updateMeter();
 
-    const now2 = performance.now();
-    const total = (now2 - startAt) / 1000;
-    const genSecs = firstTokenAt ? (now2 - firstTokenAt) / 1000 : 0;
-    const speed = genSecs > 0.3 ? (tokenCount / genSecs).toFixed(1) : "–";
-    if (writeStep) writeStep.done(true, { name: "✍️ Resposta escrita · " + tokenCount + " partes · " + speed + "/s" });
-    if (truncated) act.step("✂️ Resposta cortada pelo limite (aumente em ⋮ Configurações › Tamanho da resposta)").done(false);
-    act.finish((cancelRequested ? "⏹ Interrompida" : "✅ Pronto") + " · " + total.toFixed(1) + "s · " + speed + " partes/s");
+    const totalSeconds = (performance.now() - thinkStart) / 1000;
+    const waitSeconds = firstTokenAt
+      ? (firstTokenAt - thinkStart) / 1000
+      : totalSeconds;
 
-    if (extraContext && !opts.noReview) {
+    timerBox.textContent =
+      "⏱ Total " + totalSeconds.toFixed(1) + "s · " +
+      "leitura " + waitSeconds.toFixed(1) + "s · " +
+      tokenCount + " partes" +
+      (truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
+
+    if (extraContext && opts.kind !== "doc") {
       const note = reviewNote(answer, extraContext);
       if (note) {
         const noteBox = addMessage("system", note);
@@ -1664,144 +1147,657 @@ async function generate(text, extraContext = "", opts = {}) {
       }
     }
 
-    if (opts.verify && !cancelRequested) {
-      const vn = codeCheckNote(answer, opts.verify.source, opts.verify.lines);
-      if (vn) {
-        const vBox = addMessage("system", vn);
-        vBox.style.alignSelf = "flex-start";
-      }
+    addActions(answer);
+    scrollEnd();
+
+    const genSeconds = firstTokenAt ? (performance.now() - firstTokenAt) / 1000 : 0;
+    if (tokenCount > 20 && genSeconds > 0 && tokenCount / genSeconds < 2 && settings.model !== "fast") {
+      const hint = addMessage("system", "Está muito lento neste aparelho (" + (tokenCount / genSeconds).toFixed(1) + " partes/s). Troque para o modelo Rápido em ⋮ Configurações.");
+      hint.style.alignSelf = "flex-start";
+    }
+    if (waitSeconds > 3) measuredRate[settings.model] = Math.round(promptChars / waitSeconds);
+
+    history.push({ role: "assistant", content: limitText(answer, 4000), t: Date.now() });
+    saveHistory();
+
+    if (!opts.kind) {
+      memory.push({ q: String(shown).slice(0, 700), a: answer.slice(0, 1200), t: Date.now() });
+      saveMemory();
     }
 
-    addActions(answer, (!extraContext && !opts.shown) ? text : null);
-
-    history.push({ role: "assistant", content: limitText(answer, 9000), t: Date.now() });
-    saveHistory();
     return answer;
 
   } catch (err) {
     console.error("Erro na resposta:", err);
+
+    const message = err?.message || String(err);
     let text2;
 
     if (isEngineCrash(err)) {
       sayStatus("O motor travou. Preparando recuperação...");
+
+      // Descarta a instância que apresentou falha.
       await destroyAI();
-      text2 = "O motor da IA travou durante a geração.\n\nA instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente." + (IS_IOS ? "\n\nNo iPhone, a memória é curta: use o Modelo Rápido e a leitura Normal." : "");
-    } else if (/exceeds the available context|context size|n_ctx/i.test(String(err?.message || err))) {
-      text2 = "O texto não coube na memória da IA. Abra ⋮ › Inteligência › Tamanho da leitura e escolha Grande ou Máximo, ou envie um trecho menor.";
+
+      text2 =
+        "O motor da IA travou durante a geração.\n\n" +
+        "A instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente.";
     } else {
-      text2 = "Erro ao responder: " + (err?.message || String(err));
+      text2 = "Erro ao responder: " + message;
     }
 
-    if (act) act.finish("❌ Erro ao responder", false);
     if (answerBox) setBody(answerBox, text2);
     else addMessage("system", text2);
 
   } finally {
-    if (act) act.finish();
-    cancelRequested = false;
+    if (thinkTimer) clearInterval(thinkTimer);
+
     busy = false;
     keepAwake(false);
     updateButtons();
-    sayStatus(ready ? "Rizik está pronto." : "Motor aguardando reinicialização.");
+
+    sayStatus(
+      ready
+        ? "Rizik está pronto."
+        : "Motor aguardando reinicialização."
+    );
   }
 }
 
-// ------------------------------ Clima: detectar pergunta e cidade
+// ------------------------------
+// Clima: detectar pergunta e cidade
+// ------------------------------
 
 const WEATHER_WORDS = /\b(tempo de chuva|clima|chuva|chover|chovendo|previs[aã]o|temperatura|calor|frio)\b/i;
 
-function isWeatherQuestion(text) { return WEATHER_WORDS.test(text); }
+function isWeatherQuestion(text) {
+  return WEATHER_WORDS.test(text);
+}
 
+// Pega o texto depois da ÚLTIMA preposição de lugar (em, para, na, no).
+// Se não achar, tenta "de/da/do". Se ainda não achar, usa a cidade padrão.
 function extractCity(text) {
   const clean = String(text).trim();
+
   let m = clean.match(/^.*\b(?:em|para|na|no)\s+([A-Za-zÀ-ú\s'-]+?)\s*[?!.]*\s*$/i);
   if (!m) m = clean.match(/^.*\b(?:de|da|do)\s+([A-Za-zÀ-ú\s'-]+?)\s*[?!.]*\s*$/i);
+
   const city = m ? m[1].trim() : "";
+
+  // Evita pegar palavras que não são cidade (ex.: "tempo de chuva").
   if (!city || WEATHER_WORDS.test(city) || /^(hoje|amanh[ãa]|agora)$/i.test(city)) {
-    return "";
+    return settings.city || "Nova Esperança";
   }
+
   return city;
 }
 
-// ------------------------------ Eventos principais
+// ------------------------------
+// Leitor rápido de textos grandes (programa secundário em um Worker)
+// ------------------------------
+
+// Precisa ser autocontido: o código desta função é copiado para dentro do Worker.
+function readerWork(text, budget) {
+  const t0 = Date.now();
+  text = String(text).replace(/\r/g, "");
+  const total = text.length;
+
+  if (total <= budget) {
+    return { digest: text, kept: total, total, mode: "completo", ms: Date.now() - t0 };
+  }
+
+  const signals = (text.match(/[{};]|=>|<\/?[a-z]+|\bfunction\b|\bdef\b|\bconst\b|\bimport\b/g) || []).length;
+  const isCode = signals / (total / 100) > 2;
+
+  // Escolhe os trechos de maior nota até encher o orçamento e devolve na ordem original.
+  const choose = list => {
+    const sorted = list.slice().sort((a, b) => b.v - a.v || a.i - b.i);
+    const out = [];
+    let used = 0;
+    for (const it of sorted) {
+      if (used + it.s.length + 1 > budget) continue;
+      out.push(it);
+      used += it.s.length + 1;
+    }
+    return out.sort((a, b) => a.i - b.i);
+  };
+
+  let items;
+
+  if (isCode) {
+    const lines = text.split("\n");
+    items = lines.map((l, i) => {
+      const s = l.trim().slice(0, 160);
+      if (!s) return { s, i, v: -1 };
+      let v = 0;
+      if (/^(export\s+)?(async\s+)?function\b|^(class|def|interface)\b|^(const|let|var)\s+\w+\s*=\s*(async\s*)?(\(|function|\w+\s*=>)/.test(s)) v += 5;
+      if (/addEventListener|fetch\(|new\s+\w+\(|import\s|require\(|<script|<title|<h1|<button|<textarea|<input|\bid="/.test(s)) v += 3;
+      if (/^(\/\/|#|\/\*|\*)/.test(s)) v += 2;
+      if (/TODO|FIXME|erro|error|throw|catch/i.test(s)) v += 2;
+      if (/^(const|let|var)\s+[A-Z_]{3,}\b/.test(s)) v += 2;
+      if (i < 12) v += 3;
+      if (i >= lines.length - 6) v += 1;
+      return { s, i, v };
+    }).filter(x => x.v >= 0);
+  } else {
+    const sents = text.match(/[^.!?\n]{20,}[.!?]*/g) || [text.slice(0, budget)];
+    const words = t => t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(/[a-z0-9]{4,}/g) || [];
+    const freq = {};
+    sents.forEach(s => words(s).forEach(w => { freq[w] = (freq[w] || 0) + 1; }));
+    items = sents.map((raw, i) => {
+      const s = raw.trim().slice(0, 300);
+      const ws = words(s);
+      let v = ws.reduce((a, w) => a + freq[w], 0) / Math.sqrt(ws.length + 1);
+      if (i < 3) v *= 1.5;
+      return { s, i, v };
+    });
+  }
+
+  let digest = "";
+  let last = -1;
+  for (const it of choose(items)) {
+    if (last !== -1 && it.i > last + 1) digest += "…\n";
+    digest += it.s + "\n";
+    last = it.i;
+  }
+  digest = digest.trim();
+
+  return { digest, kept: digest.length, total, mode: isCode ? "código" : "texto", ms: Date.now() - t0 };
+}
+
+function readBig(text, budget) {
+  return new Promise(resolve => {
+    const fallback = () => resolve(readerWork(text, budget));
+
+    try {
+      const src = "self.onmessage=e=>postMessage((" + readerWork.toString() + ")(e.data.text,e.data.budget));";
+      const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+      const worker = new Worker(url);
+
+      const timer = setTimeout(() => { worker.terminate(); fallback(); }, 4000);
+
+      worker.onmessage = e => {
+        clearTimeout(timer);
+        worker.terminate();
+        URL.revokeObjectURL(url);
+        resolve(e.data);
+      };
+      worker.onerror = () => {
+        clearTimeout(timer);
+        worker.terminate();
+        fallback();
+      };
+
+      worker.postMessage({ text, budget });
+    } catch (err) {
+      fallback();
+    }
+  });
+}
+
+// Último texto grande lido: perguntas seguintes ("o que esse código faz?") usam ele.
+let currentDoc = null;
+try { currentDoc = JSON.parse(localStorage.getItem("rizik_doc") || "null"); } catch (e) {}
+
+function saveDoc() {
+  try {
+    if (currentDoc) localStorage.setItem("rizik_doc", JSON.stringify(currentDoc));
+    else localStorage.removeItem("rizik_doc");
+  } catch (e) {}
+}
+
+const DOC_REF = /\b(esse|este|essa|esta|aquele|aquela|o|do|no)\s+(c[oó]digo|texto|arquivo|trecho|script|site|programa|erro|documento)|acima|anterior|dele|dela|colei|mandei|enviei/i;
+
+// Procura a pergunta na primeira ou na última linha curta do que foi colado.
+function extractQuestion(raw) {
+  const lines = raw.split("\n").map(l => l.trim()).filter(Boolean);
+  const ask = /\?|^(o que|oque|explique|explica|resuma|resumir|corrija|corrige|arrume|arruma|traduza|me diga|me fale|analise|revise|ache|encontre|por que|porque|como|qual|quais|fa[cç]a|melhore)/i;
+
+  for (const l of [lines[lines.length - 1], lines[0]]) {
+    if (l && l.length <= 200 && ask.test(l)) return l;
+  }
+  return "";
+}
+
+// ----- Experimental: duas IAs leem metade do texto cada uma, ao mesmo tempo -----
+
+let ai2 = null;
+
+async function destroyAI2() {
+  const old = ai2;
+  ai2 = null;
+  if (old) {
+    try { await old.exit(); } catch (e) {}
+  }
+}
+
+// Segunda instância do mesmo modelo (o arquivo já está guardado pelo navegador).
+async function loadAI2(onProgress) {
+  const inst = new Wllama(WasmFromCDN);
+  inst.setCompat("default");
+  ai2 = inst;
+
+  try { localStorage.setItem("rizik_loading", "1"); } catch (e) {}
+
+  try {
+    await inst.loadModelFromUrl(MODELS[settings.model].url, {
+      n_ctx: 2048,
+      n_batch: 512,
+      n_threads: THREADS_EACH,
+      n_gpu_layers: 0,
+      progressCallback: ({ loaded, total }) => {
+        if (total > 0 && onProgress) onProgress(Math.round(loaded / total * 100));
+      }
+    });
+    try { localStorage.removeItem("rizik_loading"); } catch (e) {}
+  } catch (err) {
+    try { localStorage.removeItem("rizik_loading"); } catch (e) {}
+    ai2 = null;
+    try { await inst.exit(); } catch (_) {}
+    throw err;
+  }
+}
+
+// Divide o texto reduzido em duas metades, cortando em fim de linha.
+function splitHalf(text) {
+  const mid = Math.floor(text.length / 2);
+  let cut = text.indexOf("\n", mid);
+  if (cut === -1 || cut > mid + 600) cut = mid;
+  return [text.slice(0, cut).trim(), text.slice(cut).trim()];
+}
+
+async function collect(engine, messages, maxTokens) {
+  const stream = await engine.createChatCompletion({
+    messages,
+    max_tokens: maxTokens,
+    temperature: 0.2,
+    top_p: 0.9,
+    stream: true
+  });
+
+  let out = "";
+  for await (const chunk of stream) {
+    out += chunk?.choices?.[0]?.delta?.content ?? "";
+  }
+  return out.trim();
+}
+
+// Devolve as notas das duas partes juntas, ou null se algo falhar.
+async function readInParallel(digest, question, stage) {
+  const started = performance.now();
+  const [a, b] = splitHalf(digest);
+  const state = ["⏳ aguardando...", "⏳ aguardando..."];
+  const secs = () => ((performance.now() - started) / 1000).toFixed(0);
+
+  const show = () => {
+    stage.textContent =
+      "🤖 Duas IAs lendo ao mesmo tempo (" + secs() + "s)\nIA 1: " + state[0] + "\nIA 2: " + state[1];
+    sayStatus("Duas IAs lendo... " + secs() + "s");
+  };
+
+  const timer = setInterval(show, 500);
+  busy = true;
+  keepAwake(true);
+  updateButtons();
+
+  try {
+    show();
+
+    if (!ready || !ai) {
+      state[0] = "⚙️ ligando...";
+      if (!(await loadAI())) throw new Error("A IA 1 não carregou.");
+    }
+
+    if (!ai2) {
+      state[1] = "⚙️ ligando...";
+      await loadAI2(pct => { state[1] = "⚙️ ligando... " + pct + "%"; });
+    }
+
+    const jobs = [a, b].map((part, k) => {
+      const engine = k === 0 ? ai : ai2;
+      const t0 = performance.now();
+      state[k] = "📖 lendo...";
+
+      return collect(engine, [
+        { role: "system", content: "Você lê textos e escreve notas curtas em português brasileiro. Não invente nada." },
+        { role: "user", content: "Pedido do usuário: " + question + "\n\nParte " + (k + 1) + " de 2 do texto:\n" + part + "\n\nEscreva até 6 tópicos curtos com o que importa dessa parte para o pedido." }
+      ], 170).then(text => {
+        state[k] = "✅ pronta (" + ((performance.now() - t0) / 1000).toFixed(0) + "s)";
+        return text;
+      });
+    });
+
+    const [n1, n2] = await Promise.all(jobs);
+    if (!n1 && !n2) throw new Error("As IAs não geraram notas.");
+
+    stage.textContent =
+      "🤖 Duas IAs leram o texto em " + secs() + "s: " + digest.length + " caracteres → notas de " + (n1.length + n2.length) + ".";
+
+    return "Parte 1:\n" + n1 + "\n\nParte 2:\n" + n2;
+
+  } catch (err) {
+    console.error("Leitura com 2 IAs falhou:", err);
+    await destroyAI2();
+    if (isEngineCrash(err)) await destroyAI();
+    return null;
+
+  } finally {
+    clearInterval(timer);
+    busy = false;
+    keepAwake(false);
+    updateButtons();
+  }
+}
+
+async function handleBigText(raw, opts = {}) {
+  const capped = raw.slice(0, MAX_INPUT_CHARS);
+
+  if (!opts.noEcho) addMessage("user", opts.label || raw);
+  if (raw.length > MAX_INPUT_CHARS) {
+    addMessage("system", "Texto muito grande: li os primeiros " + MAX_INPUT_CHARS + " caracteres.");
+  }
+
+  const stage = addMessage("system", "📄 Lendo o texto com o leitor rápido...");
+  stage.style.alignSelf = "flex-start";
+
+  const single = Math.round((READ_BUDGET[settings.model] || 2000) * (LOW_MEM ? 0.7 : 1));
+  const usePar = parallelOn() && capped.length > single;
+
+  let r = await readBig(capped, usePar ? single * 2 : single);
+  let context = r.digest;
+
+  const question = opts.question || (opts.noExtract ? "" : extractQuestion(capped)) ||
+    (r.mode === "código"
+      ? "Explique o que esse código faz, em tópicos curtos."
+      : "Resuma esse texto em tópicos curtos.");
+
+  let done = false;
+
+  if (usePar && r.kept > single) {
+    const notes = await readInParallel(r.digest, question, stage);
+
+    if (notes) {
+      context = notes;
+      done = true;
+    } else {
+      r = await readBig(capped, single);
+      context = r.digest;
+      stage.textContent = "⚠️ A leitura com 2 IAs falhou. Li com uma só: " + r.total + " → " + r.kept + " caracteres.";
+      done = true;
+    }
+  }
+
+  if (!done) {
+    stage.textContent =
+      "📄 Texto lido em " + (r.ms / 1000).toFixed(1) + "s: " + r.total +
+      " caracteres → " + r.kept + " principais (" + r.mode + ").";
+  }
+
+  currentDoc = { digest: context, total: r.total, kept: context.length, mode: r.mode, t: Date.now() };
+  saveDoc();
+
+  await generate(question, context, {
+    kind: "doc",
+    skipUser: true,
+    shown: "📄 " + (opts.name || "Texto colado") + " (" + r.total + " caracteres). " + question
+  });
+}
+
+// ------------------------------
+// Anexos: foto (OCR) e arquivos de texto
+// ------------------------------
+
+async function attachPhoto(file) {
+  const m = addMessage("user", "📷 " + file.name);
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(file);
+  img.alt = file.name;
+  img.style.cssText = "display:block;max-width:100%;max-height:220px;border-radius:10px;margin-top:8px";
+  m.querySelector(".body").appendChild(img);
+
+  const note = addMessage("system", "📷 Lendo o texto da foto (OCR)... a primeira vez baixa o idioma e demora.");
+  note.style.alignSelf = "flex-start";
+
+  busy = true;
+  keepAwake(true);
+  updateButtons();
+
+  let text = "";
+
+  try {
+    const mod = await import("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js");
+    const T = mod.default || mod;
+    const res = await T.recognize(file, "por", {
+      logger: p => { if (p && p.status) sayStatus("📷 " + p.status + " " + Math.round((p.progress || 0) * 100) + "%"); }
+    });
+    text = String((res && res.data && res.data.text) || "").trim();
+  } catch (err) {
+    console.error("OCR falhou:", err);
+    note.textContent = "Não consegui ler a foto (OCR indisponível agora). O modelo não enxerga imagens, só o texto que aparece nelas.";
+    return;
+  } finally {
+    busy = false;
+    keepAwake(false);
+    updateButtons();
+    sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
+  }
+
+  if (text.length < 5) {
+    note.textContent = "Não encontrei texto nessa foto. O modelo não enxerga imagens, só lê o texto que aparece nelas.";
+    return;
+  }
+
+  note.textContent = "📷 Texto da foto lido: " + text.length + " caracteres.";
+
+  const q = input.value.trim();
+  input.value = "";
+  input.style.height = "";
+
+  await handleBigText(text, {
+    noEcho: true,
+    noExtract: true,
+    name: "Texto da foto",
+    question: q || "Explique o que está escrito nessa foto, em tópicos curtos."
+  });
+}
+
+async function attachFile(file) {
+  if (file.type.startsWith("image/")) return attachPhoto(file);
+
+  if (/\.(pdf|docx?|xlsx?|pptx?|zip)$/i.test(file.name)) {
+    addMessage("system", "Esse tipo de arquivo ainda não é suportado. Envie .txt, .md, .csv, .json ou arquivos de código, ou cole o texto.");
+    return;
+  }
+
+  let text = "";
+  try {
+    text = await file.slice(0, 60000).text();
+  } catch (err) {
+    addMessage("system", "Não consegui abrir o arquivo.");
+    return;
+  }
+
+  if (!text.trim()) {
+    addMessage("system", "O arquivo está vazio.");
+    return;
+  }
+
+  const q = input.value.trim();
+  input.value = "";
+  input.style.height = "";
+
+  await handleBigText(text, {
+    label: "📎 " + file.name + " (" + file.size.toLocaleString("pt-BR") + " bytes)",
+    name: file.name,
+    noExtract: true,
+    question: q || ""
+  });
+}
+
+// ------------------------------
+// Extensão do navegador (ponte para pesquisar e ler páginas sem bloqueio)
+// ------------------------------
+
+let extReady = false;
+const extPending = new Map();
+const extOn = () => !!settings.ext && extReady;
+
+function updateExtInfo() {
+  const el = $("extInfo");
+  if (el) el.textContent = "Extensão: " + (extReady ? "detectada ✅" : "não detectada (só funciona em navegadores com extensões)");
+}
+
+window.addEventListener("message", e => {
+  if (e.source !== window || !e.data) return;
+
+  if (e.data.type === "RIZIK_PONG") {
+    extReady = true;
+    updateExtInfo();
+  } else if (e.data.type === "RIZIK_FETCH_RESULT") {
+    const p = extPending.get(e.data.id);
+    if (!p) return;
+    extPending.delete(e.data.id);
+    if (e.data.ok) p.resolve(e.data.text || "");
+    else p.reject(new Error(e.data.error || "Falhou"));
+  }
+});
+
+function extFetch(url, ms = 10000) {
+  return new Promise((resolve, reject) => {
+    const id = Math.random().toString(36).slice(2);
+    extPending.set(id, { resolve, reject });
+    window.postMessage({ type: "RIZIK_FETCH", id, url }, "*");
+    setTimeout(() => {
+      if (extPending.delete(id)) reject(new Error("A extensão não respondeu."));
+    }, ms);
+  });
+}
+
+async function searchExtDuck(query) {
+  const html = await extFetch("https://html.duckduckgo.com/html/?q=" + encodeURIComponent(query));
+  const doc = new DOMParser().parseFromString(html, "text/html");
+
+  const rows = [...doc.querySelectorAll(".result")].slice(0, 5).map(r => {
+    const a = r.querySelector(".result__a");
+    const sn = r.querySelector(".result__snippet");
+    return a ? a.textContent.trim() + ": " + (sn ? sn.textContent.trim() : "") : "";
+  }).filter(Boolean);
+
+  if (!rows.length) throw new Error("Sem resultados.");
+  return { text: ("Resultados da web:\n" + rows.join("\n")).slice(0, 1400) };
+}
+
+async function handleUrl(text, url) {
+  addMessage("user", text);
+
+  const note = addMessage("system", "🔗 Lendo a página com a extensão...");
+  note.style.alignSelf = "flex-start";
+
+  try {
+    const html = await extFetch(url, 15000);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    doc.querySelectorAll("script,style,noscript,nav,footer,header,svg,iframe").forEach(n => n.remove());
+
+    const page = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ").trim();
+    if (page.length < 50) throw new Error("A página não tem texto legível.");
+
+    note.textContent = "🔗 Página lida: " + page.length + " caracteres.";
+
+    await handleBigText(page, {
+      noEcho: true,
+      noExtract: true,
+      name: "Página da internet",
+      question: text.replace(url, "").trim() || "Resuma essa página em tópicos curtos."
+    });
+  } catch (err) {
+    note.textContent = "Não consegui ler a página: " + (err.message || err);
+  }
+}
+
+// ------------------------------
+// Eventos principais
+// ------------------------------
 
 let webMode = false;
 let searching = false;
-let pendingAttachment = null;
 
 function setWebMode(on) {
   webMode = on;
-  $("attWeb").classList.toggle("active", on);
-  $("attachBtn").classList.toggle("on", on);
-  if (!pendingAttachment) input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
+  $("webToggle").classList.toggle("on", on);
+  $("webToggle").textContent = on ? "🌐" : "+";
+  $("webToggle").setAttribute("aria-pressed", on ? "true" : "false");
+  input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
 }
 
-function showAttachPreview(name) {
-  $("attachPreviewName").textContent = "📄 " + name;
-  $("attachPreview").hidden = false;
-  input.placeholder = "Pergunte algo sobre o arquivo (opcional) e toque em enviar...";
-  input.focus();
-}
+$("load").addEventListener("click", loadAI);
 
-function hideAttachPreview() {
-  $("attachPreview").hidden = true;
-  $("attachPreviewName").textContent = "";
-  input.placeholder = webMode ? "Pesquisar na internet..." : "Converse com o Rizik...";
-}
-
-$("attachRemove").addEventListener("click", () => { pendingAttachment = null; hideAttachPreview(); });
-
-$("load").addEventListener("click", () => loadAI());
-
-$("restart").addEventListener("click", () => { closeMenu(); restartAI(); });
-
-// ----- Menu de anexos (+)
-
-const attachMenu = $("attachMenu");
-const attachBtn = $("attachBtn");
-
-function closeAttachMenu() {
-  attachMenu.hidden = true;
-  attachBtn.setAttribute("aria-expanded", "false");
-}
-
-attachBtn.addEventListener("click", e => {
-  e.stopPropagation();
-  const willOpen = attachMenu.hidden;
-  attachMenu.hidden = !willOpen;
-  attachBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+$("restart").addEventListener("click", () => {
+  closeMenu();
+  restartAI();
 });
 
-document.addEventListener("click", e => {
-  if (!attachMenu.hidden && !attachMenu.contains(e.target) && e.target !== attachBtn) closeAttachMenu();
-});
-
-$("attPhoto").addEventListener("click", () => { closeAttachMenu(); $("photoInput").click(); });
-$("attFile").addEventListener("click", () => { closeAttachMenu(); $("fileInput").click(); });
-$("attWeb").addEventListener("click", () => { closeAttachMenu(); setWebMode(!webMode); input.focus(); });
-
-async function handleSend() {
-  const text = input.value.trim();
-  if (busy || resetting || searching) return;
-  if (!text && !pendingAttachment) return;
-
-  if (pendingAttachment) {
-    const attachment = pendingAttachment;
-    pendingAttachment = null;
-    hideAttachPreview();
-    input.value = "";
-    input.style.height = "";
-    await handleLong(attachment.text, attachment.label, text || null);
+$("webToggle").addEventListener("click", () => {
+  if (webMode) {          // pesquisa ligada: toque para desligar
+    setWebMode(false);
     return;
   }
+  $("plusMenu").hidden = !$("plusMenu").hidden;
+});
+
+const canAttach = () => !(busy || resetting || searching);
+
+$("plusPhoto").addEventListener("click", () => {
+  $("plusMenu").hidden = true;
+  if (canAttach()) $("photoInput").click();
+});
+
+$("plusFile").addEventListener("click", () => {
+  $("plusMenu").hidden = true;
+  if (canAttach()) $("fileInput").click();
+});
+
+$("plusWeb").addEventListener("click", () => {
+  $("plusMenu").hidden = true;
+  setWebMode(true);
+  input.focus();
+});
+
+$("photoInput").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (file && canAttach()) await attachPhoto(file);
+});
+
+$("fileInput").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0];
+  e.target.value = "";
+  if (file && canAttach()) await attachFile(file);
+});
+
+$("send").addEventListener("click", async () => {
+  const text = input.value.trim();
+
+  if (!text || busy || resetting || searching) return;
 
   input.value = "";
   input.style.height = "";
   const wasWeb = webMode;
-  setWebMode(false);
+  setWebMode(false); // a pesquisa vale para uma mensagem só
 
-  if (text.length > Math.max(1000, maxChars() - 200) && !wasWeb) { await handleLong(text); return; }
+  // Texto grande: leitor rápido (programa secundário) e depois a IA.
+  if (text.length > BIG_TEXT) {
+    await handleBigText(text);
+    return;
+  }
 
+  // Link colado com a extensão instalada: lê a página.
+  const urlMatch = text.match(/https?:\/\/\S+/);
+  if (urlMatch && extOn() && text.length < 600) {
+    await handleUrl(text, urlMatch[0]);
+    return;
+  }
+
+  // Respostas instantâneas (saudação, hora, data, conta): sem esperar o modelo.
   const quick = wasWeb ? null : quickReply(text);
   if (quick) {
     addMessage("user", text);
@@ -1816,31 +1812,27 @@ async function handleSend() {
     return;
   }
 
-  if (isWeatherQuestion(text) && !looksLikeCode(text)) {
+  // Perguntas sobre o tempo usam a previsão real, não o modelo.
+  if (text.length < 200 && isWeatherQuestion(text) && !looksLikeCode(text)) {
     addMessage("user", text);
     await runWeather(extractCity(text));
     return;
   }
 
-  if (wasWeb || (settings.auto && needsWeb(text))) {
+  // Pesquisa pedida (🌐) ou pergunta que claramente precisa da internet.
+  if (wasWeb || (settings.auto && (needsWeb(text) || /^\s*(pesquis|procur|busque|busca)/i.test(text)))) {
     await runSearch(text);
     return;
   }
 
-  if (visionContext && /foto|imagem|imagens|v[ií]deo|figura|cena/i.test(text)) { await generate(text, visionContext, { noReview: true }); return; }
+  const useDoc = !!currentDoc && text.length < 400 && DOC_REF.test(text);
+  const answer = await generate(text, useDoc ? currentDoc.digest : "", useDoc ? { kind: "doc" } : {});
 
-  const answer = await generate(text);
-
-  if (settings.auto && answer && UNSURE.test(answer) && !looksLikeCode(text) && text.length <= 160) {
+  // Se o Rizik não soube responder, pesquisa sozinho.
+  if (settings.auto && !useDoc && answer && UNSURE.test(answer) && !looksLikeCode(text) && text.length <= 160) {
     addMessage("system", "Não tenho certeza: pesquisando na internet...");
     await runSearch(text, { silent: true });
   }
-}
-
-$("send").addEventListener("click", async () => {
-  voicePending = true;
-  const before = lastAnswer;
-  try { await handleSend(); } finally { voiceDone(before); }
 });
 
 input.addEventListener("input", () => {
@@ -1849,22 +1841,35 @@ input.addEventListener("input", () => {
 });
 
 input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("send").click(); }
+  if (e.key !== "Enter" || e.isComposing || e.keyCode === 229) return;
+
+  if ((settings.enter && !e.shiftKey) || e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    $("send").click();
+  }
 });
 
-// ----- Menu
+// ----- Menu dos três pontinhos -----
 
 const menu = $("menu");
-function closeMenu() { menu.hidden = true; }
 
-$("menuBtn").addEventListener("click", e => { e.stopPropagation(); menu.hidden = !menu.hidden; if (!menu.hidden) updateMeter(); });
-document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.target)) closeMenu(); });
+function closeMenu() {
+  menu.hidden = true;
+}
+
+$("menuBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  menu.hidden = !menu.hidden;
+});
+
+document.addEventListener("click", e => {
+  const pm = $("plusMenu");
+  if (!pm.hidden && !pm.contains(e.target) && e.target !== $("webToggle")) pm.hidden = true;
+  if (!menu.hidden && !menu.contains(e.target)) closeMenu();
+});
 
 function applySettings() {
-  $("setCustom").value = settings.custom || "";
   $("setTokens").value = String(settings.tokens);
-  $("setCtx").value = String(settings.ctx);
-  $("setGps").checked = !!settings.gpsAuto;
   $("setTemp").value = String(settings.temp);
   $("setCity").value = settings.city;
   $("setTime").checked = !!settings.time;
@@ -1873,40 +1878,149 @@ function applySettings() {
   $("setWall").value = settings.wall;
   $("setAuto").checked = !!settings.auto;
   $("setAutoload").checked = !!settings.autoload;
-  ["aurora", "ocean", "sunset", "night"].forEach(n => document.body.classList.toggle("wp-" + n, settings.wall === n));
-  updateMeter();
+  ["aurora", "ocean", "sunset", "night", "forest", "graphite"].forEach(n =>
+    document.body.classList.toggle("wp-" + n, settings.wall === n));
+  ["purple", "blue", "green", "pink"].forEach(n =>
+    document.body.classList.toggle("ac-" + n, settings.accent === n));
+  document.body.style.setProperty("--fs", String(settings.scale / 100));
+  $("setAccent").value = settings.accent;
+  $("setScale").value = String(settings.scale);
+  $("setEnter").checked = !!settings.enter;
+  $("setParallel").checked = !!settings.parallel;
+  document.body.classList.toggle("lite", !!settings.lite);
+  $("setLite").checked = !!settings.lite;
+  $("setExt").checked = !!settings.ext;
+  updateMemInfo();
+  updateExtInfo();
 }
 
-function updateMeter() {
-  const ctx = loadedCtx || settings.ctx;
-  const used = Math.min(lastTokens, ctx);
-  const pct = ctx ? Math.round(used / ctx * 100) : 0;
-  $("meterTxt").textContent = used ? used.toLocaleString("pt-BR") + " de " + ctx.toLocaleString("pt-BR") + " tokens (" + pct + "%)" : "Limite: " + ctx.toLocaleString("pt-BR") + " tokens";
-  const f = $("meterFill");
-  f.style.width = Math.max(2, pct) + "%";
-  f.className = pct > 85 ? "hot" : pct > 60 ? "warm" : "";
-  $("meterHint").textContent = "A IA lê até cerca de " + maxChars().toLocaleString("pt-BR") + " caracteres por vez. Textos maiores passam pelo leitor rápido." + (loadedCtx ? "" : " (A IA ainda não foi carregada.)");
-}
-
-$("setCtx").addEventListener("change", e => {
-  const value = Number(e.target.value);
-  if (value >= 8192 && LOW_MEM && !confirm("Este aparelho tem pouca memória: o modo Máximo pode fechar a página sozinho. Continuar mesmo assim?")) {
-    e.target.value = String(settings.ctx);
-    return;
-  }
-  settings.ctx = value;
+$("setTokens").addEventListener("change", e => {
+  settings.tokens = e.target.value === "max" ? "max" : Number(e.target.value);
   saveSettings();
-  updateMeter();
-  if (ai || ready) { addMessage("system", "Aplicando o novo tamanho de leitura..."); restartAI(); }
 });
 
-$("setTokens").addEventListener("change", e => { settings.tokens = Number(e.target.value); saveSettings(); updateMeter(); });
-$("setTemp").addEventListener("change", e => { settings.temp = Number(e.target.value); saveSettings(); });
-$("setCity").addEventListener("change", e => { settings.city = e.target.value.trim(); saveSettings(); });
-$("setTime").addEventListener("change", e => { settings.time = e.target.checked; saveSettings(); applySettings(); });
-$("setWall").addEventListener("change", e => { settings.wall = e.target.value; saveSettings(); applySettings(); });
-$("setAuto").addEventListener("change", e => { settings.auto = e.target.checked; saveSettings(); });
-$("setAutoload").addEventListener("change", e => { settings.autoload = e.target.checked; saveSettings(); });
+$("setTemp").addEventListener("change", e => {
+  settings.temp = Number(e.target.value);
+  saveSettings();
+});
+
+$("setCity").addEventListener("change", e => {
+  settings.city = e.target.value.trim() || "Nova Esperança";
+  saveSettings();
+});
+
+$("setTime").addEventListener("change", e => {
+  settings.time = e.target.checked;
+  saveSettings();
+  applySettings();
+});
+
+$("setAccent").addEventListener("change", e => {
+  settings.accent = e.target.value;
+  saveSettings();
+  applySettings();
+});
+
+$("setScale").addEventListener("change", e => {
+  settings.scale = Number(e.target.value);
+  saveSettings();
+  applySettings();
+});
+
+$("setEnter").addEventListener("change", e => {
+  settings.enter = e.target.checked;
+  saveSettings();
+});
+
+$("exportBtn").addEventListener("click", () => {
+  closeMenu();
+
+  if (!history.length) {
+    addMessage("system", "Ainda não há conversa para exportar.");
+    return;
+  }
+
+  const lines = history.map(m =>
+    "[" + new Date(m.t || Date.now()).toLocaleString("pt-BR") + "] " +
+    (m.role === "user" ? "Você" : "Rizik") + ":\n" + m.content
+  );
+
+  const url = URL.createObjectURL(new Blob([lines.join("\n\n")], { type: "text/plain;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "rizik-conversa.txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+});
+
+$("setWall").addEventListener("change", e => {
+  settings.wall = e.target.value;
+  saveSettings();
+  applySettings();
+});
+
+$("setParallel").addEventListener("change", e => {
+  const on = e.target.checked;
+
+  if (on) {
+    let why = "";
+    if (settings.model !== "fast") why = "só funciona com o modelo Rápido (0.5B).";
+    else if (LOW_MEM) why = "este aparelho informa pouca memória.";
+    else if (THREADS < 4) why = "precisa do modo rápido com 4 núcleos (arquivo coi-serviceworker.js).";
+
+    if (why) {
+      e.target.checked = false;
+      addMessage("system", "Leitura com 2 IAs indisponível: " + why);
+      return;
+    }
+  }
+
+  if (busy || resetting || loadingPromise) {
+    e.target.checked = !on;
+    addMessage("system", "Espere terminar o que está em andamento.");
+    return;
+  }
+
+  settings.parallel = on;
+  saveSettings();
+  closeMenu();
+
+  if (ai || ready) {
+    addMessage("system", on
+      ? "Reiniciando a IA para usar 2 IAs (cada uma com metade dos núcleos)..."
+      : "Reiniciando a IA com todos os núcleos...");
+    restartAI();
+  } else {
+    addMessage("system", on
+      ? "Leitura com 2 IAs ligada. Vale a partir do próximo carregamento da IA."
+      : "Leitura com 2 IAs desligada.");
+  }
+});
+
+$("setLite").addEventListener("change", e => {
+  settings.lite = e.target.checked;
+  saveSettings();
+  applySettings();
+});
+
+$("setExt").addEventListener("change", e => {
+  settings.ext = e.target.checked;
+  saveSettings();
+  window.postMessage({ type: "RIZIK_PING" }, "*");
+  setTimeout(updateExtInfo, 600);
+});
+
+$("setAuto").addEventListener("change", e => {
+  settings.auto = e.target.checked;
+  saveSettings();
+});
+
+$("setAutoload").addEventListener("change", e => {
+  settings.autoload = e.target.checked;
+  saveSettings();
+});
 
 $("setModel").addEventListener("change", e => {
   const previous = settings.model;
@@ -1923,6 +2037,10 @@ $("setModel").addEventListener("change", e => {
 
   closeMenu();
 
+  if (LOW_MEM && settings.model !== "fast") {
+    addMessage("system", "Este aparelho informa pouca memória (" + DEVICE_MEM + " GB): o modelo 1.5B pode travar. Se travar, volte para o Rápido.");
+  }
+
   if (ai || ready) {
     addMessage("system", "Trocando para " + MODELS[settings.model].name + "...");
     restartAI();
@@ -1931,64 +2049,64 @@ $("setModel").addEventListener("change", e => {
   }
 });
 
-// "Nova conversa" não apaga nada: a conversa atual fica salva em ⋮ › Conversas (de lá você pode apagar).
 $("clear").addEventListener("click", () => {
   closeMenu();
-  if (busy || resetting || searching) { sayStatus("Espere a resposta terminar para começar outra conversa."); return; }
-  newConversation();
+  if (!confirm("Apagar toda a conversa?")) return;
+
+  history = [];
+  memory = [];
+  saveMemory();
+  currentDoc = null;
+  saveDoc();
+  chat.innerHTML = "";
+  lastAnswer = "";
+  saveHistory();
 });
 
-// ----- Lista de conversas (abrir e apagar)
+// ----- Histórico de perguntas -----
 
 const histPanel = $("hist");
 
 function openHistory() {
   closeMenu();
+
+  const questions = history.filter(m => m.role === "user").reverse();
   const list = $("histList");
   list.textContent = "";
-  const items = convs.filter(c => c.msgs.length);
-  $("histTitle").textContent = "Conversas · " + items.length;
-  $("histAll").hidden = !items.length;
 
-  if (!items.length) {
+  $("histTitle").textContent =
+    "Histórico · " + questions.length + " de " + MAX_QUESTIONS + " perguntas";
+
+  if (!questions.length) {
     const empty = document.createElement("div");
     empty.className = "hist-item";
-    empty.textContent = "Nenhuma conversa salva ainda.";
+    empty.textContent = "Nenhuma pergunta ainda.";
     list.appendChild(empty);
   }
 
-  items.forEach(c => {
-    const row = document.createElement("div");
-    row.className = "conv-row" + (c.id === curId ? " cur" : "");
-
+  questions.forEach(q => {
     const item = document.createElement("button");
     item.className = "hist-item";
+
     const time = document.createElement("small");
-    const asks = c.msgs.filter(m => m.role === "user").length;
-    time.textContent = new Date(c.t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) +
-      " · " + asks + (asks === 1 ? " pergunta" : " perguntas") + (c.id === curId ? " · atual" : "");
+    time.textContent = q.t
+      ? new Date(q.t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : "";
+
     const text = document.createElement("span");
-    text.textContent = c.title || titleOf(c.msgs);
+    text.textContent = limitText(q.content, 140);
+
     item.append(time, text);
+
+    // Toque para colocar a pergunta de volta na barra de mensagens.
     item.addEventListener("click", () => {
-      if (busy || resetting || searching) { sayStatus("Espere a resposta terminar para trocar de conversa."); return; }
-      openConv(c.id);
+      input.value = q.content;
+      input.dispatchEvent(new Event("input"));
       histPanel.hidden = true;
+      input.focus();
     });
 
-    const del = document.createElement("button");
-    del.className = "conv-del";
-    del.textContent = "🗑";
-    del.setAttribute("aria-label", "Apagar esta conversa");
-    del.addEventListener("click", () => {
-      if (busy && c.id === curId) { sayStatus("Espere a resposta terminar para apagar esta conversa."); return; }
-      if (!confirm("Apagar esta conversa? Não dá para desfazer.")) return;
-      deleteConv(c.id);
-      openHistory();
-    });
-
-    row.append(item, del);
-    list.appendChild(row);
+    list.appendChild(item);
   });
 
   histPanel.hidden = false;
@@ -1996,69 +2114,82 @@ function openHistory() {
 
 $("histBtn").addEventListener("click", openHistory);
 $("histClose").addEventListener("click", () => { histPanel.hidden = true; });
-$("histAll").addEventListener("click", () => {
-  if (busy) { sayStatus("Espere a resposta terminar para apagar as conversas."); return; }
-  if (!confirm("Apagar TODAS as conversas? Não dá para desfazer.")) return;
-  deleteAllConvs();
-  histPanel.hidden = true;
+histPanel.addEventListener("click", e => {
+  if (e.target === histPanel) histPanel.hidden = true;
 });
-histPanel.addEventListener("click", e => { if (e.target === histPanel) histPanel.hidden = true; });
 
-$("setCustom").addEventListener("change", e => { settings.custom = e.target.value.trim().slice(0, 400); saveSettings(); });
-$("menuClose").addEventListener("click", closeMenu);
+// ----- Relógio -----
 
-function exportChat() {
-  closeMenu();
-  if (!history.length) { addMessage("system", "Ainda não há conversa para exportar."); return; }
-  const parts = history.map(m => (m.role === "user" ? "Você" : "Rizik") + " · " + new Date(m.t || Date.now()).toLocaleString("pt-BR") + "\n" + m.content);
-  const txt = "Conversa com o Rizik AI\n\n" + parts.join("\n\n----------\n\n") + "\n";
-  try {
-    const url = URL.createObjectURL(new Blob([txt], { type: "text/plain;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "conversa-rizik-" + new Date().toISOString().slice(0, 10) + ".txt";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-    addMessage("system", "Conversa exportada: " + history.length + " mensagens. Veja na pasta de downloads.");
-  } catch (e) {
-    navigator.clipboard && navigator.clipboard.writeText(txt).then(() => addMessage("system", "Não consegui baixar o arquivo, então copiei a conversa para a área de transferência."), () => addMessage("system", "Não consegui exportar a conversa."));
-  }
+function tickClock() {
+  $("clock").textContent = fmtTime();
 }
-$("exportBtn").addEventListener("click", exportChat);
 
-// ----- Relógio
-
-function tickClock() { $("clock").textContent = fmtTime(); }
 setInterval(tickClock, 5000);
 
-// ----- Voz
+// ----- Voz -----
 
 $("speak").addEventListener("click", () => {
   closeMenu();
-  if (!lastAnswer) { addMessage("system", "Ainda não existe resposta para ler."); return; }
-  if (!("speechSynthesis" in window)) { addMessage("system", "Leitura de voz indisponível."); return; }
 
-  const spoken = lastAnswer.split(FENCE).map((p, i) => i % 2 ? " (código omitido) " : p).join(" ");
+  if (!lastAnswer) {
+    addMessage("system", "Ainda não existe resposta para ler.");
+    return;
+  }
+
+  if (!("speechSynthesis" in window)) {
+    addMessage("system", "Leitura de voz indisponível.");
+    return;
+  }
+
+  // Não lê o código em voz alta.
+  const spoken = lastAnswer.replace(/```[\s\S]*?(```|$)/g, " (código omitido) ");
 
   speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(spoken);
-  utterance.lang = "pt-BR";
-  const pv2 = pickVoice();
-  if (pv2) utterance.voice = pv2;
-  speechSynthesis.speak(utterance);
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => /pt[-_]BR/i.test(v.lang)) || voices.find(v => /^pt/i.test(v.lang)) || null;
+  const chunks = spoken.match(/[^.!?\n]{1,200}[.!?]*/g) || [spoken];
+
+  chunks.map(c => c.trim()).filter(Boolean).forEach(c => {
+    const utterance = new SpeechSynthesisUtterance(c);
+    utterance.lang = "pt-BR";
+    if (voice) utterance.voice = voice;
+    speechSynthesis.speak(utterance);
+  });
 });
 
-// ------------------------------ Pesquisa na internet
+$("stop").addEventListener("click", () => {
+  closeMenu();
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
+});
 
-async function fetchTextWithTimeout(url, ms) {
+// ------------------------------
+// Pesquisa na internet
+// ------------------------------
+
+async function fetchTextWithTimeout(url, milliseconds) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), ms);
+
+  const timer = setTimeout(
+    () => controller.abort(),
+    milliseconds
+  );
+
   try {
-    const response = await fetch(url, { headers: { "Accept": "text/plain" }, signal: controller.signal, cache: "no-store" });
-    if (!response.ok) throw new Error("Serviço respondeu HTTP " + response.status);
+    const response = await fetch(url, {
+      headers: {"Accept": "text/plain"},
+      signal: controller.signal,
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error("Serviço respondeu HTTP " + response.status);
+    }
+
     return await response.text();
+
   } finally {
     clearTimeout(timer);
   }
@@ -2069,3 +2200,409 @@ const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u03
 const STOP = new Set(("sobre como qual quais quem quando onde porque isso esse essa este esta aquilo mande manda envie " +
   "pesquise pesquisar pesquisa procure busque internet web site google favor pode poderia preciso quero gostaria " +
   "explique explica fale diga mostre uma uns umas para com sem por mais muito pouco meu minha seu sua dos das nos nas pra pro aos").split(" "));
+
+function keywords(text) {
+  return norm(text).replace(/[^a-z0-9\s]/g, " ").split(/\s+/)
+    .filter(w => w.length > 2 && !STOP.has(w));
+}
+
+// Tira palavras de pedido, mantendo os acentos para a busca.
+function cleanQuery(text) {
+  return String(text).split(/\s+/)
+    .map(w => w.replace(/[?!.,;:"()]/g, ""))
+    .filter(w => w.length > 2 && !STOP.has(norm(w)))
+    .join(" ");
+}
+
+const UNSURE = /não sei|não tenho (acesso|informa)|não consigo (acessar|pesquisar|saber)|não encontrei|não posso (ajudar|prever|acessar)|desculpe/i;
+
+function needsWeb(text) {
+  if (text.length > 160 || looksLikeCode(text)) return false;
+  return /(^|\s)(quem (é|foi|ganhou|venceu)|quando (foi|será|vai)|onde fica|quanto (custa|vale)|qual (é )?(a |o )?(capital|população|cotação|preço|data|resultado|placar)|notícias?|últim[oa]s?|atualmente|20[2-3]\d|presidente|cotação|preço|placar|lançamento|significado de|definição de)(\s|$|\?)/i.test(text);
+}
+
+function quickReply(text) {
+  const t = text.trim().toLowerCase().replace(/[!?.,\s]+$/g, "");
+  if (/^(oi+|ol[aá]|opa|e a[ií]|hey|hello)$/.test(t)) return "Olá! Como posso ajudar você hoje?";
+  if (t === "bom dia") return "Bom dia! Em que posso ajudar?";
+  if (t === "boa tarde") return "Boa tarde! Em que posso ajudar?";
+  if (t === "boa noite") return "Boa noite! Em que posso ajudar?";
+  if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
+  if (/^(que horas s[aã]o|que horas|hora certa)$/.test(t)) return "Agora são " + fmtTime() + ".";
+  if (/^(que dia [eé] hoje|data de hoje|qual [eé] a data)$/.test(t)) {
+    return "Hoje é " + new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ".";
+  }
+
+  const expr = t.replace(/^(quanto [eé]|calcule|calcula)\s+/, "")
+    .replace(/(\d)\s*x\s*(\d)/g, "$1*$2").replace(/,/g, ".");
+  if (expr.length < 60 && /^[\d\s+\-*/().]+$/.test(expr) && /\d\s*[+\-*/]\s*[\d(]/.test(expr)) {
+    try {
+      const v = Function('"use strict";return (' + expr + ')')();
+      if (Number.isFinite(v)) {
+        return expr.trim() + " = " + v.toLocaleString("pt-BR", { maximumFractionDigits: 6 });
+      }
+    } catch (e) {}
+  }
+  return null;
+}
+
+// Revisão simples: confere se o que o Rizik escreveu aparece nas fontes.
+function reviewNote(answer, context) {
+  const prose = String(answer).replace(/```[\s\S]*?(```|$)/g, " ");
+  const words = [...new Set(keywords(prose))].filter(w => w.length > 4);
+  if (words.length < 6) return "";
+
+  const ctx = keywords(context).join(" ");
+  const hits = words.filter(w => ctx.includes(w)).length;
+
+  return hits / words.length < 0.3
+    ? "⚠️ Revisão: boa parte da resposta não aparece nas fontes. Confira antes de confiar."
+    : "✅ Revisão: a resposta tem apoio nas fontes consultadas.";
+}
+
+function cleanWebText(t) {
+  return String(t)
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/https?:\/\/\S+/g, " ")
+    .split("\n").map(l => l.trim()).filter(l => l.length > 30).join("\n");
+}
+
+// Pega os 4 melhores resultados e fica com o que mais combina com a pergunta.
+async function searchWikipedia(query, words) {
+  const url =
+    "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
+    "&gsrsearch=" + encodeURIComponent(query) +
+    "&gsrlimit=4&prop=extracts&exintro=1&explaintext=1&exchars=900" +
+    "&format=json&origin=*";
+
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Wikipedia respondeu HTTP " + response.status);
+
+  const data = await response.json();
+  const pages = Object.values((data && data.query && data.query.pages) || {});
+  if (!pages.length) throw new Error("Sem resultados na Wikipedia.");
+
+  const scored = pages
+    .filter(pg => pg.extract)
+    .map(pg => {
+      const hay = keywords((pg.title || "") + " " + pg.extract);
+      const hits = words.filter(w => hay.includes(w)).length;
+      return { pg, score: words.length ? hits / words.length : 0 };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const best = scored[0];
+  if (!best || best.score < 0.5) throw new Error("A Wikipedia não tem nada claro sobre isso.");
+
+  const title = best.pg.title;
+  return {
+    title,
+    url: "https://pt.wikipedia.org/wiki/" + encodeURIComponent(title.replace(/ /g, "_")),
+    text: "Wikipedia: " + title + "\n" + best.pg.extract
+  };
+}
+
+async function searchStack(query) {
+  const url =
+    "https://api.stackexchange.com/2.3/search/excerpts?order=desc&sort=relevance&pagesize=3&site=stackoverflow&q=" +
+    encodeURIComponent(query);
+
+  const data = JSON.parse(await fetchTextWithTimeout(url, 10000));
+  const items = (data && data.items) || [];
+  if (!items.length) throw new Error("Sem resultados no Stack Overflow.");
+
+  const plain = html => new DOMParser().parseFromString(html || "", "text/html").documentElement.textContent;
+  const text = items.map(i => plain(i.title) + ": " + plain(i.excerpt)).join("\n").slice(0, 900);
+
+  return { text: "Stack Overflow:\n" + text };
+}
+
+async function searchDuck(query) {
+  const raw = await fetchTextWithTimeout(
+    "https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encodeURIComponent(query),
+    20000
+  );
+  const text = cleanWebText(raw).slice(0, 900);
+  if (text.length < 100) throw new Error("Pesquisa sem resultados suficientes.");
+  return { text: "Resultados da web:\n" + text };
+}
+
+async function searchWeb(query, words, sources, onChange) {
+  const tech = /python|javascript|\bjs\b|html|css|java|erro|error|c[oó]digo|programa|\bapi\b|fetch|npm|git|sql|react|node|bug|comando/i.test(query);
+
+  const providers = [];
+  if (tech) providers.push({ name: "stackoverflow.com", site: "https://stackoverflow.com", run: () => searchStack(query) });
+  providers.push({ name: "pt.wikipedia.org", site: "https://pt.wikipedia.org", run: () => searchWikipedia(query, words) });
+  providers.push({ name: "duckduckgo.com (via r.jina.ai)", site: "https://duckduckgo.com", run: () => searchDuck(query) });
+
+  if (extOn()) providers.unshift({ name: "duckduckgo.com (via extensão)", site: "https://duckduckgo.com", run: () => searchExtDuck(query) });
+
+  let lastError = null;
+
+  for (const provider of providers) {
+    const source = newSource(provider.name, provider.site, sources, onChange);
+
+    try {
+      const result = await provider.run();
+      finishSource(source, true, onChange, result.title
+        ? { name: provider.name + " → " + result.title, url: result.url }
+        : undefined);
+      return result.text;
+    } catch (err) {
+      finishSource(source, false, onChange);
+      lastError = err;
+      console.warn("Fonte de pesquisa falhou:", provider.name, err);
+    }
+  }
+
+  throw lastError || new Error("Pesquisa indisponível.");
+}
+
+async function runSearch(rawQuery, opts = {}) {
+  const original = rawQuery.trim();
+
+  // Texto muito longo não é pesquisa: responde direto.
+  if (original.length > 160) {
+    addMessage("system", "Texto longo demais para pesquisar: respondendo direto.");
+    if (original.length > BIG_TEXT) await handleBigText(original);
+    else await generate(original);
+    return;
+  }
+
+  searching = true;
+  if (!opts.silent) addMessage("user", original);
+
+  const words = keywords(original);
+  const query = cleanQuery(original) || original;
+
+  const sources = [];
+  const searchStart = performance.now();
+  const box = createSourcesBox();
+  let searchDone = false;
+
+  const refresh = () =>
+    renderSources(box, sources, "Pesquisando na internet", searchStart, searchDone);
+
+  const phaseBox = addMessage("system", SEARCH_PHASES[0]);
+  phaseBox.style.alignSelf = "flex-start";
+
+  const searchTimer = setInterval(() => {
+    phaseBox.textContent = SEARCH_PHASES[Math.floor((performance.now() - searchStart) / 3000) % SEARCH_PHASES.length];
+    refresh();
+    sayStatus(
+      "Pesquisando na internet... " +
+      Math.round((performance.now() - searchStart) / 1000) + "s"
+    );
+  }, 500);
+
+  refresh();
+  scrollEnd();
+
+  try {
+    const results = await searchWeb(query, words, sources, refresh);
+
+    clearInterval(searchTimer);
+    phaseBox.remove();
+    searchDone = true;
+    renderSources(box, sources, "Fontes consultadas", searchStart, true);
+
+    searching = false;
+
+    // O pedido original vai para o modelo (se for um pedido de código, ele responde com código).
+    await generate(original, results, {
+      shown: original,
+      skipUser: true,
+      noUserHistory: !!opts.silent
+    });
+
+    // As fontes ficam logo abaixo da resposta.
+    chat.appendChild(box);
+    scrollEnd();
+
+  } catch (err) {
+    clearInterval(searchTimer);
+    phaseBox.remove();
+    searchDone = true;
+    renderSources(box, sources, "Fontes consultadas", searchStart, true);
+
+    console.error("Erro na pesquisa:", err);
+    sayStatus("Pesquisa indisponível.");
+
+    addMessage(
+      "system",
+      "Não achei nada confiável sobre isso: " + (err.message || String(err))
+    );
+
+  } finally {
+    searching = false;
+  }
+}
+
+// ------------------------------
+// Clima
+// ------------------------------
+
+const WEATHER_TEXT = code => {
+  if (code === 0) return "céu limpo";
+  if (code <= 3) return "parcialmente nublado";
+  if (code === 45 || code === 48) return "neblina";
+  if (code >= 51 && code <= 57) return "garoa";
+  if (code >= 61 && code <= 67) return "chuva";
+  if (code >= 71 && code <= 77) return "neve";
+  if (code >= 80 && code <= 82) return "pancadas de chuva";
+  if (code >= 95) return "trovoadas";
+  return "tempo variável";
+};
+
+function shortDate(iso) {
+  const parts = String(iso).split("-");
+  return parts.length === 3 ? parts[2] + "/" + parts[1] : iso;
+}
+
+async function runWeather(city) {
+  const started = performance.now();
+  const sources = [];
+  const box = createSourcesBox();
+  const refresh = () =>
+    renderSources(box, sources, "Consultando a previsão", started, false);
+
+  refresh();
+  sayStatus("Consultando previsão do tempo...");
+
+  try {
+    const geoSrc = newSource(
+      "geocoding-api.open-meteo.com",
+      "https://open-meteo.com",
+      sources,
+      refresh
+    );
+
+    const geoResponse = await fetch(
+      "https://geocoding-api.open-meteo.com/v1/search?name=" +
+      encodeURIComponent(city) +
+      "&count=5&language=pt&format=json"
+    );
+
+    finishSource(geoSrc, geoResponse.ok, refresh);
+
+    if (!geoResponse.ok) {
+      throw new Error("Erro ao localizar cidade.");
+    }
+
+    const geo = await geoResponse.json();
+
+    if (!geo.results || !geo.results.length) {
+      throw new Error("Cidade não encontrada.");
+    }
+
+    const place =
+      geo.results.find(r => r.country_code === "BR") || geo.results[0];
+
+    const weatherSrc = newSource(
+      "api.open-meteo.com",
+      "https://open-meteo.com",
+      sources,
+      refresh
+    );
+
+    const weatherUrl =
+      "https://api.open-meteo.com/v1/forecast?latitude=" +
+      place.latitude +
+      "&longitude=" +
+      place.longitude +
+      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+      "&timezone=auto&forecast_days=3";
+
+    const weatherResponse = await fetch(weatherUrl);
+
+    finishSource(weatherSrc, weatherResponse.ok, refresh);
+
+    if (!weatherResponse.ok) {
+      throw new Error("Erro ao consultar previsão.");
+    }
+
+    const data = await weatherResponse.json();
+    const c = data.current;
+    const d = data.daily;
+
+    const days = d.time.map((day, i) =>
+      (i === 0 ? "Hoje" : shortDate(day)) +
+      ": " + WEATHER_TEXT(d.weather_code[i]) +
+      ", mín " + d.temperature_2m_min[i] + "°C, máx " +
+      d.temperature_2m_max[i] + "°C, chuva " +
+      d.precipitation_probability_max[i] + "%"
+    ).join("\n");
+
+    const report =
+      "🌤️ Clima em " + place.name +
+      (place.admin1 ? " - " + place.admin1 : "") + "\n\n" +
+      "Agora: " + c.temperature_2m + "°C (sensação " +
+      c.apparent_temperature + "°C), " + WEATHER_TEXT(c.weather_code) + "\n" +
+      "Umidade " + c.relative_humidity_2m + "% · Vento " +
+      c.wind_speed_10m + " km/h · Chuva agora " + c.precipitation + " mm\n\n" +
+      days;
+
+    addMessage("assistant", report);
+    lastAnswer = report;
+
+    renderSources(box, sources, "Fontes da previsão", started, true);
+    chat.appendChild(box);
+
+    sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
+
+  } catch (err) {
+    console.error("Erro no clima:", err);
+    renderSources(box, sources, "Fontes da previsão", started, true);
+    sayStatus("Erro ao consultar o clima.");
+    addMessage("system", err.message || String(err));
+  }
+}
+
+$("weather").addEventListener("click", async () => {
+  if (busy || resetting || searching) return;
+  await runWeather(settings.city || "Nova Esperança");
+});
+
+// ------------------------------
+// Inicialização
+// ------------------------------
+
+let prevCrash = false;
+try {
+  prevCrash = localStorage.getItem("rizik_loading") === "1";
+  localStorage.removeItem("rizik_loading");
+} catch (e) {}
+
+if (prevCrash && (settings.model !== "fast" || settings.parallel)) {
+  settings.model = "fast";
+  settings.parallel = false;
+  saveSettings();
+}
+
+window.postMessage({ type: "RIZIK_PING" }, "*");
+applySettings();
+tickClock();
+restoreHistory();
+updateButtons();
+
+if (prevCrash) {
+  addMessage("system", "A página fechou durante o último carregamento (talvez por pouca memória). Passei para o modelo Rápido e desliguei a leitura com 2 IAs. Toque em Carregar IA.");
+} else if (settings.autoload) {
+  try {
+    if (localStorage.getItem("rizik_autoload") === "1") loadAI();
+  } catch (e) {}
+}
+
+window.addEventListener("error", event => {
+  console.error("Erro JavaScript:", event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", event => {
+  console.error("Erro assíncrono:", event.reason);
+});
+
+</script>
+</body>
+</html>
