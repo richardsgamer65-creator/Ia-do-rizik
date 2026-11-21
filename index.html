@@ -92,18 +92,15 @@ const input = $("prompt");
 const MODEL_URL =
 "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf";
 
-const SYSTEM_PROMPT = `
-Você é Rizik AI, assistente pessoal em português brasileiro, claro, educado e direto. Você é especialista em HTML, CSS, JavaScript, Python, Java, Kotlin, C, C++, SQL, JSON e APIs.
+const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal. Responda em português brasileiro, de forma curta e direta. Não invente fatos.`;
 
-Quando o usuário enviar um código com problema, siga sempre este método:
-1) Leia o código e a mensagem de erro.
-2) Diga a causa provável em uma frase.
-3) Explique a correção de forma simples.
-4) Entregue o código corrigido completo, preservando as funções existentes.
-5) Diga como testar.
+const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro.
+Ao receber código com problema: 1) diga a causa provável; 2) explique a correção; 3) entregue o código corrigido completo, sem remover funções; 4) diga como testar.
+Não invente bibliotecas nem resultados de testes. Se faltar informação, peça o erro exato.`;
 
-Não invente bibliotecas, funções, APIs ou resultados de testes. Se faltar informação, peça o erro exato. Use os resultados de pesquisa e clima recebidos na mensagem. Se não houver resultados, não diga que pesquisou.
-`;
+function looksLikeCode(text) {
+  return /```|<\/?[a-z]+[^>]*>|function\s|const\s|let\s|def\s|class\s|import\s|erro|error|exception|código|codigo|bug|corrij|corrigi/i.test(text);
+}
 
 // Vários núcleos só funcionam com isolamento de origem cruzada
 // (ativado pelo arquivo coi-serviceworker.js).
@@ -191,7 +188,9 @@ function buildMessages(text, extraContext) {
   const messages = [
     {
       role: "system",
-      content: SYSTEM_PROMPT
+      content: (extraContext || !looksLikeCode(text))
+        ? SYSTEM_CHAT
+        : SYSTEM_CODE
     }
   ];
 
@@ -215,7 +214,7 @@ function buildMessages(text, extraContext) {
     content:
       safeText +
       (safeResearch
-        ? "\n\nInformações recebidas:\n" + safeResearch
+        ? "\n\nUse somente as informações abaixo. Se não tiverem relação com a pergunta, diga que não encontrou.\nInformações:\n" + safeResearch
         : "")
   });
 
@@ -287,7 +286,7 @@ async function loadAI() {
       await newAI.loadModelFromUrl(MODEL_URL, {
         // Configuração mais leve para iPhone.
         n_ctx: 1024,
-        n_batch: 128,
+        n_batch: 256,
         n_threads: THREADS,
         n_gpu_layers: 0,
 
@@ -745,6 +744,18 @@ $("search").addEventListener("click", async () => {
 
   if (!query || !query.trim()) return;
 
+  // Perguntas sobre tempo/chuva usam a previsão de verdade.
+  if (/tempo|clima|chuva|previs|temperatura|calor|frio|chover/i.test(query)) {
+    const match = query.trim().match(
+      /(?:em|para|de|da|do)\s+([A-Za-zÀ-ú\s]+?)\s*\??\s*$/i
+    );
+    const city = match ? match[1].trim() : "Nova Esperança";
+
+    addMessage("system", "Pergunta sobre o tempo: consultando a previsão de " + city);
+    await runWeather(city || "Nova Esperança");
+    return;
+  }
+
   addMessage("system", "Pesquisando: " + query);
 
   const sources = [];
@@ -801,21 +812,43 @@ $("search").addEventListener("click", async () => {
 // Clima
 // ------------------------------
 
-$("weather").addEventListener("click", async () => {
-  if (busy || resetting) return;
+const WEATHER_TEXT = code => {
+  if (code === 0) return "céu limpo";
+  if (code <= 3) return "parcialmente nublado";
+  if (code === 45 || code === 48) return "neblina";
+  if (code >= 51 && code <= 57) return "garoa";
+  if (code >= 61 && code <= 67) return "chuva";
+  if (code >= 71 && code <= 77) return "neve";
+  if (code >= 80 && code <= 82) return "pancadas de chuva";
+  if (code >= 95) return "trovoadas";
+  return "tempo variável";
+};
 
-  const city = window.prompt("Qual cidade?", "Nova Esperança");
+function shortDate(iso) {
+  const parts = String(iso).split("-");
+  return parts.length === 3 ? parts[2] + "/" + parts[1] : iso;
+}
 
-  if (!city || !city.trim()) return;
+async function runWeather(city) {
+  const started = performance.now();
+  const sources = [];
 
   sayStatus("Consultando previsão do tempo...");
 
   try {
+    const geoStart = performance.now();
+
     const geoResponse = await fetch(
       "https://geocoding-api.open-meteo.com/v1/search?name=" +
-      encodeURIComponent(city.trim()) +
-      "&count=1&language=pt&format=json"
+      encodeURIComponent(city) +
+      "&count=5&language=pt&format=json"
     );
+
+    sources.push({
+      name: "geocoding-api.open-meteo.com",
+      ok: geoResponse.ok,
+      ms: performance.now() - geoStart
+    });
 
     if (!geoResponse.ok) {
       throw new Error("Erro ao localizar cidade.");
@@ -827,7 +860,10 @@ $("weather").addEventListener("click", async () => {
       throw new Error("Cidade não encontrada.");
     }
 
-    const place = geo.results[0];
+    const place =
+      geo.results.find(r => r.country_code === "BR") || geo.results[0];
+
+    const weatherStart = performance.now();
 
     const weatherUrl =
       "https://api.open-meteo.com/v1/forecast?latitude=" +
@@ -840,50 +876,66 @@ $("weather").addEventListener("click", async () => {
 
     const weatherResponse = await fetch(weatherUrl);
 
+    sources.push({
+      name: "api.open-meteo.com",
+      ok: weatherResponse.ok,
+      ms: performance.now() - weatherStart
+    });
+
     if (!weatherResponse.ok) {
       throw new Error("Erro ao consultar previsão.");
     }
 
     const data = await weatherResponse.json();
-
     const c = data.current;
     const d = data.daily;
 
+    const days = d.time.map((day, i) =>
+      (i === 0 ? "Hoje" : shortDate(day)) +
+      ": " + WEATHER_TEXT(d.weather_code[i]) +
+      ", mín " + d.temperature_2m_min[i] + "°C, máx " +
+      d.temperature_2m_max[i] + "°C, chuva " +
+      d.precipitation_probability_max[i] + "%"
+    ).join("\n");
+
     const report =
-      "Clima de " + place.name + ", " +
-      (place.admin1 || "") + ", " +
-      (place.country || "") + "\n" +
-      "Temperatura atual: " + c.temperature_2m + "°C\n" +
-      "Sensação térmica: " + c.apparent_temperature + "°C\n" +
-      "Umidade: " + c.relative_humidity_2m + "%\n" +
-      "Vento: " + c.wind_speed_10m + " km/h\n" +
-      "Precipitação atual: " + c.precipitation + " mm\n\n" +
+      "🌤️ Clima em " + place.name +
+      (place.admin1 ? " - " + place.admin1 : "") + "\n\n" +
+      "Agora: " + c.temperature_2m + "°C (sensação " +
+      c.apparent_temperature + "°C), " + WEATHER_TEXT(c.weather_code) + "\n" +
+      "Umidade " + c.relative_humidity_2m + "% · Vento " +
+      c.wind_speed_10m + " km/h · Chuva agora " + c.precipitation + " mm\n\n" +
+      days;
 
-      d.time.map((day, i) =>
-        day +
-        ": mínima " + d.temperature_2m_min[i] + "°C, " +
-        "máxima " + d.temperature_2m_max[i] + "°C, " +
-        "chance de chuva " +
-        d.precipitation_probability_max[i] + "%"
-      ).join("\n");
-
-    addMessage("system", "Previsão recebida para " + place.name);
-
-    await generate(
-      "Explique esta previsão do tempo:",
-      report
-    );
-
-  } catch (err) {
-    console.error("Erro no clima:", err);
-
-    sayStatus("Erro ao consultar o clima.");
+    addMessage("assistant", report);
+    lastAnswer = report;
 
     addMessage(
       "system",
-      err.message || String(err)
+      "⏱ " + ((performance.now() - started) / 1000).toFixed(1) + "s\n" +
+      sources.map(s =>
+        (s.ok ? "✅ " : "❌ ") + s.name +
+        " (" + (s.ms / 1000).toFixed(1) + "s)"
+      ).join("\n")
     );
+
+    sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
+
+  } catch (err) {
+    console.error("Erro no clima:", err);
+    sayStatus("Erro ao consultar o clima.");
+    addMessage("system", err.message || String(err));
   }
+}
+
+$("weather").addEventListener("click", async () => {
+  if (busy || resetting) return;
+
+  const city = window.prompt("Qual cidade?", "Nova Esperança");
+
+  if (!city || !city.trim()) return;
+
+  await runWeather(city.trim());
 });
 
 // ------------------------------
