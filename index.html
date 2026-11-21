@@ -80,7 +80,7 @@ progress{width:100%;height:8px;margin-top:10px;display:none}
 const WLLAMA_VERSION = "3";
 const REPO = "ggml-org/Qwen3.5-0.8B-GGUF";
 const FILE = "Qwen3.5-0.8B-Q4_0.gguf";
-const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma direta e concisa, em texto simples. Não mostre raciocínio interno, tokens especiais ou marcadores como <think> e </think>. Dê respostas curtas, a menos que o usuário peça detalhes.";
+const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma direta e concisa, em texto simples. Antes de responder, pense em no máximo 1 ou 2 frases curtas dentro de <think></think> e feche esse bloco rapidamente; nunca deixe de escrever a resposta final depois do </think>. Não mostre tokens especiais ou marcadores como <think> e </think> na resposta final. Dê respostas curtas, a menos que o usuário peça detalhes.";
 const BASE = "https://cdn.jsdelivr.net/npm/@wllama/wllama@" + WLLAMA_VERSION + "/esm/";
 const HF_URL = "https://huggingface.co/" + REPO + "/resolve/main/" + FILE;
 
@@ -222,7 +222,7 @@ async function go() {
   const hist = [{ role: "system", content: SYS }, ...msgs.slice(-6).map(m => ({ role: m.role, content: m.content }))];
   try {
     let out = "";
-    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 256, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
+    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 768, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
     if (r && typeof r[Symbol.asyncIterator] === "function") {
       for await (const ch of r) {
         out += (ch.choices && ch.choices[0] && ch.choices[0].delta && ch.choices[0].delta.content) || "";
