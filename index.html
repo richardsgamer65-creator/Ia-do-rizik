@@ -146,13 +146,21 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
 .round .i{width:28px;height:28px}
 .round.end{background:linear-gradient(135deg,#ff6b6b,#d62839)}
 .round.off{background:#fff;color:#111}
+.city-list{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}
+.city-list[hidden]{display:none}
+.placenow{color:#9299b0;font-size:12px;line-height:1.4}
+.cell{position:relative}
+.gallery video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.gallery.n1 video{aspect-ratio:4/3}
+.badge{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.6);border-radius:8px;padding:2px 7px;font-size:12px}
+.viewer video{max-width:96vw;max-height:92vh;border-radius:14px}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 19</small>
+    <small>Seu assistente pessoal · versão 21</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -204,9 +212,16 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
         <option value="0.8">Criativa</option>
       </select>
     </label>
-    <label>Cidade padrão do clima
-      <input id="setCity" type="text">
+    <label>Região (clima e buscas)
+      <input id="setCity" type="text" placeholder="Digite a cidade">
     </label>
+    <div class="menu-actions">
+      <button id="cityFind" data-ic="search">Buscar cidade</button>
+      <button id="gpsBtn" data-ic="pin">Usar GPS</button>
+    </div>
+    <div id="cityList" class="city-list" hidden></div>
+    <small id="placeNow" class="placenow"></small>
+    <label class="check"><input id="setGps" type="checkbox"> Usar o GPS sempre que pedir o clima</label>
     <label class="check"><input id="setTime" type="checkbox"> Mostrar horas nas mensagens</label>
     <div class="menu-actions">
       <button id="restart" data-ic="refresh">Reiniciar IA</button>
@@ -236,7 +251,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
   </div>
 </div>
 
-<div id="viewer" class="viewer" hidden><img id="viewerImg" alt=""></div>
+<div id="viewer" class="viewer" hidden><img id="viewerImg" alt=""><video id="viewerVid" controls playsinline hidden></video></div>
 
 <main>
   <div id="status">Rizik está aguardando.</div>
@@ -250,7 +265,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
       <button id="webToggle" data-ic="globe" aria-pressed="false" title="Pesquisar na internet" aria-label="Pesquisar na internet"></button>
       <button id="photoBtn" data-ic="image" title="Fotos da galeria" aria-label="Fotos da galeria"></button>
       <button id="voiceBtn" data-ic="phone" title="Conversar por voz"><span>Conversar</span></button>
-      <input id="photoInput" type="file" accept="image/*" multiple hidden>
+      <input id="photoInput" type="file" accept="image/*,video/*" multiple hidden>
     </div>
     <div class="row">
       <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
@@ -289,7 +304,7 @@ const MODELS = {
 const maxChars = () => Math.max(1500, Math.floor((settings.ctx - settings.tokens - 700) * 2.4));
 
 const settings = Object.assign(
-  { ctx: 4096, tokens: 384, temp: 0.3, city: "Nova Esperança", time: true, model: "fast", wall: "aurora", auto: true, autoload: true },
+  { ctx: 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true },
   (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
 );
 
@@ -572,7 +587,7 @@ function limitText(text, maxChars) {
 
 function buildMessages(text, extraContext) {
   const isCode = !extraContext && looksLikeCode(text);
-  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
+  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
 
   const recent = (isCode && text.length > 1200) ? [] : history.slice(-4);
   for (const item of recent) messages.push({ role: item.role, content: limitText(item.content, 240) });
@@ -771,7 +786,7 @@ async function generate(text, extraContext = "", opts = {}) {
       tokenCount + " partes" +
       (truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
 
-    if (extraContext) {
+    if (extraContext && !opts.noReview) {
       const note = reviewNote(answer, extraContext);
       if (note) {
         const noteBox = addMessage("system", note);
@@ -821,7 +836,7 @@ function extractCity(text) {
   if (!m) m = clean.match(/^.*\b(?:de|da|do)\s+([A-Za-zÀ-ú\s'-]+?)\s*[?!.]*\s*$/i);
   const city = m ? m[1].trim() : "";
   if (!city || WEATHER_WORDS.test(city) || /^(hoje|amanh[ãa]|agora)$/i.test(city)) {
-    return settings.city || "Nova Esperança";
+    return "";
   }
   return city;
 }
@@ -880,6 +895,8 @@ async function handleSend() {
     return;
   }
 
+  if (visionContext && /foto|imagem|imagens|v[ií]deo|figura|cena/i.test(text)) { await generate(text, visionContext, { noReview: true }); return; }
+
   const answer = await generate(text);
 
   if (settings.auto && answer && UNSURE.test(answer) && !looksLikeCode(text) && text.length <= 160) {
@@ -914,6 +931,7 @@ document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.t
 function applySettings() {
   $("setTokens").value = String(settings.tokens);
   $("setCtx").value = String(settings.ctx);
+  $("setGps").checked = !!settings.gpsAuto;
   $("setTemp").value = String(settings.temp);
   $("setCity").value = settings.city;
   $("setTime").checked = !!settings.time;
@@ -933,7 +951,7 @@ $("setCtx").addEventListener("change", e => {
 
 $("setTokens").addEventListener("change", e => { settings.tokens = Number(e.target.value); saveSettings(); });
 $("setTemp").addEventListener("change", e => { settings.temp = Number(e.target.value); saveSettings(); });
-$("setCity").addEventListener("change", e => { settings.city = e.target.value.trim() || "Nova Esperança"; saveSettings(); });
+$("setCity").addEventListener("change", e => { settings.city = e.target.value.trim(); saveSettings(); });
 $("setTime").addEventListener("change", e => { settings.time = e.target.checked; saveSettings(); applySettings(); });
 $("setWall").addEventListener("change", e => { settings.wall = e.target.value; saveSettings(); applySettings(); });
 $("setAuto").addEventListener("change", e => { settings.auto = e.target.checked; saveSettings(); });
@@ -1216,7 +1234,7 @@ async function runSearch(rawQuery, opts = {}) {
   if (!opts.silent) addMessage("user", original);
 
   const words = keywords(original);
-  const query = cleanQuery(original) || original;
+  const query = (cleanQuery(original) || original) + (settings.place && /perto|aqui|minha cidade|minha regi|próxim|proxim/i.test(original) ? " " + settings.place.name : "");
   const sources = [];
   const searchStart = performance.now();
   const box = createSourcesBox();
@@ -1287,17 +1305,7 @@ async function runWeather(city) {
   sayStatus("Consultando previsão do tempo...");
 
   try {
-    const geoSrc = newSource("geocoding-api.open-meteo.com", "https://open-meteo.com", sources, refresh);
-    const geoResponse = await fetch(
-      "https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(city) + "&count=5&language=pt&format=json"
-    );
-    finishSource(geoSrc, geoResponse.ok, refresh);
-    if (!geoResponse.ok) throw new Error("Erro ao localizar cidade.");
-
-    const geo = await geoResponse.json();
-    if (!geo.results || !geo.results.length) throw new Error("Cidade não encontrada.");
-
-    const place = geo.results.find(r => r.country_code === "BR") || geo.results[0];
+    const place = await resolvePlace(city, sources, refresh);
 
     const weatherSrc = newSource("api.open-meteo.com", "https://open-meteo.com", sources, refresh);
 
@@ -1343,7 +1351,7 @@ async function runWeather(city) {
 
 $("weather").addEventListener("click", async () => {
   if (busy || resetting || searching) return;
-  await runWeather(settings.city || "Nova Esperança");
+  await runWeather("");
 });
 
 // ------------------------------ Textos grandes como arquivo
@@ -1507,8 +1515,9 @@ function setVoiceMode(on) {
     $("callMute").classList.remove("off");
     $("call").hidden = false;
     setCallState("listening");
-    setCallText("");
-    startListening();
+    setCallText("Como posso ajudar?");
+    chime();
+    speakText("Olá! Como posso ajudar?", startListening);
   } else {
     try { if (rec) rec.abort(); } catch (e) {}
     if ("speechSynthesis" in window) speechSynthesis.cancel();
@@ -1518,21 +1527,71 @@ function setVoiceMode(on) {
   }
 }
 
+function chime() {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    [660, 880].forEach((f, i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      const t = ctx.currentTime + i * 0.14;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(g);
+      g.connect(ctx.destination);
+      o.start(t);
+      o.stop(t + 0.2);
+    });
+    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 700);
+  } catch (e) {}
+}
+
+let speakToken = 0;
+
 function speakText(text, done) {
   if (!("speechSynthesis" in window)) { done(); return; }
   const spoken = String(text).split(FENCE).map((p, i) => i % 2 ? " (código omitido) " : p).join(" ");
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(spoken);
-  u.lang = "pt-BR";
-  const pv = pickVoice();
-  if (pv) u.voice = pv;
+  const sentences = spoken.replace(/\s+/g, " ").trim().match(/[^.!?\n]+[.!?]*/g) || [spoken];
+  const parts = [];
+  let cur = "";
+  sentences.forEach(c => {
+    if ((cur + c).length > 180 && cur) { parts.push(cur.trim()); cur = c; }
+    else cur += c;
+  });
+  if (cur.trim()) parts.push(cur.trim());
+
+  const token = ++speakToken;
   speaking = true;
   setCallState("speaking");
   setCallText(text);
-  const end = () => { speaking = false; if (voiceMode) setCallState(callMuted ? "muted" : "listening"); done(); };
-  u.onend = end;
-  u.onerror = end;
-  speechSynthesis.speak(u);
+  speechSynthesis.cancel();
+
+  const finish = () => {
+    if (token !== speakToken) return;
+    speaking = false;
+    if (voiceMode) setCallState(callMuted ? "muted" : "listening");
+    done();
+  };
+
+  const next = i => {
+    if (token !== speakToken) return;
+    if (i >= parts.length) { finish(); return; }
+    const u = new SpeechSynthesisUtterance(parts[i]);
+    u.lang = "pt-BR";
+    const pv = pickVoice();
+    if (pv) u.voice = pv;
+    u.onend = () => next(i + 1);
+    u.onerror = e => {
+      if (e && (e.error === "interrupted" || e.error === "canceled")) { finish(); return; }
+      next(i + 1);
+    };
+    speechSynthesis.speak(u);
+  };
+
+  setTimeout(() => next(0), 120);
 }
 
 function voiceDone(before) {
@@ -1550,18 +1609,32 @@ $("callMute").addEventListener("click", () => {
   if (callMuted) { try { if (rec) rec.abort(); } catch (e) {} setCallState("muted"); }
   else { setCallState("listening"); startListening(); }
 });
-$("orb").addEventListener("click", () => { if (speaking && "speechSynthesis" in window) speechSynthesis.cancel(); });
+$("orb").addEventListener("click", () => {
+  if (speaking) {
+    speakToken++;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    speaking = false;
+    setCallState(callMuted ? "muted" : "listening");
+    startListening();
+    return;
+  }
+  if (!listening && !busy && !callMuted) startListening();
+});
 
 // ------------------------------ Galeria de fotos (até 12)
 
 let photoNoted = false;
 
-function openViewer(src) {
-  $("viewerImg").src = src;
+function openViewer(src, isVideo) {
+  $("viewerImg").hidden = !!isVideo;
+  $("viewerVid").hidden = !isVideo;
+  if (isVideo) { $("viewerVid").src = src; $("viewerVid").play().catch(() => {}); }
+  else $("viewerImg").src = src;
   $("viewer").hidden = false;
 }
 
-$("viewer").addEventListener("click", () => { $("viewer").hidden = true; });
+$("viewerVid").addEventListener("click", e => e.stopPropagation());
+$("viewer").addEventListener("click", () => { $("viewerVid").pause(); $("viewer").hidden = true; });
 
 function addGallery(files) {
   const div = document.createElement("div");
@@ -1569,33 +1642,59 @@ function addGallery(files) {
   const grid = document.createElement("div");
   grid.className = "gallery n" + files.length;
   files.forEach(f => {
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(f);
-    img.loading = "lazy";
-    img.alt = "foto";
-    img.addEventListener("click", () => openViewer(img.src));
-    grid.appendChild(img);
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    const url = URL.createObjectURL(f);
+    if (f.type.startsWith("video/")) {
+      const v = document.createElement("video");
+      v.src = url + "#t=0.1";
+      v.muted = true;
+      v.playsInline = true;
+      v.preload = "metadata";
+      v.addEventListener("click", () => openViewer(url, true));
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = "▶";
+      cell.append(v, badge);
+    } else {
+      const img = document.createElement("img");
+      img.src = url;
+      img.loading = "lazy";
+      img.alt = "foto";
+      img.addEventListener("click", () => openViewer(url, false));
+      cell.appendChild(img);
+    }
+    grid.appendChild(cell);
   });
   div.appendChild(grid);
   const cap = document.createElement("small");
   cap.className = "msg-time";
-  cap.textContent = "🖼️ " + files.length + (files.length === 1 ? " foto" : " fotos") + " · " + fmtTime();
+  cap.textContent = "🖼️ " + files.length + (files.length === 1 ? " arquivo" : " arquivos") + " · " + fmtTime();
   div.appendChild(cap);
   chat.appendChild(div);
+
+  const row = document.createElement("div");
+  row.className = "actions";
+  const b = document.createElement("button");
+  b.className = "copy";
+  b.textContent = "🔍 Identificar com a IA";
+  b.addEventListener("click", () => runVision(files, b));
+  row.appendChild(b);
+  chat.appendChild(row);
   scrollEnd();
 }
 
 $("photoBtn").addEventListener("click", () => $("photoInput").click());
 
 $("photoInput").addEventListener("change", () => {
-  let files = [...$("photoInput").files].filter(f => f.type.startsWith("image/"));
+  let files = [...$("photoInput").files].filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
   $("photoInput").value = "";
   if (!files.length) return;
-  if (files.length > 12) { addMessage("system", "Máximo de 12 fotos por envio: usei as 12 primeiras."); files = files.slice(0, 12); }
+  if (files.length > 12) { addMessage("system", "Máximo de 12 arquivos por envio: usei os 12 primeiros."); files = files.slice(0, 12); }
   addGallery(files);
   if (!photoNoted) {
     photoNoted = true;
-    addMessage("system", "As fotos ficam na galeria desta conversa. O modelo atual só entende texto, então ele ainda não descreve imagens.");
+    addMessage("system", "Toque em \"🔍 Identificar com a IA\" para ela ler as fotos e vídeos. Na 1ª vez baixa o leitor de imagens (cerca de 300 MB). Não identifico pessoas pelo rosto.");
   }
 });
 
@@ -1615,9 +1714,243 @@ $("install").addEventListener("click", () => {
   $("install").hidden = true;
 });
 
+// ------------------------------ Região e GPS
+
+function placeLabel(p) { return p.name + (p.admin1 ? " - " + p.admin1 : ""); }
+
+function showPlace() {
+  $("placeNow").textContent = settings.place
+    ? "📍 Região atual: " + placeLabel(settings.place)
+    : "Nenhuma região fixa: uso o GPS quando você pedir o clima.";
+}
+
+function savePlace(p) {
+  settings.place = { name: p.name, admin1: p.admin1 || "", latitude: p.latitude, longitude: p.longitude };
+  settings.city = p.name;
+  $("setCity").value = p.name;
+  saveSettings();
+  showPlace();
+}
+
+async function findCities() {
+  const q = $("setCity").value.trim();
+  if (!q) return;
+  const list = $("cityList");
+  list.hidden = false;
+  list.textContent = "Buscando...";
+  try {
+    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=8&language=pt&format=json");
+    const j = await r.json();
+    list.textContent = "";
+    if (!j.results || !j.results.length) { list.textContent = "Cidade não encontrada."; return; }
+    j.results.forEach(p => {
+      const b = document.createElement("button");
+      b.className = "hist-item";
+      b.textContent = p.name + (p.admin1 ? " - " + p.admin1 : "") + (p.country ? " · " + p.country : "");
+      b.addEventListener("click", () => { savePlace(p); list.hidden = true; });
+      list.appendChild(b);
+    });
+  } catch (e) { list.textContent = "Sem internet para buscar."; }
+}
+
+function getPosition() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) { rej(new Error("Este navegador não tem GPS.")); return; }
+    navigator.geolocation.getCurrentPosition(res,
+      e => rej(new Error(e.code === 1 ? "Permissão de localização negada. Ative nas configurações do navegador." : "Não consegui pegar o GPS.")),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+  });
+}
+
+async function gpsPlace(sources, refresh) {
+  const src = newSource("GPS do aparelho", "", sources, refresh);
+  let pos;
+  try { pos = await getPosition(); finishSource(src, true, refresh); }
+  catch (e) { finishSource(src, false, refresh); throw e; }
+
+  const lat = pos.coords.latitude, lon = pos.coords.longitude;
+  let name = "Minha localização", admin1 = "";
+  const rs = newSource("api.bigdatacloud.net", "https://www.bigdatacloud.com", sources, refresh);
+  try {
+    const r = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + lat + "&longitude=" + lon + "&localityLanguage=pt");
+    if (r.ok) {
+      const j = await r.json();
+      name = j.city || j.locality || name;
+      admin1 = j.principalSubdivision || "";
+      finishSource(rs, true, refresh);
+    } else finishSource(rs, false, refresh);
+  } catch (e) { finishSource(rs, false, refresh); }
+  return { name, admin1, latitude: lat, longitude: lon };
+}
+
+async function resolvePlace(city, sources, refresh) {
+  if (!city) {
+    if (settings.gpsAuto) {
+      try { return await gpsPlace(sources, refresh); }
+      catch (e) { if (!settings.place && !settings.city) throw e; }
+    }
+    if (settings.place) return settings.place;
+    if (settings.city) city = settings.city;
+    else return await gpsPlace(sources, refresh);
+  }
+  const geoSrc = newSource("geocoding-api.open-meteo.com", "https://open-meteo.com", sources, refresh);
+  const resp = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(city) + "&count=5&language=pt&format=json");
+  finishSource(geoSrc, resp.ok, refresh);
+  if (!resp.ok) throw new Error("Erro ao localizar cidade.");
+  const geo = await resp.json();
+  if (!geo.results || !geo.results.length) throw new Error("Cidade não encontrada.");
+  return geo.results.find(r => r.country_code === "BR") || geo.results[0];
+}
+
+$("cityFind").addEventListener("click", findCities);
+$("setGps").addEventListener("change", e => { settings.gpsAuto = e.target.checked; saveSettings(); });
+$("gpsBtn").addEventListener("click", async () => {
+  const list = $("cityList");
+  list.hidden = false;
+  list.textContent = "Pegando o GPS...";
+  try {
+    savePlace(await gpsPlace([], null));
+    list.hidden = true;
+  } catch (e) { list.textContent = e.message || String(e); }
+});
+
+// ------------------------------ Visão: fotos e vídeos
+
+let tfLib = null, visionBusy = false, visionContext = "";
+
+async function loadTF() {
+  if (tfLib) return tfLib;
+  const urls = [
+    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6",
+    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1",
+    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3"
+  ];
+  for (const u of urls) {
+    try { tfLib = await import(u); break; } catch (e) { console.warn("Falha ao importar", u, e); }
+  }
+  if (!tfLib) throw new Error("Não consegui carregar o leitor de imagens. Confira a internet.");
+  tfLib.env.allowLocalModels = false;
+  return tfLib;
+}
+
+async function mkPipe(T, task, model, label, setMsg) {
+  const cb = p => { if (p && p.status === "progress" && typeof p.progress === "number") setMsg("Baixando " + label + ": " + Math.round(p.progress) + "%"); };
+  try { return await T.pipeline(task, model, { dtype: "q8", progress_callback: cb }); }
+  catch (e) { console.warn("q8 falhou, tentando o padrão", e); return await T.pipeline(task, model, { progress_callback: cb }); }
+}
+
+async function imageToDataURL(file, max = 512) {
+  const bmp = await createImageBitmap(file);
+  const sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round(bmp.width * sc));
+  c.height = Math.max(1, Math.round(bmp.height * sc));
+  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+  if (bmp.close) bmp.close();
+  return c.toDataURL("image/jpeg", 0.85);
+}
+
+async function videoFrames(file, n) {
+  const url = URL.createObjectURL(file);
+  const v = document.createElement("video");
+  v.muted = true;
+  v.playsInline = true;
+  v.preload = "auto";
+  v.src = url;
+  await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error("vídeo ilegível")); });
+  const dur = isFinite(v.duration) ? v.duration : 0;
+  const sc = Math.min(1, 384 / Math.max(v.videoWidth || 384, v.videoHeight || 384));
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, Math.round((v.videoWidth || 384) * sc));
+  c.height = Math.max(1, Math.round((v.videoHeight || 384) * sc));
+  const frames = [];
+  for (let i = 0; i < n; i++) {
+    const t = Math.max(0.05, dur ? dur * (i + 0.5) / n : 0.05);
+    await new Promise(res => { const to = setTimeout(res, 4000); v.onseeked = () => { clearTimeout(to); res(); }; v.currentTime = t; });
+    c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+    frames.push(c.toDataURL("image/jpeg", 0.85));
+  }
+  URL.revokeObjectURL(url);
+  return { frames, dur };
+}
+
+async function analyzeMedia(files, setMsg) {
+  const T = await loadTF();
+  setMsg("Carregando o leitor de imagens (a 1ª vez baixa uns 300 MB)...");
+  const cap = await mkPipe(T, "image-to-text", "Xenova/vit-gpt2-image-captioning", "descrição de imagens", setMsg);
+  let det = null;
+  if (files.some(f => f.type.startsWith("image/"))) {
+    try { det = await mkPipe(T, "object-detection", "Xenova/detr-resnet-50", "detector de objetos", setMsg); }
+    catch (e) { console.warn("Sem detector de objetos:", e); }
+  }
+
+  const lines = [];
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    const isVid = f.type.startsWith("video/");
+    const tag = (isVid ? "Vídeo " : "Foto ") + (i + 1);
+    setMsg("🔍 Analisando " + tag + " (" + (i + 1) + "/" + files.length + ")...");
+    try {
+      if (isVid) {
+        const { frames, dur } = await videoFrames(f, 5);
+        const caps = [];
+        for (const fr of frames) {
+          const o = await cap(fr, { max_new_tokens: 30 });
+          caps.push(String(o[0].generated_text || "").trim());
+        }
+        lines.push(tag + " (" + Math.round(dur) + "s), cenas em ordem: " + caps.map((c, k) => (k + 1) + ") " + c).join("; "));
+      } else {
+        const url = await imageToDataURL(f);
+        const o = await cap(url, { max_new_tokens: 30 });
+        let objs = "";
+        if (det) {
+          const d = await det(url, { threshold: 0.75 });
+          const count = {};
+          d.forEach(x => { count[x.label] = (count[x.label] || 0) + 1; });
+          objs = Object.entries(count).map(([k, v]) => k + " x" + v).join(", ");
+        }
+        lines.push(tag + ": legenda (em inglês): " + String(o[0].generated_text || "").trim() + (objs ? ". Objetos: " + objs : ""));
+      }
+    } catch (err) {
+      console.error(err);
+      lines.push(tag + ": não consegui ler este arquivo.");
+    }
+  }
+  for (const m of [cap, det]) { try { if (m && m.dispose) await m.dispose(); } catch (e) {} }
+  return lines.join("\n");
+}
+
+async function runVision(files, btn) {
+  if (busy || resetting || searching || visionBusy) return;
+  visionBusy = true;
+  btn.disabled = true;
+  const box = addMessage("system", "🔍 Preparando o leitor de imagens...");
+  const setMsg = t => { box.querySelector(".body").textContent = t; sayStatus(t); };
+  let ctxText = "";
+  try {
+    ctxText = await analyzeMedia(files, setMsg);
+    setMsg("✅ Análise pronta: " + files.length + (files.length === 1 ? " arquivo." : " arquivos."));
+    visionContext = ctxText;
+  } catch (err) {
+    console.error("Erro na visão:", err);
+    setMsg("Não consegui analisar: " + (err.message || String(err)));
+  }
+  visionBusy = false;
+  btn.disabled = false;
+  if (ctxText) {
+    await generate(
+      "Descreva em português, de forma curta, o que aparece em cada foto ou vídeo. Traduza as legendas em inglês. Use somente as análises.",
+      ctxText,
+      { shown: "🔍 Identificar " + files.length + (files.length === 1 ? " arquivo" : " arquivos"), noReview: true }
+    );
+  }
+}
+
 // ------------------------------ Ícones nos botões
 
 const ICONS = {
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
   dots: '<circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
   globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
   image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
@@ -1652,7 +1985,9 @@ if (prevCrash) {
   saveSettings();
 }
 
+if (settings.city === "Nova Esperança" && !settings.place) { settings.city = ""; saveSettings(); }
 applySettings();
+showPlace();
 tickClock();
 restoreHistory();
 updateButtons();
