@@ -12,7 +12,7 @@ body{margin:0;background:#10111a;color:#f5f5fa;font-family:system-ui,sans-serif}
 header{padding:16px;background:#191b29;display:flex;justify-content:space-between;align-items:center}
 h1{font-size:22px;margin:0}
 main{max-width:850px;margin:auto;padding:14px}
-#status{font-size:13px;color:#aeb4ca;margin:10px 0}
+#status{font-size:13px;color:#aeb4ca;margin:10px 0;overflow-wrap:anywhere}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 button{border:0;border-radius:12px;padding:12px;background:#292d40;color:white;font-size:14px}
 button:disabled{opacity:.5}
@@ -25,7 +25,7 @@ button:disabled{opacity:.5}
 .composer{position:sticky;bottom:0;background:#10111a;padding:10px 0 calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
 textarea{flex:1;min-width:0;resize:none;min-height:48px;max-height:130px;border-radius:14px;border:1px solid #383c50;background:#1b1e2b;color:white;padding:13px;font:inherit}
 #send{background:#7259e8;font-weight:bold}
-.info{font-size:12px;color:#9299b0;margin-top:12px}
+.info{font-size:12px;color:#9299b0;margin-top:12px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -38,7 +38,7 @@ textarea{flex:1;min-width:0;resize:none;min-height:48px;max-height:130px;border-
 </header>
 
 <main>
-  <div id="status">Rizik está aguardando.</div>
+  <div id="status">Rizik está aguardando. Envie uma mensagem ou carregue a IA.</div>
 
   <div class="toolbar">
     <button id="load" class="primary">Carregar IA</button>
@@ -57,13 +57,13 @@ textarea{flex:1;min-width:0;resize:none;min-height:48px;max-height:130px;border-
 
   <div class="info">
     Modelo local Qwen 0.5B. O primeiro carregamento baixa aproximadamente 398 MB.
-    A pesquisa e o clima precisam de internet.
+    A pesquisa e o clima precisam de internet. Mantenha a página aberta durante o download.
   </div>
 </main>
 
 <script type="module">
-import { Wllama } from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.0.0/esm/index.js";
-import WasmFromCDN from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.0.0/esm/wasm-from-cdn.js";
+import { Wllama } from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.13.0/esm/index.js";
+import WasmFromCDN from "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.13.0/esm/wasm-from-cdn.js";
 
 const $ = id => document.getElementById(id);
 const chat = $("chat");
@@ -75,6 +75,7 @@ const MODEL_URL =
 
 let ai = null;
 let ready = false;
+let loadingPromise = null;
 let busy = false;
 let history = [];
 let lastAnswer = "";
@@ -95,14 +96,25 @@ function addMessage(role, text) {
 function saveHistory() {
   try {
     localStorage.setItem("rizik_history", JSON.stringify(history));
-  } catch {}
+  } catch (err) {
+    console.warn("Não foi possível salvar o histórico:", err);
+  }
 }
 
 function restoreHistory() {
   try {
-    history = JSON.parse(localStorage.getItem("rizik_history") || "[]");
-    history.forEach(m => addMessage(m.role, m.content));
-  } catch {
+    const saved = JSON.parse(localStorage.getItem("rizik_history") || "[]");
+
+    history = Array.isArray(saved)
+      ? saved.filter(m =>
+          m &&
+          ["user", "assistant"].includes(m.role) &&
+          typeof m.content === "string"
+        )
+      : [];
+
+    history.slice(-40).forEach(m => addMessage(m.role, m.content));
+  } catch (err) {
     history = [];
   }
 }
@@ -110,115 +122,205 @@ function restoreHistory() {
 async function loadAI() {
   if (ready) {
     sayStatus("A IA já está carregada!");
-    return;
+    return true;
+  }
+
+  if (loadingPromise) {
+    return loadingPromise;
   }
 
   $("load").disabled = true;
 
-  try {
-    sayStatus("Preparando o motor da IA...");
+  loadingPromise = (async () => {
+    try {
+      sayStatus("Preparando o motor da IA...");
 
-    ai = new Wllama(WasmFromCDN);
+      ai = new Wllama(WasmFromCDN);
 
-    await ai.loadModelFromUrl(MODEL_URL, {
-      n_ctx: 2048,
-      n_threads: 1,
-      progressCallback: ({loaded, total}) => {
-        if (total) {
-          sayStatus("Baixando modelo: " +
-            Math.round(loaded / total * 100) + "%");
+      // Compatibilidade automática, incluindo Safari.
+      ai.setCompat("default");
+
+      sayStatus("Conectando ao modelo Qwen...");
+
+      await ai.loadModelFromUrl(MODEL_URL, {
+        n_ctx: 2048,
+        n_threads: 2,
+
+        progressCallback: ({loaded, total}) => {
+          if (total > 0) {
+            const percent = Math.round(loaded / total * 100);
+            sayStatus("Baixando modelo: " + percent + "%");
+          } else {
+            sayStatus("Baixando modelo...");
+          }
         }
-      }
-    });
+      });
 
-    ready = true;
-    sayStatus("Rizik está pronto!");
-    addMessage("system", "IA carregada com sucesso! 🚀");
+      ready = true;
+      sayStatus("Rizik está pronto!");
 
-  } catch (err) {
-    console.error(err);
-    sayStatus("Erro ao carregar a IA.");
-    addMessage("system", "Falha ao carregar: " + err.message);
-    ai = null;
-  } finally {
-    $("load").disabled = false;
-  }
+      addMessage(
+        "system",
+        "IA carregada com sucesso! 🚀 Agora pode conversar."
+      );
+
+      return true;
+
+    } catch (err) {
+      console.error("Falha ao carregar Wllama:", err);
+
+      const message = err && err.message
+        ? err.message
+        : String(err);
+
+      sayStatus("Não foi possível carregar a IA.");
+
+      addMessage(
+        "system",
+        "Erro ao carregar: " + message +
+        ". Verifique a internet e tente novamente."
+      );
+
+      ai = null;
+      ready = false;
+
+      return false;
+
+    } finally {
+      $("load").disabled = false;
+      loadingPromise = null;
+    }
+  })();
+
+  return loadingPromise;
 }
 
 async function generate(text, extraContext = "") {
-  if (!ready) {
-    addMessage("system", "Primeiro toque em Carregar IA.");
-    return;
-  }
-
   if (busy) return;
+
   busy = true;
   $("send").disabled = true;
 
-  addMessage("user", text);
-
-  const previousMessages = history.slice(-10);
-  history.push({role:"user", content:text});
-  saveHistory();
-
-  const answerBox = addMessage("assistant", "Pensando...");
-  sayStatus("Rizik está pensando...");
+  let answerBox = null;
 
   try {
+    // Se a IA ainda não estiver carregada, tenta carregar.
+    if (!ready) {
+      sayStatus("Carregando a IA antes de responder...");
+
+      const loaded = await loadAI();
+
+      if (!loaded) {
+        addMessage(
+          "system",
+          "Não consegui iniciar o modelo. Toque em Carregar IA para tentar novamente."
+        );
+        return;
+      }
+    }
+
+    addMessage("user", text);
+
+    const previousMessages = history.slice(-10);
+
+    history.push({
+      role: "user",
+      content: text
+    });
+
+    saveHistory();
+
+    answerBox = addMessage("assistant", "Pensando...");
+    sayStatus("Rizik está pensando...");
+
     const messages = [
       {
-        role:"system",
+        role: "system",
         content:
           "Você é Rizik, um assistente pessoal inteligente e amigável. " +
           "Responda em português brasileiro. Seja claro, natural e útil. " +
           "Use as informações de pesquisa fornecidas quando existirem. " +
           "Não invente fatos nem diga que pesquisou se não pesquisou."
       },
+
       ...previousMessages,
+
       {
-        role:"user",
-        content: text + (extraContext
-          ? "\n\nInformações encontradas na internet:\n" + extraContext
-          : "")
+        role: "user",
+        content:
+          text +
+          (extraContext
+            ? "\n\nInformações encontradas na internet:\n" + extraContext
+            : "")
       }
     ];
 
     const result = await ai.createChatCompletion({
-      messages,
+      messages: messages,
       max_tokens: 400,
       temperature: 0.7,
       top_p: 0.9
     });
 
     const answer =
-      result?.choices?.[0]?.message?.content?.trim() ||
-      "Não consegui gerar uma resposta.";
+      result &&
+      result.choices &&
+      result.choices[0] &&
+      result.choices[0].message &&
+      result.choices[0].message.content
+        ? result.choices[0].message.content.trim()
+        : "Não consegui gerar uma resposta.";
 
     answerBox.textContent = answer;
     lastAnswer = answer;
 
-    history.push({role:"assistant", content:answer});
+    history.push({
+      role: "assistant",
+      content: answer
+    });
+
     saveHistory();
 
   } catch (err) {
-    console.error(err);
-    answerBox.textContent = "Erro ao responder: " + err.message;
+    console.error("Erro na conversa:", err);
+
+    const message = err && err.message
+      ? err.message
+      : String(err);
+
+    if (answerBox) {
+      answerBox.textContent = "Erro ao responder: " + message;
+    } else {
+      addMessage("system", "Erro ao responder: " + message);
+    }
+
   } finally {
     busy = false;
     $("send").disabled = false;
-    sayStatus("Rizik está pronto.");
+
+    sayStatus(
+      ready
+        ? "Rizik está pronto."
+        : "Rizik está aguardando."
+    );
   }
 }
 
+// Botão carregar IA
 $("load").addEventListener("click", loadAI);
 
+// Enviar mensagem
 $("send").addEventListener("click", async () => {
   const text = input.value.trim();
-  if (!text) return;
+
+  if (!text || busy) return;
+
   input.value = "";
+
   await generate(text);
 });
 
+// Enter envia a mensagem
 input.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
@@ -226,118 +328,247 @@ input.addEventListener("keydown", e => {
   }
 });
 
+// Limpar conversa
 $("clear").addEventListener("click", () => {
   if (!confirm("Apagar a conversa?")) return;
+
   history = [];
   chat.innerHTML = "";
+  lastAnswer = "";
+
   saveHistory();
 });
 
+// Ler resposta em voz alta
 $("speak").addEventListener("click", () => {
   if (!lastAnswer) {
     addMessage("system", "Ainda não existe resposta para ler.");
     return;
   }
+
+  if (!("speechSynthesis" in window)) {
+    addMessage("system", "Este navegador não oferece leitura de voz.");
+    return;
+  }
+
   speechSynthesis.cancel();
+
   const utterance = new SpeechSynthesisUtterance(lastAnswer);
   utterance.lang = "pt-BR";
+
   speechSynthesis.speak(utterance);
 });
 
+// Parar voz
 $("stop").addEventListener("click", () => {
-  speechSynthesis.cancel();
+  if ("speechSynthesis" in window) {
+    speechSynthesis.cancel();
+  }
 });
 
-async function searchWeb(query) {
-  const url = "https://r.jina.ai/http://www.google.com/search?q=" +
-    encodeURIComponent(query);
+// Pesquisa com limite de tempo
+async function fetchTextWithTimeout(url, milliseconds) {
+  const controller = new AbortController();
 
-  const response = await fetch(url, {
-    headers: { "Accept": "text/plain" }
-  });
-
-  if (!response.ok) {
-    throw new Error("O serviço de pesquisa respondeu " + response.status);
-  }
-
-  return (await response.text()).slice(0, 10000);
-}
-
-$("search").addEventListener("click", async () => {
-  const query = prompt("O que você quer pesquisar?");
-  if (!query) return;
-
-  sayStatus("Pesquisando na internet...");
-  addMessage("system", "Pesquisando: " + query);
+  const timer = setTimeout(
+    () => controller.abort(),
+    milliseconds
+  );
 
   try {
-    const results = await searchWeb(query);
-    addMessage("system", "Pesquisa recebida. Preparando resposta...");
-    await generate("Pesquise e explique: " + query, results);
+    const response = await fetch(url, {
+      headers: {
+        "Accept": "text/plain"
+      },
+      signal: controller.signal,
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        "Serviço respondeu HTTP " + response.status
+      );
+    }
+
+    return await response.text();
+
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Tenta duas fontes de pesquisa.
+async function searchWeb(query) {
+  const encoded = encodeURIComponent(query);
+
+  const endpoints = [
+    "https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encoded,
+    "https://r.jina.ai/http://www.google.com/search?q=" + encoded
+  ];
+
+  let lastError = null;
+
+  for (const url of endpoints) {
+    try {
+      const result = await fetchTextWithTimeout(url, 25000);
+
+      if (result && result.trim().length > 150) {
+        return result.slice(0, 12000);
+      }
+
+      throw new Error("A pesquisa retornou pouco conteúdo.");
+
+    } catch (err) {
+      lastError = err;
+      console.warn("Tentativa de pesquisa falhou:", err);
+    }
+  }
+
+  throw lastError || new Error("Nenhum serviço de pesquisa respondeu.");
+}
+
+// Botão pesquisar
+$("search").addEventListener("click", async () => {
+  const query = window.prompt("O que você quer pesquisar?");
+
+  if (!query || !query.trim()) return;
+
+  sayStatus("Pesquisando na internet...");
+  addMessage("system", "Pesquisando: " + query.trim());
+
+  try {
+    const results = await searchWeb(query.trim());
+
+    addMessage(
+      "system",
+      "Resultados encontrados. O Rizik vai analisar..."
+    );
+
+    await generate(
+      "Pesquise na internet e explique de forma atualizada: " + query.trim(),
+      results
+    );
+
   } catch (err) {
-    console.error(err);
+    console.error("Erro na pesquisa:", err);
+
     sayStatus("Pesquisa indisponível.");
-    addMessage("system", "Não consegui pesquisar: " + err.message);
+
+    addMessage(
+      "system",
+      "Não consegui pesquisar agora: " +
+      (err.message || String(err)) +
+      ". Tente novamente mais tarde."
+    );
   }
 });
 
+// Clima
 $("weather").addEventListener("click", async () => {
-  const city = prompt("Qual cidade?", "Nova Esperança");
-  if (!city) return;
+  const city = window.prompt("Qual cidade?", "Nova Esperança");
+
+  if (!city || !city.trim()) return;
 
   sayStatus("Consultando previsão do tempo...");
 
   try {
     const geoResponse = await fetch(
       "https://geocoding-api.open-meteo.com/v1/search?name=" +
-      encodeURIComponent(city) + "&count=1&language=pt&format=json"
+      encodeURIComponent(city.trim()) +
+      "&count=1&language=pt&format=json"
     );
 
-    if (!geoResponse.ok) throw new Error("Erro ao localizar cidade.");
+    if (!geoResponse.ok) {
+      throw new Error("Erro ao localizar cidade.");
+    }
 
     const geo = await geoResponse.json();
-    if (!geo.results?.length) throw new Error("Cidade não encontrada.");
+
+    if (!geo.results || !geo.results.length) {
+      throw new Error("Cidade não encontrada.");
+    }
 
     const place = geo.results[0];
 
-    const weatherResponse = await fetch(
-      "https://api.open-meteo.com/v1/forecast?" +
-      `latitude=${place.latitude}&longitude=${place.longitude}` +
+    const weatherUrl =
+      "https://api.open-meteo.com/v1/forecast?latitude=" +
+      place.latitude +
+      "&longitude=" +
+      place.longitude +
       "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m" +
       "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-      "&timezone=auto&forecast_days=3"
-    );
+      "&timezone=auto&forecast_days=3";
 
-    if (!weatherResponse.ok) throw new Error("Erro ao consultar previsão.");
+    const weatherResponse = await fetch(weatherUrl);
+
+    if (!weatherResponse.ok) {
+      throw new Error("Erro ao consultar previsão.");
+    }
 
     const data = await weatherResponse.json();
+
     const c = data.current;
     const d = data.daily;
 
     const report =
-      `Clima de ${place.name}, ${place.admin1 || ""}, ${place.country || ""}\n` +
-      `Temperatura atual: ${c.temperature_2m}°C\n` +
-      `Sensação térmica: ${c.apparent_temperature}°C\n` +
-      `Umidade: ${c.relative_humidity_2m}%\n` +
-      `Vento: ${c.wind_speed_10m} km/h\n` +
-      `Precipitação atual: ${c.precipitation} mm\n\n` +
+      "Clima de " + place.name + ", " +
+      (place.admin1 || "") + ", " +
+      (place.country || "") + "\n" +
+
+      "Temperatura atual: " + c.temperature_2m + "°C\n" +
+      "Sensação térmica: " + c.apparent_temperature + "°C\n" +
+      "Umidade: " + c.relative_humidity_2m + "%\n" +
+      "Vento: " + c.wind_speed_10m + " km/h\n" +
+      "Precipitação atual: " + c.precipitation + " mm\n\n" +
+
       d.time.map((day, i) =>
-        `${day}: mínima ${d.temperature_2m_min[i]}°C, ` +
-        `máxima ${d.temperature_2m_max[i]}°C, ` +
-        `chance de chuva ${d.precipitation_probability_max[i]}%`
+        day +
+        ": mínima " + d.temperature_2m_min[i] + "°C, " +
+        "máxima " + d.temperature_2m_max[i] + "°C, " +
+        "chance de chuva " +
+        d.precipitation_probability_max[i] + "%"
       ).join("\n");
 
-    addMessage("system", "Previsão recebida para " + place.name);
-    await generate("Explique a previsão do tempo abaixo:", report);
+    addMessage(
+      "system",
+      "Previsão recebida para " + place.name
+    );
+
+    await generate(
+      "Explique a previsão do tempo abaixo:",
+      report
+    );
 
   } catch (err) {
-    console.error(err);
+    console.error("Erro no clima:", err);
+
     sayStatus("Erro ao consultar o clima.");
-    addMessage("system", err.message);
+
+    addMessage(
+      "system",
+      err.message || String(err)
+    );
   }
 });
 
+// Recuperar histórico
 restoreHistory();
+
+// Erros gerais
+window.addEventListener("error", event => {
+  console.error(
+    "Erro JavaScript:",
+    event.error || event.message
+  );
+
+  sayStatus(
+    "Ocorreu um erro no aplicativo. Recarregue a página."
+  );
+});
+
+window.addEventListener("unhandledrejection", event => {
+  console.error("Erro assíncrono:", event.reason);
+});
 </script>
 </body>
 </html>
