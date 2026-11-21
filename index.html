@@ -205,6 +205,35 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
 .welcome p{color:#aeb4ca;margin:0 0 18px;line-height:1.55;font-size:15px}
 .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .chip{border-radius:999px;padding:10px 15px;font-size:13.5px;font-weight:500}
+/* ===== v24: menu em seções ===== */
+.menu{max-height:calc(100vh - 96px);gap:12px}
+.menu-head{display:flex;justify-content:space-between;align-items:center}
+.menu-title{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.xbtn{width:34px;height:34px;padding:0;border-radius:50%;font-size:14px}
+.sec{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#9aa1bb;font-weight:700;padding-top:12px;border-top:1px solid rgba(255,255,255,.09)}
+.sec.first{padding-top:4px}
+.hint{color:#8f96af;font-size:12px;line-height:1.4;font-weight:400}
+.meter{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.meter-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;font-weight:600}
+.meter-top small{color:#aeb4ca;font-weight:500;text-align:right}
+.meter-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden}
+.meter-bar i{display:block;height:100%;width:2%;border-radius:99px;background:linear-gradient(90deg,#6ff0d8,#8f70ff);transition:width .4s ease}
+.meter-bar i.warm{background:linear-gradient(90deg,#ffd166,#ff9f43)}
+.meter-bar i.hot{background:linear-gradient(90deg,#ff9f43,#ff5d73)}
+.menu label.check{flex-direction:row;justify-content:space-between;align-items:center;min-height:40px;gap:12px}
+.menu input[type=checkbox]{-webkit-appearance:none;appearance:none;width:46px;height:27px;border-radius:999px;background:#3a3f57;position:relative;flex:none;margin:0;border:0;cursor:pointer;transition:background .2s}
+.menu input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.menu input[type=checkbox]:checked{background:linear-gradient(135deg,#8f70ff,#5a3de0)}
+.menu input[type=checkbox]:checked::after{transform:translateX(19px)}
+.menu textarea{width:100%;min-height:72px;border-radius:10px;border:1px solid #383c50;background:#10111a;color:#fff;padding:9px;font:inherit;font-size:14px;resize:vertical}
+details.adv{border-top:1px solid rgba(255,255,255,.09);padding-top:12px}
+details.adv summary{cursor:pointer;font-weight:700;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#9aa1bb;list-style:none;display:flex;justify-content:space-between}
+details.adv summary::-webkit-details-marker{display:none}
+details.adv summary::after{content:"▾"}
+details.adv[open] summary::after{content:"▴"}
+details.adv[open]>*:not(summary){margin-top:12px}
+.danger{color:#ff9db0}
+#clear,#install{grid-column:auto}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -212,14 +241,29 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 23</small>
+    <small>Seu assistente pessoal · versão 24</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
     <button id="menuBtn" data-ic="dots" aria-label="Configurações"></button>
   </div>
   <div id="menu" class="menu" hidden>
-    <div class="menu-title">Configurações</div>
+    <div class="menu-head"><span class="menu-title">Configurações</span><button id="menuClose" class="xbtn" aria-label="Fechar">✕</button></div>
+    <div class="meter">
+      <div class="meter-top"><span>🧠 Memória da conversa</span><small id="meterTxt"></small></div>
+      <div class="meter-bar"><i id="meterFill"></i></div>
+      <small id="meterHint" class="hint"></small>
+    </div>
+
+    <div class="sec first">Conversa</div>
+    <div class="menu-actions">
+      <button id="histBtn" data-ic="history">Histórico</button>
+      <button id="exportBtn" data-ic="download">Exportar</button>
+      <button id="speak" data-ic="volume">Ler resposta</button>
+      <button id="clear" class="danger" data-ic="trash">Nova conversa</button>
+    </div>
+
+    <div class="sec">Inteligência</div>
     <label>Modelo
       <select id="setModel">
         <option value="fast">Modelo Rápido</option>
@@ -228,20 +272,8 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
         <option value="chat3">Modelo Inteligente</option>
         <option value="code3">Código · Forte</option>
       </select>
+      <small class="hint">Os maiores respondem melhor, mas demoram mais.</small>
     </label>
-    <label>Voz da IA
-      <select id="setVoice"></select>
-    </label>
-    <label>Papel de parede
-      <select id="setWall">
-        <option value="aurora">Aurora</option>
-        <option value="ocean">Oceano</option>
-        <option value="sunset">Pôr do sol</option>
-        <option value="night">Noite estrelada</option>
-      </select>
-    </label>
-    <label class="check"><input id="setAuto" type="checkbox"> Pesquisar na internet sozinho</label>
-    <label class="check"><input id="setAutoload" type="checkbox"> Carregar a IA ao abrir</label>
     <label>Tamanho da resposta
       <select id="setTokens">
         <option value="256">Curta</option>
@@ -256,6 +288,7 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
         <option value="4096">Grande</option>
         <option value="8192">Máximo (gasta mais memória)</option>
       </select>
+      <small class="hint">Quanto texto a IA recebe de uma vez. Maior lê mais, mas usa mais memória.</small>
     </label>
     <label>Estilo
       <select id="setTemp">
@@ -264,6 +297,9 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
         <option value="0.8">Criativa</option>
       </select>
     </label>
+
+    <div class="sec">Pesquisa e região</div>
+    <label class="check"><span>Pesquisar na internet sozinho</span><input id="setAuto" type="checkbox"></label>
     <label>Região (clima e buscas)
       <input id="setCity" type="text" placeholder="Digite a cidade">
     </label>
@@ -273,15 +309,34 @@ textarea:focus{outline:0;border-color:#8f70ff;box-shadow:0 0 0 3px rgba(143,112,
     </div>
     <div id="cityList" class="city-list" hidden></div>
     <small id="placeNow" class="placenow"></small>
-    <label class="check"><input id="setGps" type="checkbox"> Usar o GPS sempre que pedir o clima</label>
-    <label class="check"><input id="setTime" type="checkbox"> Mostrar horas nas mensagens</label>
-    <div class="menu-actions">
-      <button id="restart" data-ic="refresh">Reiniciar IA</button>
-      <button id="speak" data-ic="volume">Ler resposta</button>
-      <button id="histBtn" data-ic="history">Histórico</button>
-      <button id="clear" data-ic="trash">Limpar conversa</button>
-      <button id="install" data-ic="download">Instalar app</button>
-    </div>
+    <label class="check"><span>Usar o GPS ao pedir o clima</span><input id="setGps" type="checkbox"></label>
+
+    <div class="sec">Aparência e voz</div>
+    <label>Papel de parede
+      <select id="setWall">
+        <option value="aurora">Aurora</option>
+        <option value="ocean">Oceano</option>
+        <option value="sunset">Pôr do sol</option>
+        <option value="night">Noite estrelada</option>
+      </select>
+    </label>
+    <label>Voz da IA
+      <select id="setVoice"></select>
+    </label>
+    <label class="check"><span>Mostrar horas nas mensagens</span><input id="setTime" type="checkbox"></label>
+
+    <details class="adv">
+      <summary>Avançado</summary>
+      <label>Instruções personalizadas
+        <textarea id="setCustom" rows="3" maxlength="400" placeholder="Ex.: responda sempre em até 3 frases"></textarea>
+        <small class="hint">A IA segue isso em todas as conversas (até 400 caracteres).</small>
+      </label>
+      <label class="check"><span>Carregar a IA ao abrir</span><input id="setAutoload" type="checkbox"></label>
+      <div class="menu-actions">
+        <button id="restart" data-ic="refresh">Reiniciar IA</button>
+        <button id="install" data-ic="download">Instalar app</button>
+      </div>
+    </details>
   </div>
 </header>
 
@@ -362,10 +417,10 @@ const MODELS = {
 
 // Se o iPhone travar, reduza N_CTX para 1024.
 // Limite de leitura em caracteres: piso de 9000, cresce com o contexto escolhido.
-const maxChars = () => Math.max(9000, Math.floor((settings.ctx - settings.tokens - 700) * 2.4));
+const maxChars = () => Math.max(1200, Math.floor(((loadedCtx || settings.ctx) - settings.tokens - 500) * 2.6));
 
 const settings = Object.assign(
-  { ctx: 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true },
+  { ctx: 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true, custom: "" },
   (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
 );
 
@@ -414,6 +469,7 @@ const THREADS = self.crossOriginIsolated
 
 let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
 let history = [], lastAnswer = "";
+let loadedCtx = 0, lastTokens = 0;
 
 // ------------------------------ Interface
 
@@ -966,9 +1022,9 @@ function limitText(text, maxChars) {
 function buildMessages(text, extraContext) {
   const isCode = !extraContext && looksLikeCode(text);
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + " Hoje é " + today + "." + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
+  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + " Hoje é " + today + "." + (settings.custom ? " Instruções do usuário: " + String(settings.custom).slice(0, 400) : "") + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
 
-  const recent = (isCode && text.length > 1200) ? [] : history.slice(-4);
+  const recent = (text.length > Math.floor(maxChars() * 0.5) || (isCode && text.length > 1200)) ? [] : history.slice(-4);
   for (const item of recent) messages.push({ role: item.role, content: limitText(item.content, 240) });
 
   const tips = (isCode && text.length <= 1200) ? pickTips(text) : "";
@@ -994,6 +1050,7 @@ async function destroyAI() {
   const oldAI = ai;
   ai = null;
   ready = false;
+  loadedCtx = 0;
   if (oldAI) {
     try { await oldAI.exit(); } catch (err) { console.warn("O motor anterior já estava encerrado:", err); }
   }
@@ -1041,6 +1098,9 @@ async function loadAI(parentAct) {
       if (ai !== newAI) { try { await newAI.exit(); } catch (_) {} if (own) act.finish("Carregamento cancelado", false); return false; }
 
       ready = true;
+      loadedCtx = settings.ctx;
+      lastTokens = 0;
+      updateMeter();
       sModel.done(true, { name: "✅ " + MODELS[settings.model].name + " carregado" });
       try { localStorage.removeItem("rizik_loading"); localStorage.setItem("rizik_autoload", "1"); } catch (e) {}
 
@@ -1093,6 +1153,35 @@ async function restartAI() {
   }
 }
 
+// ------------------------------ Cabe no contexto? (conta tokens de verdade e reduz se precisar)
+
+async function countTokens(engine, messages) {
+  const joined = messages.map(m => m.content).join("\n");
+  try {
+    if (engine && typeof engine.tokenize === "function") {
+      const t = await engine.tokenize(joined);
+      if (t && typeof t.length === "number") return t.length + messages.length * 8;
+    }
+  } catch (e) { console.warn("tokenize indisponível, estimando:", e); }
+  return Math.ceil(joined.length / 2.6) + messages.length * 8;
+}
+
+async function fitMessages(engine, messages, ctx, wantNew) {
+  const room = Math.max(200, ctx - wantNew - 24);
+  let trimmed = false, n = await countTokens(engine, messages);
+  for (let i = 0; i < 6 && n > room; i++) {
+    trimmed = true;
+    if (messages.length > 2) { messages.splice(1, messages.length - 2); }
+    else {
+      const last = messages[messages.length - 1];
+      const keep = Math.max(300, Math.floor(last.content.length * (room / n) * 0.9));
+      last.content = last.content.slice(0, keep) + "\n[Conteúdo reduzido para caber na memória da IA.]";
+    }
+    n = await countTokens(engine, messages);
+  }
+  return { messages, tokens: n, trimmed, maxNew: Math.max(48, Math.min(wantNew, ctx - n - 16)) };
+}
+
 // ------------------------------ Gerar resposta (com painel de atividade e resposta em tempo real)
 
 async function generate(text, extraContext = "", opts = {}) {
@@ -1122,9 +1211,12 @@ async function generate(text, extraContext = "", opts = {}) {
 
     currentEngine = ai;
     const stCtx = act.step("📝 Montando o contexto da conversa");
-    const messages = buildMessages(text, extraContext);
-    const approx = Math.round(messages.reduce((s, m) => s + m.content.length, 0) / 3.2);
-    stCtx.done(true, { name: "📝 Contexto pronto · cerca de " + approx.toLocaleString("pt-BR") + " tokens" });
+    const ctxSize = loadedCtx || settings.ctx;
+    const fit = await fitMessages(currentEngine, buildMessages(text, extraContext), ctxSize, settings.tokens);
+    const messages = fit.messages;
+    lastTokens = fit.tokens;
+    updateMeter();
+    stCtx.done(true, { name: "📝 Contexto pronto · " + fit.tokens.toLocaleString("pt-BR") + " de " + ctxSize.toLocaleString("pt-BR") + " tokens" + (fit.trimmed ? " (reduzi o texto para caber)" : "") });
 
     if (!opts.noUserHistory) history.push({ role: "user", content: limitText(shown, 9000), t: Date.now() });
     saveHistory();
@@ -1142,7 +1234,7 @@ async function generate(text, extraContext = "", opts = {}) {
 
     const stream = await currentEngine.createChatCompletion({
       messages,
-      max_tokens: settings.tokens,
+      max_tokens: fit.maxNew,
       temperature: settings.temp,
       top_p: 0.9,
       stream: true
@@ -1181,6 +1273,8 @@ async function generate(text, extraContext = "", opts = {}) {
     keepBottom(() => setBody(answerBox, answer));
     answerBox.querySelector(".msg-time").textContent = fmtTime();
     lastAnswer = answer;
+    lastTokens = fit.tokens + tokenCount;
+    updateMeter();
 
     const now2 = performance.now();
     const total = (now2 - startAt) / 1000;
@@ -1212,6 +1306,8 @@ async function generate(text, extraContext = "", opts = {}) {
       sayStatus("O motor travou. Preparando recuperação...");
       await destroyAI();
       text2 = "O motor da IA travou durante a geração.\n\nA instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente.";
+    } else if (/exceeds the available context|context size|n_ctx/i.test(String(err?.message || err))) {
+      text2 = "O texto não coube na memória da IA. Abra ⋮ › Inteligência › Tamanho da leitura e escolha Grande ou Máximo, ou envie um trecho menor.";
     } else {
       text2 = "Erro ao responder: " + (err?.message || String(err));
     }
@@ -1323,7 +1419,7 @@ async function handleSend() {
   const wasWeb = webMode;
   setWebMode(false);
 
-  if (text.length > 9000 && !wasWeb) { await handleLong(text); return; }
+  if (text.length > Math.max(1000, maxChars() - 200) && !wasWeb) { await handleLong(text); return; }
 
   const quick = wasWeb ? null : quickReply(text);
   if (quick) {
@@ -1380,10 +1476,11 @@ input.addEventListener("keydown", e => {
 const menu = $("menu");
 function closeMenu() { menu.hidden = true; }
 
-$("menuBtn").addEventListener("click", e => { e.stopPropagation(); menu.hidden = !menu.hidden; });
+$("menuBtn").addEventListener("click", e => { e.stopPropagation(); menu.hidden = !menu.hidden; if (!menu.hidden) updateMeter(); });
 document.addEventListener("click", e => { if (!menu.hidden && !menu.contains(e.target)) closeMenu(); });
 
 function applySettings() {
+  $("setCustom").value = settings.custom || "";
   $("setTokens").value = String(settings.tokens);
   $("setCtx").value = String(settings.ctx);
   $("setGps").checked = !!settings.gpsAuto;
@@ -1396,15 +1493,28 @@ function applySettings() {
   $("setAuto").checked = !!settings.auto;
   $("setAutoload").checked = !!settings.autoload;
   ["aurora", "ocean", "sunset", "night"].forEach(n => document.body.classList.toggle("wp-" + n, settings.wall === n));
+  updateMeter();
+}
+
+function updateMeter() {
+  const ctx = loadedCtx || settings.ctx;
+  const used = Math.min(lastTokens, ctx);
+  const pct = ctx ? Math.round(used / ctx * 100) : 0;
+  $("meterTxt").textContent = used ? used.toLocaleString("pt-BR") + " de " + ctx.toLocaleString("pt-BR") + " tokens (" + pct + "%)" : "Limite: " + ctx.toLocaleString("pt-BR") + " tokens";
+  const f = $("meterFill");
+  f.style.width = Math.max(2, pct) + "%";
+  f.className = pct > 85 ? "hot" : pct > 60 ? "warm" : "";
+  $("meterHint").textContent = "A IA lê até cerca de " + maxChars().toLocaleString("pt-BR") + " caracteres por vez. Textos maiores passam pelo leitor rápido." + (loadedCtx ? "" : " (A IA ainda não foi carregada.)");
 }
 
 $("setCtx").addEventListener("change", e => {
   settings.ctx = Number(e.target.value);
   saveSettings();
+  updateMeter();
   if (ai || ready) { addMessage("system", "Aplicando o novo tamanho de leitura..."); restartAI(); }
 });
 
-$("setTokens").addEventListener("change", e => { settings.tokens = Number(e.target.value); saveSettings(); });
+$("setTokens").addEventListener("change", e => { settings.tokens = Number(e.target.value); saveSettings(); updateMeter(); });
 $("setTemp").addEventListener("change", e => { settings.temp = Number(e.target.value); saveSettings(); });
 $("setCity").addEventListener("change", e => { settings.city = e.target.value.trim(); saveSettings(); });
 $("setTime").addEventListener("change", e => { settings.time = e.target.checked; saveSettings(); applySettings(); });
@@ -1489,6 +1599,30 @@ function openHistory() {
 $("histBtn").addEventListener("click", openHistory);
 $("histClose").addEventListener("click", () => { histPanel.hidden = true; });
 histPanel.addEventListener("click", e => { if (e.target === histPanel) histPanel.hidden = true; });
+
+$("setCustom").addEventListener("change", e => { settings.custom = e.target.value.trim().slice(0, 400); saveSettings(); });
+$("menuClose").addEventListener("click", closeMenu);
+
+function exportChat() {
+  closeMenu();
+  if (!history.length) { addMessage("system", "Ainda não há conversa para exportar."); return; }
+  const parts = history.map(m => (m.role === "user" ? "Você" : "Rizik") + " · " + new Date(m.t || Date.now()).toLocaleString("pt-BR") + "\n" + m.content);
+  const txt = "Conversa com o Rizik AI\n\n" + parts.join("\n\n----------\n\n") + "\n";
+  try {
+    const url = URL.createObjectURL(new Blob([txt], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "conversa-rizik-" + new Date().toISOString().slice(0, 10) + ".txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    addMessage("system", "Conversa exportada: " + history.length + " mensagens. Veja na pasta de downloads.");
+  } catch (e) {
+    navigator.clipboard && navigator.clipboard.writeText(txt).then(() => addMessage("system", "Não consegui baixar o arquivo, então copiei a conversa para a área de transferência."), () => addMessage("system", "Não consegui exportar a conversa."));
+  }
+}
+$("exportBtn").addEventListener("click", exportChat);
 
 // ----- Relógio
 
@@ -1831,18 +1965,20 @@ async function handleLong(text, customLabel, customQuestion) {
   const n = text.length.toLocaleString("pt-BR");
   const act = new Activity("Lendo o conteúdo");
 
-  if (text.length <= limit - 150) {
+  if (question.length + text.length + 2 <= limit) {
     act.step("📂 Lendo " + label + " · " + n + " caracteres (cabe inteiro)").done(true);
     await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true, act });
     return;
   }
 
   // Texto grande: o leitor rápido (Web Worker) varre tudo e a IA recebe só o que importa. Uma única chamada à IA.
+  const outCap = Math.min(600, Math.floor(limit * 0.12));
   const s1 = act.step("⚡ Leitor rápido: varrendo " + n + " caracteres");
-  const r = await fastRead(text, customQuestion || "", Math.max(1500, limit - question.length - 800));
+  const r = await fastRead(text, customQuestion || "", Math.max(700, limit - question.length - outCap - 240));
   s1.done(true, { name: "⚡ Li " + n + " caracteres em " + r.ms + "ms · " + r.chunks + " trechos · enviei os " + r.picked + " mais relevantes (" + r.coverage + "% do texto)" });
 
-  const outline = (r.outline || []).join(" | ").slice(0, 600);
+  if (settings.ctx < 4096) act.step("💡 Dica: em ⋮ › Inteligência › Tamanho da leitura, escolha Grande ou Máximo para a IA receber mais trechos").done(true);
+  const outline = (r.outline || []).join(" | ").slice(0, outCap);
   if (outline) act.step("🧭 Estrutura encontrada: " + outline.slice(0, 140) + (outline.length > 140 ? "…" : "")).done(true);
 
   const prompt =
