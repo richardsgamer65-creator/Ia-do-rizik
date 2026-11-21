@@ -79,7 +79,7 @@ progress{width:100%;height:8px;margin-top:10px;display:none}
 const WLLAMA_VERSION = "3";
 const REPO = "ggml-org/Qwen3.5-0.8B-GGUF";
 const FILE = "Qwen3.5-0.8B-Q4_0.gguf";
-const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma clara e concisa, em texto simples, sem markdown.";
+const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma direta e concisa, em texto simples. Não mostre raciocínio interno, tokens especiais ou marcadores como <think> e </think>. Dê respostas curtas, a menos que o usuário peça detalhes.";
 const BASE = "https://cdn.jsdelivr.net/npm/@wllama/wllama@" + WLLAMA_VERSION + "/esm/";
 const HF_URL = "https://huggingface.co/" + REPO + "/resolve/main/" + FILE;
 
@@ -94,7 +94,7 @@ try { msgs = JSON.parse(localStorage.getItem("chat") || "[]"); } catch (e) { msg
 const save = () => { try { localStorage.setItem("chat", JSON.stringify(msgs.slice(-40))); } catch (e) {} };
 let tt;
 function toast(t) { toastEl.textContent = t; toastEl.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove("on"), 2600); }
-const clean = t => t.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<think>[\s\S]*$/, "").replace(/<\|im_end\|>/g, "").trim();
+const clean = t => t.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "").replace(/<\/?think>/g, "").replace(/<\|im_end\|>/g, "").trim();
 const mb = n => Math.round((n || 0) / 1048576);
 async function reach(url) {
   const c = new AbortController();
@@ -221,7 +221,7 @@ async function go() {
   const hist = [{ role: "system", content: SYS }, ...msgs.slice(-10).map(m => ({ role: m.role, content: m.content }))];
   try {
     let out = "";
-    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 768, temperature: 0.7, top_p: 0.9, top_k: 40, stream: true });
+    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 384, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
     if (r && typeof r[Symbol.asyncIterator] === "function") {
       for await (const ch of r) {
         out += (ch.choices && ch.choices[0] && ch.choices[0].delta && ch.choices[0].delta.content) || "";
