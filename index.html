@@ -87,6 +87,9 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .attach-preview[hidden]{display:none}
 .attach-preview span{flex:1;overflow-wrap:anywhere}
 .attach-preview button{padding:5px 10px;font-size:12px;border-radius:8px}
+.timerline{display:flex;align-items:center;gap:8px}
+.timerline .body{flex:none}
+.gen-cancel{width:24px;height:24px;padding:0;border-radius:50%;background:#44293a;color:#ff9db0;font-size:13px;line-height:1;flex:none;box-shadow:none;border:1px solid rgba(255,140,160,.35)}
 .hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 .hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
 .hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}
@@ -235,7 +238,7 @@ button[data-ic]{display:inline-flex;align-items:center;justify-content:center;ga
       <button id="speak" data-ic="volume">Ler resposta</button>
       <button id="histBtn" data-ic="history">Histórico</button>
       <button id="clear" data-ic="trash">Limpar conversa</button>
-      <button id="install" data-ic="download" hidden>Instalar app</button>
+      <button id="install" data-ic="download">Instalar app</button>
     </div>
   </div>
 </header>
@@ -361,7 +364,7 @@ const THREADS = self.crossOriginIsolated
   ? Math.max(2, Math.min(4, Math.floor((navigator.hardwareConcurrency || 4) / 2)))
   : 1;
 
-let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false;
+let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
 let history = [], lastAnswer = "";
 
 // ------------------------------ Interface
@@ -721,10 +724,11 @@ async function restartAI() {
 async function generate(text, extraContext = "", opts = {}) {
   if (busy || resetting) return;
   busy = true;
+  cancelRequested = false;
   updateButtons();
 
   const shown = opts.shown || text;
-  let answerBox = null, currentEngine = null, thinkTimer = null, thinkStart = 0;
+  let answerBox = null, currentEngine = null, thinkTimer = null, thinkStart = 0, cancelBtn = null;
 
   try {
     if (!opts.skipUser) addMessage("user", shown);
@@ -748,16 +752,34 @@ async function generate(text, extraContext = "", opts = {}) {
     answerBox = addMessage("assistant", "");
     answerBox.querySelector(".body").innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
 
-    const timerBox = addMessage("system", "⏱ 0s · lendo a pergunta...");
+    const timerBox = document.createElement("div");
+    timerBox.className = "message system timerline";
     timerBox.style.alignSelf = "flex-start";
+    const timerBody = document.createElement("div");
+    timerBody.className = "body";
+    timerBody.textContent = "⏱ 0s · lendo a pergunta...";
+    cancelBtn = document.createElement("button");
+    cancelBtn.className = "gen-cancel";
+    cancelBtn.textContent = "✕";
+    cancelBtn.title = "Parar a resposta";
+    cancelBtn.setAttribute("aria-label", "Parar a resposta");
+    cancelBtn.addEventListener("click", () => {
+      cancelRequested = true;
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = "…";
+      sayStatus("Parando a resposta...");
+    });
+    timerBox.append(timerBody, cancelBtn);
+    chat.appendChild(timerBox);
+    scrollEnd();
 
     thinkStart = performance.now();
     let tokenCount = 0, firstTokenAt = 0;
 
     const showTimer = () => {
       const s = (performance.now() - thinkStart) / 1000;
-      timerBox.textContent = !firstTokenAt
-        ? "⏱ " + Math.round(s) + "s · lendo a pergunta..."
+      timerBody.textContent = !firstTokenAt
+        ? "⏱ " + Math.round(s) + "s · lendo a pergunta... (toque em ✕ para parar)"
         : "⏱ " + Math.round(s) + "s · escrevendo a resposta · " + tokenCount + " partes";
       sayStatus("Rizik está pensando... " + Math.round(s) + "s");
     };
@@ -776,6 +798,7 @@ async function generate(text, extraContext = "", opts = {}) {
 
     for await (const chunk of stream) {
       if (ai !== currentEngine || !ready) throw new Error("O motor foi reiniciado durante a geração.");
+      if (cancelRequested) break;
       const choice = chunk?.choices?.[0];
       const piece = choice?.delta?.content ?? "";
       if (choice?.finish_reason === "length") truncated = true;
@@ -786,9 +809,12 @@ async function generate(text, extraContext = "", opts = {}) {
       }
     }
 
-    answer = answer.trim() || "Não consegui gerar uma resposta.";
+    answer = answer.trim();
+    if (!answer) answer = cancelRequested ? "⏹ Resposta interrompida antes de gerar qualquer texto." : "Não consegui gerar uma resposta.";
+    else if (cancelRequested) answer += "\n\n⏹ (interrompida por você)";
     clearInterval(thinkTimer);
     thinkTimer = null;
+    if (cancelBtn) cancelBtn.remove();
 
     setBody(answerBox, answer);
     answerBox.querySelector(".msg-time").textContent = fmtTime();
@@ -797,10 +823,10 @@ async function generate(text, extraContext = "", opts = {}) {
     const totalSeconds = (performance.now() - thinkStart) / 1000;
     const waitSeconds = firstTokenAt ? (firstTokenAt - thinkStart) / 1000 : totalSeconds;
 
-    timerBox.textContent =
+    timerBody.textContent =
       "⏱ Total " + totalSeconds.toFixed(1) + "s · leitura " + waitSeconds.toFixed(1) + "s · " +
       tokenCount + " partes" +
-      (truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
+      (cancelRequested ? " · interrompida" : truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
 
     if (extraContext && !opts.noReview) {
       const note = reviewNote(answer, extraContext);
@@ -834,6 +860,8 @@ async function generate(text, extraContext = "", opts = {}) {
 
   } finally {
     if (thinkTimer) clearInterval(thinkTimer);
+    if (cancelBtn && cancelBtn.parentNode) cancelBtn.remove();
+    cancelRequested = false;
     busy = false;
     updateButtons();
     sayStatus(ready ? "Rizik está pronto." : "Motor aguardando reinicialização.");
@@ -1839,14 +1867,42 @@ let deferredInstall = null;
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredInstall = e;
-  $("install").hidden = false;
 });
-$("install").addEventListener("click", () => {
-  closeMenu();
-  if (!deferredInstall) return;
-  deferredInstall.prompt();
+window.addEventListener("appinstalled", () => {
   deferredInstall = null;
-  $("install").hidden = true;
+  addMessage("system", "✅ Rizik AI instalado com sucesso.");
+});
+
+$("install").addEventListener("click", async () => {
+  closeMenu();
+
+  if (deferredInstall) {
+    try {
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+    } catch (e) { console.warn("Instalação cancelada ou falhou:", e); }
+    deferredInstall = null;
+    return;
+  }
+
+  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+    addMessage("system", "O Rizik AI já está instalado neste aparelho.");
+    return;
+  }
+
+  const ua = navigator.userAgent || "";
+  const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isAndroid = /android/i.test(ua);
+  let msg;
+
+  if (isIOS) {
+    msg = "Para instalar no iPhone/iPad: toque no ícone de Compartilhar (quadrado com uma seta pra cima) na barra do Safari e escolha \"Adicionar à Tela de Início\". O botão de instalação automática não existe no Safari: esse é o único jeito no iOS.";
+  } else if (isAndroid) {
+    msg = "Não recebi o aviso automático de instalação do navegador. No Android: abra pelo Chrome, toque nos três pontinhos (⋮) no canto superior e escolha \"Instalar app\" ou \"Adicionar à tela inicial\". Se essa opção não aparecer, confira se o site está em HTTPS e se o manifest.json e os ícones (icon-192.png, idealmente também um icon-512.png) estão publicados corretamente.";
+  } else {
+    msg = "Não recebi o aviso automático de instalação. No Chrome ou Edge do computador: procure o ícone de instalar (⊕ ou uma tela com uma seta) na barra de endereço, à direita, ou abra o menu (⋮) e escolha \"Instalar Rizik AI\". Se não aparecer, confira se o site está em HTTPS e se o manifest.json está acessível.";
+  }
+  addMessage("system", msg);
 });
 
 // ------------------------------ Região e GPS
