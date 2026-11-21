@@ -47,6 +47,45 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .src-item small{color:#9299b0;white-space:nowrap}
 .copy{padding:8px 12px;font-size:13px;align-self:flex-start}
 .info{font-size:12px;color:#9299b0;margin-top:12px;line-height:1.5}
+
+html{scroll-behavior:smooth}
+header{position:relative}
+.hright{display:flex;align-items:center;gap:10px}
+#clock{font-size:15px;color:#aeb4ca;font-variant-numeric:tabular-nums}
+#menuBtn{padding:6px 14px;font-size:22px;line-height:1}
+.menu{position:absolute;right:12px;top:100%;z-index:20;width:min(300px,calc(100vw - 24px));background:#1b1e2b;border:1px solid #383c50;border-radius:16px;padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:10px;animation:fade .18s ease}
+.menu[hidden]{display:none}
+.menu-title{font-weight:bold}
+.menu label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:#c4c9db}
+.menu label.check{flex-direction:row;align-items:center;gap:8px}
+.menu select,.menu input[type=text]{border-radius:10px;border:1px solid #383c50;background:#10111a;color:white;padding:9px;font:inherit}
+.menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.menu-actions button{padding:10px 6px;font-size:13px}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.message,.sources,.actions{animation:fade .25s ease}
+.message{min-width:0}
+.msg-time{display:block;margin-top:6px;font-size:11px;opacity:.6}
+.notime .msg-time{display:none}
+.dots span{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:#9299b0;animation:blink 1.2s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.txt{white-space:pre-wrap;overflow-wrap:anywhere}
+.codeblock{margin:8px 0;background:#10111a;border:1px solid #383c50;border-radius:12px;overflow:hidden}
+.code-head{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:#191b29;font-size:12px;color:#9299b0}
+.code-head button{padding:5px 10px;font-size:12px;border-radius:8px}
+.codeblock pre{margin:0;padding:10px 12px;overflow-x:auto;font:12.5px/1.45 ui-monospace,Menlo,monospace;white-space:pre}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start}
+#webToggle{padding:0 14px;font-size:20px}
+#webToggle.on{background:#7259e8;box-shadow:0 0 0 2px #a99cff inset}
+.hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
+.hist[hidden]{display:none}
+.hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
+.hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}
+.hist-head button{padding:6px 12px;font-size:13px}
+.hist-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.hist-item{text-align:left;background:#292d40;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+.hist-item small{display:block;color:#9299b0;font-size:11px;margin-bottom:2px}
 </style>
 </head>
 
@@ -54,26 +93,65 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 12</small>
+    <small>Seu assistente pessoal · versão 14</small>
   </div>
-  <button id="clear">Limpar</button>
+  <div class="hright">
+    <span id="clock"></span>
+    <button id="menuBtn" aria-label="Configurações">⋮</button>
+  </div>
+
+  <div id="menu" class="menu" hidden>
+    <div class="menu-title">Configurações</div>
+    <label>Tamanho da resposta
+      <select id="setTokens">
+        <option value="256">Curta</option>
+        <option value="384">Média</option>
+        <option value="512">Longa</option>
+      </select>
+    </label>
+    <label>Estilo
+      <select id="setTemp">
+        <option value="0.3">Precisa</option>
+        <option value="0.5">Equilibrada</option>
+        <option value="0.8">Criativa</option>
+      </select>
+    </label>
+    <label>Cidade padrão do clima
+      <input id="setCity" type="text">
+    </label>
+    <label class="check"><input id="setTime" type="checkbox"> Mostrar horas nas mensagens</label>
+    <div class="menu-actions">
+      <button id="restart">🔄 Reiniciar IA</button>
+      <button id="speak">🔊 Ler resposta</button>
+      <button id="stop">⏹ Parar voz</button>
+      <button id="histBtn">📜 Histórico</button>
+      <button id="clear">🗑 Limpar conversa</button>
+    </div>
+  </div>
 </header>
+
+<div id="hist" class="hist" hidden>
+  <div class="hist-box">
+    <div class="hist-head">
+      <span id="histTitle">Histórico</span>
+      <button id="histClose">Fechar</button>
+    </div>
+    <div id="histList" class="hist-list"></div>
+  </div>
+</div>
 
 <main>
   <div id="status">Rizik está aguardando.</div>
 
   <div class="toolbar">
     <button id="load" class="primary">Carregar IA</button>
-    <button id="restart">🔄 Reiniciar IA</button>
-    <button id="search">🌐 Pesquisar</button>
     <button id="weather">🌤️ Clima</button>
-    <button id="speak">🔊 Ler resposta</button>
-    <button id="stop">Parar voz</button>
   </div>
 
   <div id="chat"></div>
 
   <div class="composer">
+    <button id="webToggle" aria-pressed="false" title="Pesquisar na internet">🌐</button>
     <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
     <button id="send">Enviar</button>
   </div>
@@ -101,15 +179,27 @@ const MODEL_URL =
 // Para conversa geral em vez de código, troque a linha acima por:
 // "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
 
-// Limites (ajuste se o iPhone travar: volte n_ctx para 1536 ou 1024).
-const N_CTX = 1536;
-const MAX_USER_CHARS = 2500;
-const MAX_TOKENS = 512;
+// Limites (se o iPhone travar, reduza N_CTX para 1024).
+const N_CTX = 2048;
+const MAX_USER_CHARS = 1800;
+
+const settings = Object.assign(
+  { tokens: 384, temp: 0.3, city: "Nova Esperança", time: true },
+  (() => {
+    try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); }
+    catch (e) { return {}; }
+  })()
+);
+
+function saveSettings() {
+  try { localStorage.setItem("rizik_settings", JSON.stringify(settings)); }
+  catch (e) { console.warn("Erro ao salvar configurações:", e); }
+}
 
 // Modelos pequenos precisam de ordens explícitas e curtas.
-const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda curto e direto. Se não souber, diga "não sei".`;
+const SYSTEM_CHAT = `Você é Rizik AI, assistente pessoal que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda curto e direto. Se não souber, diga "não sei". Quando escrever código, coloque sempre dentro de um bloco de código com três crases.`;
 
-const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre a correção em um bloco de código e explique como testar. Se faltar informação, peça o erro exato.`;
+const SYSTEM_CODE = `Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre o código corrigido em um bloco de três crases e explique como testar. Se faltar informação, peça o erro exato.`;
 
 // Notas internas de programação. O Rizik recebe só as 2 mais parecidas
 // com o pedido (o modelo é pequeno e o contexto é curto).
@@ -150,7 +240,7 @@ function pickTips(text) {
     .slice(0, 2)
     .map(item => item.text);
 
-  return picked.join("\n").slice(0, 650);
+  return picked.join("\n").slice(0, 400);
 }
 
 // Só sinais fortes de código. Palavras comuns ("erro", "java", "let ")
@@ -181,12 +271,124 @@ function sayStatus(text) {
   status.textContent = text;
 }
 
-function addMessage(role, text) {
+function fmtTime(t) {
+  return new Date(t || Date.now()).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function scrollEnd() {
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+async function copyText(text, button, label) {
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(text);
+    ok = true;
+  } catch (err) {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (e) {}
+  }
+  button.textContent = ok ? "✅ Copiado" : "Não foi possível copiar";
+  setTimeout(() => { button.textContent = label; }, 2000);
+}
+
+// Separa "```linguagem\ncódigo" em { lang, code }.
+function parseFence(part) {
+  const nl = part.indexOf("\n");
+  let lang = "";
+  let code = part;
+  if (nl !== -1) {
+    const first = part.slice(0, nl).trim();
+    if (first.length <= 15 && /^[\w+#.-]*$/.test(first)) {
+      lang = first;
+      code = part.slice(nl + 1);
+    }
+  }
+  return { lang, code: code.replace(/\s+$/, "") };
+}
+
+// Só os blocos de código da resposta (sem o texto ao redor).
+function extractCode(text) {
+  const parts = String(text).split("```");
+  const blocks = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const { code } = parseFence(parts[i]);
+    if (code) blocks.push(code);
+  }
+  return blocks.join("\n\n");
+}
+
+function makeCodeBlock(code, lang) {
+  const box = document.createElement("div");
+  box.className = "codeblock";
+
+  const head = document.createElement("div");
+  head.className = "code-head";
+
+  const name = document.createElement("span");
+  name.textContent = lang || "código";
+
+  const btn = document.createElement("button");
+  btn.textContent = "📋 Copiar código";
+  btn.addEventListener("click", () => copyText(code, btn, "📋 Copiar código"));
+
+  head.append(name, btn);
+
+  const pre = document.createElement("pre");
+  pre.textContent = code;
+
+  box.append(head, pre);
+  return box;
+}
+
+function renderRich(container, text) {
+  container.textContent = "";
+  String(text).split("```").forEach((part, i) => {
+    if (i % 2 === 1) {
+      const { lang, code } = parseFence(part);
+      if (code) container.appendChild(makeCodeBlock(code, lang));
+    } else if (part.trim()) {
+      const p = document.createElement("div");
+      p.className = "txt";
+      p.textContent = part.trim();
+      container.appendChild(p);
+    }
+  });
+}
+
+function setBody(div, text) {
+  const body = div.querySelector(".body");
+  if (String(text).includes("```")) renderRich(body, text);
+  else body.textContent = text;
+}
+
+function addMessage(role, text, t) {
   const div = document.createElement("div");
   div.className = "message " + role;
-  div.textContent = text;
+
+  const body = document.createElement("div");
+  body.className = "body";
+  div.appendChild(body);
+
+  if (role === "user" || role === "assistant") {
+    const time = document.createElement("small");
+    time.className = "msg-time";
+    time.textContent = fmtTime(t);
+    div.appendChild(time);
+  }
+
   chat.appendChild(div);
-  window.scrollTo(0, document.body.scrollHeight);
+  setBody(div, text);
+  scrollEnd();
   return div;
 }
 
@@ -268,44 +470,66 @@ function finishSource(item, ok, onChange, extra) {
   if (onChange) onChange();
 }
 
-function addCopyButton(text) {
-  const button = document.createElement("button");
-  button.className = "copy";
-  button.textContent = "📋 Copiar resposta";
+function addActions(text) {
+  const row = document.createElement("div");
+  row.className = "actions";
 
-  button.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      button.textContent = "✅ Copiado";
-    } catch (err) {
-      button.textContent = "Não foi possível copiar";
-    }
+  const all = document.createElement("button");
+  all.className = "copy";
+  all.textContent = "📋 Copiar resposta";
+  all.addEventListener("click", () => copyText(text, all, "📋 Copiar resposta"));
+  row.appendChild(all);
 
-    setTimeout(() => {
-      button.textContent = "📋 Copiar resposta";
-    }, 2000);
-  });
+  const code = extractCode(text);
+  if (code) {
+    const only = document.createElement("button");
+    only.className = "copy";
+    only.textContent = "💻 Copiar só o código";
+    only.addEventListener("click", () => copyText(code, only, "💻 Copiar só o código"));
+    row.appendChild(only);
+  }
 
-  chat.appendChild(button);
+  chat.appendChild(row);
 }
 
 function updateButtons() {
   $("send").disabled = busy;
   $("load").disabled = busy || !!loadingPromise;
   $("restart").disabled = busy || resetting || !!loadingPromise;
-  $("search").disabled = busy;
   $("weather").disabled = busy;
+  $("webToggle").disabled = busy;
 }
 
 // ------------------------------
 // Histórico compacto
 // ------------------------------
 
+const MAX_QUESTIONS = 34;
+
+// Mantém no máximo 34 perguntas (cada uma com a sua resposta).
+function trimQuestions(list) {
+  let count = list.filter(m => m.role === "user").length;
+  let i = 0;
+
+  while (count > MAX_QUESTIONS && i < list.length) {
+    if (list[i].role === "user") count--;
+    i++;
+  }
+
+  // Não deixa uma resposta sem a pergunta no começo.
+  if (i > 0) {
+    while (i < list.length && list[i].role === "assistant") i++;
+  }
+
+  return list.slice(i);
+}
+
 function saveHistory() {
+  history = trimQuestions(history);
   try {
     localStorage.setItem(
       "rizik_history",
-      JSON.stringify(history.slice(-20))
+      JSON.stringify(history)
     );
   } catch (err) {
     console.warn("Erro ao salvar histórico:", err);
@@ -323,10 +547,15 @@ function restoreHistory() {
           m &&
           ["user", "assistant"].includes(m.role) &&
           typeof m.content === "string"
-        ).slice(-20)
+        )
       : [];
 
-    history.forEach(m => addMessage(m.role, m.content));
+    history = trimQuestions(history);
+
+    history.forEach(m => {
+      addMessage(m.role, m.content, m.t);
+      if (m.role === "assistant") addActions(m.content);
+    });
 
   } catch (err) {
     history = [];
@@ -344,33 +573,26 @@ function buildMessages(text, extraContext) {
   const isCode = !extraContext && looksLikeCode(text);
 
   const messages = [
-    {
-      role: "system",
-      content: isCode ? SYSTEM_CODE : SYSTEM_CHAT
-    }
+    { role: "system", content: isCode ? SYSTEM_CODE : SYSTEM_CHAT }
   ];
 
-  // Mensagens longas (código) não entram no histórico enviado,
-  // para sobrar espaço no contexto.
-  const recent = isCode ? [] : history.slice(-2);
+  // Textos longos (código) ocupam o contexto: sem histórico.
+  const recent = (isCode && text.length > 1200) ? [] : history.slice(-4);
 
   for (const item of recent) {
     messages.push({
       role: item.role,
-      content: limitText(item.content, 150)
+      content: limitText(item.content, item.role === "assistant" ? 500 : 300)
     });
   }
 
-  const safeText = limitText(text, MAX_USER_CHARS);
   const tips = isCode ? pickTips(text) : "";
-  const safeResearch = extraContext
-    ? limitText(extraContext, 450)
-    : "";
+  const safeResearch = extraContext ? limitText(extraContext, 900) : "";
 
   messages.push({
     role: "user",
     content:
-      safeText +
+      limitText(text, MAX_USER_CHARS) +
       (tips ? "\n\nDicas úteis:\n" + tips : "") +
       (safeResearch
         ? "\n\nUse somente as informações abaixo. Se não tiverem relação com a pergunta, diga que não encontrou.\nInformações:\n" + safeResearch
@@ -548,18 +770,21 @@ async function restartAI() {
 // Gerar resposta
 // ------------------------------
 
-async function generate(text, extraContext = "") {
+async function generate(text, extraContext = "", opts = {}) {
   if (busy || resetting) return;
 
   busy = true;
   updateButtons();
 
+  const shown = opts.shown || text;
   let answerBox = null;
   let currentEngine = null;
   let thinkTimer = null;
   let thinkStart = 0;
 
   try {
+    if (!opts.skipUser) addMessage("user", shown);
+
     if (!ready || !ai) {
       sayStatus("Carregando a IA...");
 
@@ -568,7 +793,7 @@ async function generate(text, extraContext = "") {
       if (!loaded || !ready || !ai) {
         addMessage(
           "system",
-          "Não consegui iniciar a IA. Use Reiniciar IA e tente novamente."
+          "Não consegui iniciar a IA. Abra ⋮ > Reiniciar IA e tente novamente."
         );
         return;
       }
@@ -576,20 +801,16 @@ async function generate(text, extraContext = "") {
 
     currentEngine = ai;
 
-    addMessage("user", text);
-
     const messages = buildMessages(text, extraContext);
 
-    history.push({
-      role: "user",
-      content: limitText(text, 400)
-    });
-
+    history.push({ role: "user", content: limitText(shown, 4000), t: Date.now() });
     saveHistory();
 
-    answerBox = addMessage("assistant", "Pensando...");
+    // Os três pontinhos animados ficam até a resposta ficar pronta.
+    answerBox = addMessage("assistant", "");
+    answerBox.querySelector(".body").innerHTML =
+      '<span class="dots"><span></span><span></span><span></span></span>';
 
-    // Contador de tempo logo abaixo da resposta.
     const timerBox = addMessage("system", "⏱ 0s · lendo a pergunta...");
     timerBox.style.alignSelf = "flex-start";
 
@@ -600,16 +821,9 @@ async function generate(text, extraContext = "") {
     const showTimer = () => {
       const seconds = (performance.now() - thinkStart) / 1000;
 
-      if (!firstTokenAt) {
-        timerBox.textContent =
-          "⏱ " + Math.round(seconds) + "s · lendo a pergunta...";
-      } else {
-        const genSeconds = (performance.now() - firstTokenAt) / 1000;
-        const speed = genSeconds > 0 ? tokenCount / genSeconds : 0;
-        timerBox.textContent =
-          "⏱ " + Math.round(seconds) + "s · digitando · " +
-          tokenCount + " partes · " + speed.toFixed(1) + "/s";
-      }
+      timerBox.textContent = !firstTokenAt
+        ? "⏱ " + Math.round(seconds) + "s · lendo a pergunta..."
+        : "⏱ " + Math.round(seconds) + "s · escrevendo a resposta · " + tokenCount + " partes";
 
       sayStatus("Rizik está pensando... " + Math.round(seconds) + "s");
     };
@@ -619,27 +833,30 @@ async function generate(text, extraContext = "") {
 
     const stream = await currentEngine.createChatCompletion({
       messages,
-      max_tokens: MAX_TOKENS,
-      temperature: 0.3,
+      max_tokens: settings.tokens,
+      temperature: settings.temp,
       top_p: 0.9,
       stream: true
     });
 
     let answer = "";
+    let truncated = false;
 
+    // A resposta é montada por inteiro; só aparece quando termina.
     for await (const chunk of stream) {
       if (ai !== currentEngine || !ready) {
         throw new Error("O motor foi reiniciado durante a geração.");
       }
 
-      const piece = chunk?.choices?.[0]?.delta?.content ?? "";
+      const choice = chunk?.choices?.[0];
+      const piece = choice?.delta?.content ?? "";
+
+      if (choice?.finish_reason === "length") truncated = true;
 
       if (piece) {
         if (!firstTokenAt) firstTokenAt = performance.now();
         tokenCount++;
         answer += piece;
-        answerBox.textContent = answer;
-        window.scrollTo(0, document.body.scrollHeight);
       }
     }
 
@@ -648,7 +865,8 @@ async function generate(text, extraContext = "") {
     clearInterval(thinkTimer);
     thinkTimer = null;
 
-    answerBox.textContent = answer;
+    setBody(answerBox, answer);
+    answerBox.querySelector(".msg-time").textContent = fmtTime();
     lastAnswer = answer;
 
     const totalSeconds = (performance.now() - thinkStart) / 1000;
@@ -659,21 +877,20 @@ async function generate(text, extraContext = "") {
     timerBox.textContent =
       "⏱ Total " + totalSeconds.toFixed(1) + "s · " +
       "leitura " + waitSeconds.toFixed(1) + "s · " +
-      tokenCount + " partes";
+      tokenCount + " partes" +
+      (truncated ? " · cortada pelo limite (aumente em ⋮ Configurações)" : "");
 
-    addCopyButton(answer);
+    addActions(answer);
+    scrollEnd();
 
-    history.push({
-      role: "assistant",
-      content: limitText(answer, 700)
-    });
-
+    history.push({ role: "assistant", content: limitText(answer, 4000), t: Date.now() });
     saveHistory();
 
   } catch (err) {
     console.error("Erro na resposta:", err);
 
     const message = err?.message || String(err);
+    let text2;
 
     if (isEngineCrash(err)) {
       sayStatus("O motor travou. Preparando recuperação...");
@@ -681,24 +898,15 @@ async function generate(text, extraContext = "") {
       // Descarta a instância que apresentou falha.
       await destroyAI();
 
-      if (answerBox) {
-        answerBox.textContent =
-          "O motor da IA travou durante a geração.\n\n" +
-          "A instância com erro foi descartada. Toque em Reiniciar IA para carregar o modelo novamente.";
-      } else {
-        addMessage(
-          "system",
-          "O motor travou e foi descartado. Toque em Reiniciar IA."
-        );
-      }
-
+      text2 =
+        "O motor da IA travou durante a geração.\n\n" +
+        "A instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente.";
     } else {
-      if (answerBox) {
-        answerBox.textContent = "Erro ao responder: " + message;
-      } else {
-        addMessage("system", "Erro ao responder: " + message);
-      }
+      text2 = "Erro ao responder: " + message;
     }
+
+    if (answerBox) setBody(answerBox, text2);
+    else addMessage("system", text2);
 
   } finally {
     if (thinkTimer) clearInterval(thinkTimer);
@@ -736,7 +944,7 @@ function extractCity(text) {
 
   // Evita pegar palavras que não são cidade (ex.: "tempo de chuva").
   if (!city || WEATHER_WORDS.test(city) || /^(hoje|amanh[ãa]|agora)$/i.test(city)) {
-    return "Nova Esperança";
+    return settings.city || "Nova Esperança";
   }
 
   return city;
@@ -746,23 +954,46 @@ function extractCity(text) {
 // Eventos principais
 // ------------------------------
 
+let webMode = false;
+let searching = false;
+
+function setWebMode(on) {
+  webMode = on;
+  $("webToggle").classList.toggle("on", on);
+  $("webToggle").setAttribute("aria-pressed", on ? "true" : "false");
+  input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
+}
+
 $("load").addEventListener("click", loadAI);
 
-$("restart").addEventListener("click", restartAI);
+$("restart").addEventListener("click", () => {
+  closeMenu();
+  restartAI();
+});
+
+$("webToggle").addEventListener("click", () => {
+  setWebMode(!webMode);
+  input.focus();
+});
 
 $("send").addEventListener("click", async () => {
   const text = input.value.trim();
 
-  if (!text || busy || resetting) return;
+  if (!text || busy || resetting || searching) return;
 
   input.value = "";
+  const wasWeb = webMode;
+  setWebMode(false); // a pesquisa vale para uma mensagem só
 
   // Perguntas sobre o tempo usam a previsão real, não o modelo.
   if (isWeatherQuestion(text) && !looksLikeCode(text)) {
-    const city = extractCity(text);
     addMessage("user", text);
-    addMessage("system", "Pergunta sobre o tempo: consultando a previsão de " + city);
-    await runWeather(city);
+    await runWeather(extractCity(text));
+    return;
+  }
+
+  if (wasWeb) {
+    await runSearch(text);
     return;
   }
 
@@ -776,7 +1007,54 @@ input.addEventListener("keydown", e => {
   }
 });
 
+// ----- Menu dos três pontinhos -----
+
+const menu = $("menu");
+
+function closeMenu() {
+  menu.hidden = true;
+}
+
+$("menuBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  menu.hidden = !menu.hidden;
+});
+
+document.addEventListener("click", e => {
+  if (!menu.hidden && !menu.contains(e.target)) closeMenu();
+});
+
+function applySettings() {
+  $("setTokens").value = String(settings.tokens);
+  $("setTemp").value = String(settings.temp);
+  $("setCity").value = settings.city;
+  $("setTime").checked = !!settings.time;
+  document.body.classList.toggle("notime", !settings.time);
+}
+
+$("setTokens").addEventListener("change", e => {
+  settings.tokens = Number(e.target.value);
+  saveSettings();
+});
+
+$("setTemp").addEventListener("change", e => {
+  settings.temp = Number(e.target.value);
+  saveSettings();
+});
+
+$("setCity").addEventListener("change", e => {
+  settings.city = e.target.value.trim() || "Nova Esperança";
+  saveSettings();
+});
+
+$("setTime").addEventListener("change", e => {
+  settings.time = e.target.checked;
+  saveSettings();
+  applySettings();
+});
+
 $("clear").addEventListener("click", () => {
+  closeMenu();
   if (!confirm("Apagar toda a conversa?")) return;
 
   history = [];
@@ -785,11 +1063,73 @@ $("clear").addEventListener("click", () => {
   saveHistory();
 });
 
-// ------------------------------
-// Voz
-// ------------------------------
+// ----- Histórico de perguntas -----
+
+const histPanel = $("hist");
+
+function openHistory() {
+  closeMenu();
+
+  const questions = history.filter(m => m.role === "user").reverse();
+  const list = $("histList");
+  list.textContent = "";
+
+  $("histTitle").textContent =
+    "Histórico · " + questions.length + " de " + MAX_QUESTIONS + " perguntas";
+
+  if (!questions.length) {
+    const empty = document.createElement("div");
+    empty.className = "hist-item";
+    empty.textContent = "Nenhuma pergunta ainda.";
+    list.appendChild(empty);
+  }
+
+  questions.forEach(q => {
+    const item = document.createElement("button");
+    item.className = "hist-item";
+
+    const time = document.createElement("small");
+    time.textContent = q.t
+      ? new Date(q.t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : "";
+
+    const text = document.createElement("span");
+    text.textContent = limitText(q.content, 140);
+
+    item.append(time, text);
+
+    // Toque para colocar a pergunta de volta na barra de mensagens.
+    item.addEventListener("click", () => {
+      input.value = q.content;
+      histPanel.hidden = true;
+      input.focus();
+    });
+
+    list.appendChild(item);
+  });
+
+  histPanel.hidden = false;
+}
+
+$("histBtn").addEventListener("click", openHistory);
+$("histClose").addEventListener("click", () => { histPanel.hidden = true; });
+histPanel.addEventListener("click", e => {
+  if (e.target === histPanel) histPanel.hidden = true;
+});
+
+// ----- Relógio -----
+
+function tickClock() {
+  $("clock").textContent = fmtTime();
+}
+
+setInterval(tickClock, 5000);
+
+// ----- Voz -----
 
 $("speak").addEventListener("click", () => {
+  closeMenu();
+
   if (!lastAnswer) {
     addMessage("system", "Ainda não existe resposta para ler.");
     return;
@@ -800,14 +1140,18 @@ $("speak").addEventListener("click", () => {
     return;
   }
 
+  // Não lê o código em voz alta.
+  const spoken = lastAnswer.replace(/```[\s\S]*?(```|$)/g, " (código omitido) ");
+
   speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(lastAnswer);
+  const utterance = new SpeechSynthesisUtterance(spoken);
   utterance.lang = "pt-BR";
   speechSynthesis.speak(utterance);
 });
 
 $("stop").addEventListener("click", () => {
+  closeMenu();
   if ("speechSynthesis" in window) {
     speechSynthesis.cancel();
   }
@@ -847,7 +1191,7 @@ async function searchWikipedia(query) {
   const url =
     "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
     "&gsrsearch=" + encodeURIComponent(query) +
-    "&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exchars=500" +
+    "&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exchars=900" +
     "&format=json&origin=*";
 
   const response = await fetch(url);
@@ -922,7 +1266,7 @@ async function searchWeb(query, sources, onChange) {
 
       if (result && result.trim().length > 100) {
         finishSource(source, true, onChange);
-        return result.slice(0, 600);
+        return result.slice(0, 900);
       }
 
       throw new Error("Pesquisa sem resultados suficientes.");
@@ -937,37 +1281,25 @@ async function searchWeb(query, sources, onChange) {
   throw lastError || new Error("Pesquisa indisponível.");
 }
 
-$("search").addEventListener("click", async () => {
-  if (busy || resetting) return;
+async function runSearch(rawQuery) {
+  const original = rawQuery.trim();
 
-  let query = window.prompt("O que você quer pesquisar?");
-
-  if (!query || !query.trim()) return;
-
-  // Perguntas sobre tempo/chuva usam a previsão de verdade.
-  if (isWeatherQuestion(query)) {
-    const city = extractCity(query);
-
-    addMessage("system", "Pergunta sobre o tempo: consultando a previsão de " + city);
-    await runWeather(city);
+  // Texto muito longo não é pesquisa: responde direto.
+  if (original.length > 160) {
+    addMessage("system", "Texto longo demais para pesquisar: respondendo direto.");
+    await generate(original);
     return;
   }
 
-  // Pedidos de ajuda ou de código não são pesquisa: vão direto para o chat.
-  if (/^\s*(me\s+)?(ajud|corrij|corrig|cri[ea]|faça|faz)|programa|código|codigo|erro\b|bug\b/i.test(query)) {
-    addMessage("system", "Isso é um pedido de ajuda: respondendo direto, sem pesquisar.");
-    await generate(query.trim());
-    return;
-  }
+  searching = true;
+  addMessage("user", original);
 
   // Tira as palavras de pedido para a Wikipedia achar o assunto certo.
-  query = query
+  const query = original
     .replace(/^\s*(pesquis[ea]r?|me\s+explique|me\s+fale|explique|fale)\s+(sobre\s+)?/i, "")
     .replace(/^\s*(o\s+que\s+(é|são)|quem\s+(é|foi)|o\s+que\s+significa)\s+/i, "")
     .replace(/\?+\s*$/, "")
-    .trim() || query;
-
-  addMessage("system", "Pesquisando: " + query);
+    .trim() || original;
 
   const sources = [];
   const searchStart = performance.now();
@@ -986,22 +1318,25 @@ $("search").addEventListener("click", async () => {
   }, 500);
 
   refresh();
+  scrollEnd();
 
   try {
-    const results = await searchWeb(query.trim(), sources, refresh);
+    const results = await searchWeb(query, sources, refresh);
 
     clearInterval(searchTimer);
     searchDone = true;
     renderSources(box, sources, "Fontes consultadas", searchStart, true);
 
-    await generate(
-      "Pesquise e explique: " + query.trim(),
-      results
-    );
+    searching = false;
+
+    await generate("Explique de forma curta: " + query, results, {
+      shown: original,
+      skipUser: true
+    });
 
     // As fontes ficam logo abaixo da resposta.
     chat.appendChild(box);
-    window.scrollTo(0, document.body.scrollHeight);
+    scrollEnd();
 
   } catch (err) {
     clearInterval(searchTimer);
@@ -1015,8 +1350,11 @@ $("search").addEventListener("click", async () => {
       "system",
       "Não consegui pesquisar agora: " + (err.message || String(err))
     );
+
+  } finally {
+    searching = false;
   }
-});
+}
 
 // ------------------------------
 // Clima
@@ -1140,19 +1478,16 @@ async function runWeather(city) {
 }
 
 $("weather").addEventListener("click", async () => {
-  if (busy || resetting) return;
-
-  const city = window.prompt("Qual cidade?", "Nova Esperança");
-
-  if (!city || !city.trim()) return;
-
-  await runWeather(city.trim());
+  if (busy || resetting || searching) return;
+  await runWeather(settings.city || "Nova Esperança");
 });
 
 // ------------------------------
 // Inicialização
 // ------------------------------
 
+applySettings();
+tickClock();
 restoreHistory();
 updateButtons();
 
