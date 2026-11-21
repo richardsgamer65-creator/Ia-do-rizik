@@ -6,6 +6,21 @@
 <meta name="theme-color" content="#10111a">
 <title>Rizik AI</title>
 
+<script>
+(function () {
+  // Ativa o modo rápido (vários núcleos) no GitHub Pages.
+  try {
+    if (self.crossOriginIsolated || !("serviceWorker" in navigator)) return;
+    if (sessionStorage.getItem("rizik_coi") === "1") return;
+    sessionStorage.setItem("rizik_coi", "1");
+    navigator.serviceWorker.register("coi-serviceworker.js").then(function (reg) {
+      reg.addEventListener("updatefound", function () { location.reload(); });
+      if (reg.active && !navigator.serviceWorker.controller) location.reload();
+    }).catch(function (e) { console.warn("Service worker falhou:", e); });
+  } catch (e) { console.warn(e); }
+})();
+</script>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#10111a;color:#f5f5fa;font-family:system-ui,sans-serif}
@@ -58,7 +73,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
   </div>
 
   <div class="info">
-    Modelo local Qwen 1.5B. Primeiro carregamento: aproximadamente 938 MB. Use Wi-Fi.
+    Modelo local Qwen 0.5B. Primeiro carregamento: aproximadamente 398 MB. Use Wi-Fi.
     A pesquisa e o clima precisam de internet.
     Configuração otimizada para reduzir o consumo de memória no iPhone.
   </div>
@@ -75,7 +90,7 @@ const status = $("status");
 const input = $("prompt");
 
 const MODEL_URL =
-"https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_0.gguf";
+"https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf";
 
 const SYSTEM_PROMPT = `
 Você é Rizik AI, assistente pessoal em português brasileiro, claro, educado e direto. Você é especialista em HTML, CSS, JavaScript, Python, Java, Kotlin, C, C++, SQL, JSON e APIs.
@@ -89,6 +104,12 @@ Quando o usuário enviar um código com problema, siga sempre este método:
 
 Não invente bibliotecas, funções, APIs ou resultados de testes. Se faltar informação, peça o erro exato. Use os resultados de pesquisa e clima recebidos na mensagem. Se não houver resultados, não diga que pesquisou.
 `;
+
+// Vários núcleos só funcionam com isolamento de origem cruzada
+// (ativado pelo arquivo coi-serviceworker.js).
+const THREADS = self.crossOriginIsolated
+  ? Math.max(2, Math.min(4, navigator.hardwareConcurrency || 2))
+  : 1;
 
 let ai = null;
 let ready = false;
@@ -266,8 +287,8 @@ async function loadAI() {
       await newAI.loadModelFromUrl(MODEL_URL, {
         // Configuração mais leve para iPhone.
         n_ctx: 1024,
-        n_batch: 64,
-        n_threads: 1,
+        n_batch: 128,
+        n_threads: THREADS,
         n_gpu_layers: 0,
 
         progressCallback: ({loaded, total}) => {
@@ -289,7 +310,13 @@ async function loadAI() {
       ready = true;
 
       sayStatus("Rizik está pronto!");
-      addMessage("system", "Rizik AI carregado com sucesso! 🚀");
+      addMessage(
+        "system",
+        "Rizik AI carregado com sucesso! 🚀\nNúcleos em uso: " + THREADS +
+        (self.crossOriginIsolated
+          ? " (modo rápido ativo)"
+          : " (modo rápido inativo)")
+      );
 
       return true;
 
@@ -404,28 +431,62 @@ async function generate(text, extraContext = "") {
     saveHistory();
 
     answerBox = addMessage("assistant", "Pensando...");
-    sayStatus("Rizik está pensando... 0s");
+
+    // Contador de tempo logo abaixo da resposta.
+    const timerBox = addMessage("system", "⏱ 0s · lendo a pergunta...");
+    timerBox.style.alignSelf = "flex-start";
 
     thinkStart = performance.now();
-    thinkTimer = setInterval(() => {
-      const seconds = Math.round((performance.now() - thinkStart) / 1000);
-      sayStatus("Rizik está pensando... " + seconds + "s");
-    }, 1000);
+    let tokenCount = 0;
+    let firstTokenAt = 0;
 
-    const result = await currentEngine.createChatCompletion({
+    const showTimer = () => {
+      const seconds = (performance.now() - thinkStart) / 1000;
+
+      if (!firstTokenAt) {
+        timerBox.textContent =
+          "⏱ " + Math.round(seconds) + "s · lendo a pergunta...";
+      } else {
+        const genSeconds = (performance.now() - firstTokenAt) / 1000;
+        const speed = genSeconds > 0 ? tokenCount / genSeconds : 0;
+        timerBox.textContent =
+          "⏱ " + Math.round(seconds) + "s · digitando · " +
+          tokenCount + " partes · " + speed.toFixed(1) + "/s";
+      }
+
+      sayStatus("Rizik está pensando... " + Math.round(seconds) + "s");
+    };
+
+    showTimer();
+    thinkTimer = setInterval(showTimer, 500);
+
+    const stream = await currentEngine.createChatCompletion({
       messages,
       max_tokens: 256,
       temperature: 0.6,
-      top_p: 0.9
+      top_p: 0.9,
+      stream: true
     });
 
-    if (ai !== currentEngine || !ready) {
-      throw new Error("O motor foi reiniciado durante a geração.");
+    let answer = "";
+
+    for await (const chunk of stream) {
+      if (ai !== currentEngine || !ready) {
+        throw new Error("O motor foi reiniciado durante a geração.");
+      }
+
+      const piece = chunk?.choices?.[0]?.delta?.content ?? "";
+
+      if (piece) {
+        if (!firstTokenAt) firstTokenAt = performance.now();
+        tokenCount++;
+        answer += piece;
+        answerBox.textContent = answer;
+        window.scrollTo(0, document.body.scrollHeight);
+      }
     }
 
-    const answer =
-      result?.choices?.[0]?.message?.content?.trim() ||
-      "Não consegui gerar uma resposta.";
+    answer = answer.trim() || "Não consegui gerar uma resposta.";
 
     clearInterval(thinkTimer);
     thinkTimer = null;
@@ -433,11 +494,15 @@ async function generate(text, extraContext = "") {
     answerBox.textContent = answer;
     lastAnswer = answer;
 
-    addMessage(
-      "system",
-      "Respondido em " +
-      ((performance.now() - thinkStart) / 1000).toFixed(1) + "s"
-    );
+    const totalSeconds = (performance.now() - thinkStart) / 1000;
+    const waitSeconds = firstTokenAt
+      ? (firstTokenAt - thinkStart) / 1000
+      : totalSeconds;
+
+    timerBox.textContent =
+      "⏱ Total " + totalSeconds.toFixed(1) + "s · " +
+      "leitura " + waitSeconds.toFixed(1) + "s · " +
+      tokenCount + " partes";
 
     history.push({
       role: "assistant",
