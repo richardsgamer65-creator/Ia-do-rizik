@@ -88,8 +88,9 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
 .gen-cancel{width:24px;height:24px;padding:0;border-radius:50%;background:#44293a;color:#ff9db0;font-size:13px;line-height:1;flex:none;box-shadow:none;border:1px solid rgba(255,140,160,.35)}
 .hist{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center}
 .hist-box{background:#1b1e2b;border:1px solid #383c50;border-radius:18px 18px 0 0;width:min(850px,100%);max-height:75vh;display:flex;flex-direction:column;padding:14px 14px calc(14px + env(safe-area-inset-bottom));animation:fade .2s ease}
-.hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px}
+.hist-head{display:flex;justify-content:space-between;align-items:center;font-weight:bold;margin-bottom:8px;gap:8px}
 .hist-head button{padding:6px 12px;font-size:13px}
+.hist-head .hh{display:flex;gap:8px}
 .hist-list{overflow-y:auto;display:flex;flex-direction:column;gap:8px}
 .hist-item{text-align:left;background:#292d40;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
 .hist-item small{display:block;color:#9299b0;font-size:11px;margin-bottom:2px}
@@ -234,6 +235,12 @@ details.adv[open] summary::after{content:"▴"}
 details.adv[open]>*:not(summary){margin-top:12px}
 .danger{color:#ff9db0}
 #clear,#install{grid-column:auto}
+/* ===== v25: conversas com exclusão ===== */
+.conv-row{display:flex;gap:8px;align-items:stretch}
+.conv-row .hist-item{flex:1;min-width:0}
+.conv-row .conv-del{width:48px;padding:0;flex:none;color:#ff9db0;font-size:16px}
+.conv-row.cur .hist-item{outline:2px solid #8f70ff}
+.hist-head .hh button[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -241,7 +248,7 @@ details.adv[open]>*:not(summary){margin-top:12px}
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 24</small>
+    <small>Seu assistente pessoal · versão 25</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -257,10 +264,10 @@ details.adv[open]>*:not(summary){margin-top:12px}
 
     <div class="sec first">Conversa</div>
     <div class="menu-actions">
-      <button id="histBtn" data-ic="history">Histórico</button>
+      <button id="histBtn" data-ic="history">Conversas</button>
       <button id="exportBtn" data-ic="download">Exportar</button>
       <button id="speak" data-ic="volume">Ler resposta</button>
-      <button id="clear" class="danger" data-ic="trash">Nova conversa</button>
+      <button id="clear" data-ic="plus">Nova conversa</button>
     </div>
 
     <div class="sec">Inteligência</div>
@@ -272,7 +279,7 @@ details.adv[open]>*:not(summary){margin-top:12px}
         <option value="chat3">Modelo Inteligente</option>
         <option value="code3">Código · Forte</option>
       </select>
-      <small class="hint">Os maiores respondem melhor, mas demoram mais.</small>
+      <small class="hint">Os maiores respondem melhor, mas demoram mais. Para código, use um dos modelos "Código".</small>
     </label>
     <label>Tamanho da resposta
       <select id="setTokens">
@@ -342,7 +349,7 @@ details.adv[open]>*:not(summary){margin-top:12px}
 
 <div id="hist" class="hist" hidden>
   <div class="hist-box">
-    <div class="hist-head"><span id="histTitle">Histórico</span><button id="histClose">Fechar</button></div>
+    <div class="hist-head"><span id="histTitle">Conversas</span><span class="hh"><button id="histAll" class="danger">Apagar tudo</button><button id="histClose">Fechar</button></span></div>
     <div id="histList" class="hist-list"></div>
   </div>
 </div>
@@ -382,7 +389,7 @@ details.adv[open]>*:not(summary){margin-top:12px}
       </div>
       <button id="voiceBtn" data-ic="phone" title="Conversar por voz"><span>Conversar</span></button>
       <input id="photoInput" type="file" accept="image/*,video/*" multiple hidden>
-      <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.pdf,text/*,application/pdf,application/json" hidden>
+      <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.pdf,.js,.mjs,.jsx,.ts,.tsx,.py,.html,.htm,.css,.xml,.yml,.yaml,.log,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.sql,.sh,text/*,application/pdf,application/json" hidden>
     </div>
     <div class="row">
       <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
@@ -391,7 +398,7 @@ details.adv[open]>*:not(summary){margin-top:12px}
   </div>
   <div class="info">
     Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
-    A pesquisa e o clima precisam de internet. Textos e arquivos grandes são lidos por um leitor rápido que separa os trechos mais importantes.
+    A pesquisa e o clima precisam de internet. Códigos e textos grandes passam por 3 etapas: um analisador local (regras, sem IA) acha erros de sintaxe, um leitor rápido separa os trechos importantes com o número da linha, e a IA explica. No computador, você também pode arrastar o arquivo para a tela.
   </div>
 </main>
 
@@ -407,6 +414,12 @@ const input = $("prompt");
 // Três crases montadas por código (não se corrompem ao copiar/colar).
 const FENCE = String.fromCharCode(96).repeat(3);
 
+// Aparelho: iPhone/iPad (Safari mata páginas que usam muita memória), Android e computador.
+const UA = navigator.userAgent || "";
+const IS_IOS = /iphone|ipad|ipod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const IS_ANDROID = /android/i.test(UA);
+const LOW_MEM = IS_IOS || (typeof navigator.deviceMemory === "number" && navigator.deviceMemory <= 4);
+
 const MODELS = {
   fast: { name: "Modelo Rápido", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
   code: { name: "Código · Leve", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
@@ -416,11 +429,11 @@ const MODELS = {
 };
 
 // Se o iPhone travar, reduza N_CTX para 1024.
-// Limite de leitura em caracteres: piso de 9000, cresce com o contexto escolhido.
+// Limite de leitura em caracteres: piso de 1200, cresce com o contexto escolhido.
 const maxChars = () => Math.max(1200, Math.floor(((loadedCtx || settings.ctx) - settings.tokens - 500) * 2.6));
 
 const settings = Object.assign(
-  { ctx: 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true, custom: "" },
+  { ctx: LOW_MEM ? 2048 : 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true, custom: "" },
   (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
 );
 
@@ -430,7 +443,7 @@ function saveSettings() {
 }
 
 const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático e inteligente que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
-const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Diga a causa provável do problema, mostre o código corrigido em um bloco de três crases com o nome da linguagem e explique em poucas linhas como testar. Se faltar informação, peça o erro exato.";
+const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Regras: (1) use SOMENTE o código mostrado na mensagem; se algo não aparece nos trechos, diga \"não aparece nos trechos\" e NÃO invente; (2) as linhas aparecem como \"123| código\": cite sempre esse número real; (3) NUNCA reescreva o arquivo inteiro: mostre só o pequeno trecho a corrigir, em um bloco de três crases com o nome da linguagem; (4) diga a causa provável e como testar em poucas linhas; (5) se faltar informação, peça o erro exato.";
 
 const KNOWLEDGE = [
   { keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
@@ -469,7 +482,17 @@ const THREADS = self.crossOriginIsolated
 
 let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
 let history = [], lastAnswer = "";
+let convs = [], curId = "";
 let loadedCtx = 0, lastTokens = 0;
+
+// Mantém a tela do celular acesa enquanto a IA trabalha (o aparelho dormindo derruba a geração).
+let wake = null;
+async function keepAwake(on) {
+  try {
+    if (on) { if (!wake && navigator.wakeLock) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => { wake = null; }); } }
+    else if (wake) { const w = wake; wake = null; await w.release(); }
+  } catch (e) { wake = null; }
+}
 
 // ------------------------------ Interface
 
@@ -828,42 +851,294 @@ function showWelcome() {
   chat.appendChild(w);
 }
 
-// ------------------------------ Leitor rápido (programa secundário em Web Worker)
-// Lê o texto INTEIRO em milissegundos, sem usar a IA: divide em trechos, pontua cada um com BM25
-// (o mesmo método de buscadores) e entrega à IA só os trechos mais relevantes, na ordem original.
+// ------------------------------ Etapa 1: Analisador local de código (regras, sem IA)
+// Acha erros de verdade (chaves/parênteses sem par, erro de sintaxe, ids duplicados, ids que não existem,
+// declarações repetidas) e entrega à IA como "achados verificados". A IA só explica: não precisa adivinhar.
+
+const CODE_EXT = /\.(js|mjs|jsx|ts|tsx|py|html?|css|json|xml|ya?ml|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat)$/i;
+
+function makeLineAt(s) {
+  const st = [0];
+  for (let i = 0; i < s.length; i++) if (s.charCodeAt(i) === 10) st.push(i + 1);
+  return idx => {
+    let lo = 0, hi = st.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (st[mid] <= idx) lo = mid; else hi = mid - 1; }
+    return lo + 1;
+  };
+}
+
+function detectLang(src, name) {
+  const n = String(name || "").toLowerCase();
+  const head = src.slice(0, 4000);
+  if (/\.json$/.test(n)) return "json";
+  if (/\.(html?|xhtml)$/.test(n) || /^\s*<!doctype html|<html[\s>]/i.test(head)) return "html";
+  if (/\.py$/.test(n) || (/^\s*def\s+\w+\(.*\)\s*:\s*$/m.test(head) && !/[{};]\s*$/m.test(head))) return "python";
+  if (/\.(mjs|jsx|tsx?|js)$/.test(n) || /\b(function|const|let|var)\b[^\n]*[;{=]/.test(head) || /=>|document\./.test(head)) return "js";
+  if (/\.css$/.test(n)) return "css";
+  return "text";
+}
+
+// Confere (), [] e {} ignorando textos, comentários, regex e templates. Devolve a linha exata do problema.
+function scanBrackets(src, off) {
+  const issues = [], stack = [], pairs = { ")": "(", "]": "[", "}": "{" };
+  const n = src.length;
+  const REGEX_AFTER = new Set(["", "(", ",", "=", ":", "[", "!", "&", "|", "?", "{", "}", ";", "+", "-", "*", "%", "<", ">", "~", "^"]);
+  const KW = new Set(["return", "typeof", "case", "in", "of", "delete", "void", "throw", "new", "else", "do"]);
+  let i = 0, line = 1, prev = "", word = "";
+  const tpl = () => {
+    while (i < n) {
+      const c = src[i];
+      if (c === "\\") { if (src[i + 1] === "\n") line++; i += 2; continue; }
+      if (c === "\n") line++;
+      else if (c === "`") { i++; return false; }
+      else if (c === "$" && src[i + 1] === "{") { stack.push({ ch: "T", line }); i += 2; return true; }
+      i++;
+    }
+    return false;
+  };
+  while (i < n && issues.length < 6) {
+    const c = src[i];
+    if (c === "\n") { line++; i++; continue; }
+    if (c === " " || c === "\t" || c === "\r") { i++; continue; }
+    if (c === "/" && src[i + 1] === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+    if (c === "/" && src[i + 1] === "*") {
+      i += 2;
+      while (i < n && !(src[i] === "*" && src[i + 1] === "/")) { if (src[i] === "\n") line++; i++; }
+      i += 2; continue;
+    }
+    if (c === '"' || c === "'") {
+      i++;
+      while (i < n && src[i] !== c && src[i] !== "\n") { if (src[i] === "\\") { if (src[i + 1] === "\n") line++; i++; } i++; }
+      i++; prev = "a"; word = ""; continue;
+    }
+    if (c === "`") { i++; tpl(); prev = "a"; word = ""; continue; }
+    if (/[A-Za-z_$]/.test(c)) {
+      let j = i;
+      while (j < n && /[\w$]/.test(src[j])) j++;
+      word = src.slice(i, j); i = j; prev = "a"; continue;
+    }
+    if (c >= "0" && c <= "9") { while (i < n && /[\w.]/.test(src[i])) i++; prev = "a"; word = ""; continue; }
+    if (c === "/") {
+      if (REGEX_AFTER.has(prev) || (prev === "a" && KW.has(word))) {
+        i++;
+        let cls = false;
+        while (i < n && src[i] !== "\n") {
+          const d = src[i];
+          if (d === "\\") { i += 2; continue; }
+          if (d === "[") cls = true; else if (d === "]") cls = false; else if (d === "/" && !cls) break;
+          i++;
+        }
+        i++;
+        while (i < n && /[a-z]/i.test(src[i])) i++;
+        prev = "a"; word = ""; continue;
+      }
+      prev = "/"; word = ""; i++; continue;
+    }
+    if (c === "(" || c === "[" || c === "{") { stack.push({ ch: c, line }); prev = c; word = ""; i++; continue; }
+    if (c === ")" || c === "]" || c === "}") {
+      const top = stack[stack.length - 1];
+      if (c === "}" && top && top.ch === "T") { stack.pop(); i++; tpl(); prev = "a"; word = ""; continue; }
+      if (!top || top.ch !== pairs[c]) {
+        issues.push({ line: line + off, msg: "'" + c + "' sem abertura correspondente" + (top && top.ch !== "T" ? " (esperava fechar o '" + top.ch + "' aberto na linha " + (top.line + off) + ")" : "") });
+        if (top) stack.pop();
+      } else stack.pop();
+      prev = c; word = ""; i++; continue;
+    }
+    prev = c; word = ""; i++;
+  }
+  stack.forEach(s => { if (issues.length < 6 && s.ch !== "T") issues.push({ line: s.line + off, msg: "'" + s.ch + "' aberto aqui e nunca fechado" }); });
+  return issues;
+}
+
+function analyzeCode(text, name) {
+  const t0 = performance.now();
+  const src = String(text).replace(/\r/g, "");
+  const total = src.split("\n").length;
+  const lang = detectLang(src, name);
+  const lineAt = makeLineAt(src);
+  const F = [];
+  const add = (sev, line, msg) => { if (F.length < 80) F.push({ sev, line: line || 0, msg }); };
+  const firstLine = s => { const k = src.indexOf(s); return k < 0 ? 0 : lineAt(k); };
+  const parts = [];
+
+  if (lang === "html") {
+    const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+    let m;
+    while ((m = re.exec(src))) {
+      if (/\bsrc\s*=/.test(m[1])) continue;
+      if (/type\s*=\s*["']?(application\/(ld\+)?json|text\/template|importmap)/i.test(m[1])) continue;
+      const bodyStart = m.index + m[0].indexOf(">") + 1;
+      parts.push({ code: m[2], off: lineAt(bodyStart) - 1, module: /type\s*=\s*["']?module/i.test(m[1]) });
+    }
+    try {
+      const doc = new DOMParser().parseFromString(src, "text/html");
+      const seen = Object.create(null);
+      doc.querySelectorAll("[id]").forEach(el => { seen[el.id] = (seen[el.id] || 0) + 1; });
+      Object.keys(seen).forEach(id => { if (seen[id] > 1) add("erro", firstLine('id="' + id + '"'), "id duplicado: '" + id + "' aparece " + seen[id] + " vezes (o JavaScript só enxerga o primeiro)"); });
+      const hasHelper = /(?:const|let|var)\s+\$\s*=/.test(src);
+      const rr = hasHelper ? /(?:\$|getElementById)\(\s*["']([\w-]+)["']\s*\)/g : /getElementById\(\s*["']([\w-]+)["']\s*\)/g;
+      const refs = Object.create(null);
+      let r;
+      while ((r = rr.exec(src))) if (!(r[1] in refs)) refs[r[1]] = lineAt(r.index);
+      Object.keys(refs).forEach(id => {
+        if (seen[id]) return;
+        if (src.indexOf('id="' + id + '"') >= 0 || src.indexOf("id='" + id + "'") >= 0 || src.indexOf('.id = "' + id) >= 0) return;
+        add("aviso", refs[id], "o JavaScript busca o id '" + id + "' mas nenhum elemento tem esse id (dá erro 'null')");
+      });
+      if (!doc.querySelector('meta[name="viewport"]')) add("aviso", 0, "falta <meta name=\"viewport\"> (a página fica minúscula no celular)");
+      const files = new Set();
+      const fr = /(?:href|src)\s*=\s*["']([^"'#:?]+\.[a-z0-9]{2,5})["']/gi;
+      let f;
+      while ((f = fr.exec(src))) files.add(f[1]);
+      const sw = /register\(\s*["']([^"']+)["']/g;
+      while ((f = sw.exec(src))) files.add(f[1]);
+      if (files.size) add("info", 0, "arquivos que precisam estar publicados junto: " + [...files].slice(0, 8).join(", "));
+    } catch (e) { /* DOMParser indisponível */ }
+  } else if (lang === "js") {
+    parts.push({ code: src, off: 0, module: true });
+  } else if (lang === "json") {
+    try { JSON.parse(src); } catch (e) {
+      const mm = String(e.message).match(/position (\d+)/);
+      add("erro", mm ? lineAt(+mm[1]) : 0, "JSON inválido: " + String(e.message).slice(0, 100));
+    }
+  } else if (lang === "python") {
+    const ls = src.split("\n");
+    let tabs = 0, spaces = 0;
+    ls.forEach((l, k) => {
+      if (/^\t/.test(l)) tabs++; else if (/^ +\S/.test(l)) spaces++;
+      const kw = l.match(/^\s*(if|elif|else|for|while|def|class|try|except|finally|with)\b([^#\n]*?)\s*(#.*)?$/);
+      if (kw && !/:\s*$/.test(kw[0].replace(/\s*#.*$/, "")) && (l.split("(").length === l.split(")").length) && !/[\\,]\s*$/.test(l) && !/^\s*(else|try|finally)\s*$/.test(l)) {
+        add("aviso", k + 1, "possível falta de ':' no fim desta linha");
+      } else if (/^\s*(else|try|finally)\s*$/.test(l)) add("aviso", k + 1, "falta o ':' depois de '" + l.trim() + "'");
+    });
+    if (tabs && spaces) add("erro", 0, "o arquivo mistura TAB e espaços na indentação (causa IndentationError)");
+  }
+
+  const AsyncFn = Object.getPrototypeOf(async function () {}).constructor;
+  parts.forEach(p => {
+    scanBrackets(p.code, p.off).forEach(x => add("erro", x.line, x.msg));
+    let code = p.code;
+    if (p.module) {
+      code = code.replace(/^[ \t]*import\s+(?:[\w*${},\s]+?\s+from\s+)?["'][^"'\n]+["'][ \t]*;?/gm, s => s.replace(/[^\n]/g, ""))
+                 .replace(/^([ \t]*)export\s+(default\s+)?/gm, "$1");
+    }
+    try { new AsyncFn(code); }
+    catch (e) { add("erro", 0, "erro de sintaxe do JavaScript: " + String((e && e.message) || e).slice(0, 110) + " (a linha exata costuma estar nos itens acima)"); }
+
+    const pl = makeLineAt(p.code);
+    const dre = /^(?:async\s+)?function\s*\*?\s*([\w$]+)|^(?:const|let|class)\s+([\w$]+)/gm;
+    const seenFn = Object.create(null), seenVar = Object.create(null);
+    let d;
+    while ((d = dre.exec(p.code))) {
+      const ln = pl(d.index) + p.off;
+      if (d[1]) { if (seenFn[d[1]]) add("aviso", ln, "função '" + d[1] + "' declarada de novo (a primeira, na linha " + seenFn[d[1]] + ", é ignorada)"); else seenFn[d[1]] = ln; }
+      else if (d[2]) { if (seenVar[d[2]]) add("erro", ln, "'" + d[2] + "' já foi declarado na linha " + seenVar[d[2]] + " (SyntaxError: has already been declared)"); else seenVar[d[2]] = ln; }
+    }
+    const warn = (re, msg) => { const x = re.exec(p.code); if (x) add("aviso", pl(x.index) + p.off, msg); };
+    warn(/\beval\s*\(/, "usa eval, que é perigoso e lento");
+    warn(/\bdocument\.write\s*\(/, "usa document.write, que é ruim para a página");
+    warn(/^\s*debugger\s*;?/m, "esqueceu um 'debugger;' no código");
+    const inner = (p.code.match(/\.innerHTML\s*=/g) || []).length;
+    if (inner) add("info", 0, "usa innerHTML " + inner + "x: confira se nunca entra texto digitado pelo usuário (risco de XSS)");
+  });
+
+  const todos = (src.match(/\b(TODO|FIXME|XXX)\b/g) || []).length;
+  if (todos) add("info", 0, todos + " marcações TODO/FIXME no código");
+  const longest = src.split("\n").reduce((a, l) => Math.max(a, l.length), 0);
+  if (longest > 3000) add("info", 0, "tem linha com " + longest.toLocaleString("pt-BR") + " caracteres (código minificado?)");
+
+  const order = { erro: 0, aviso: 1, info: 2 };
+  F.sort((a, b) => order[a.sev] - order[b.sev] || a.line - b.line);
+  const counts = { erro: 0, aviso: 0, info: 0 };
+  F.forEach(x => counts[x.sev]++);
+  const icon = { erro: "❌", aviso: "⚠️", info: "ℹ️" };
+  const fmt = x => icon[x.sev] + " " + (x.line ? "linha " + x.line : "geral") + ": " + x.msg;
+  const report = "🔎 Análise local (sem IA) · " + (name || "código") + " · " + total.toLocaleString("pt-BR") + " linhas · tipo " + lang + "\n" +
+    (F.length ? F.slice(0, 25).map(fmt).join("\n") + (F.length > 25 ? "\n… e mais " + (F.length - 25) + " itens" : "")
+              : "✅ Não achei erro de sintaxe, id duplicado nem chave/parêntese sem par.") +
+    "\n\nEssa checagem é feita por regras, não pela IA: o que aparece aqui é confiável. Erros de lógica dependem da IA e precisam ser conferidos.";
+  const real = F.filter(x => x.sev !== "info");
+  const promptText = real.length
+    ? real.slice(0, 12).map(x => "- " + (x.line ? "linha " + x.line : "geral") + ": " + x.msg).join("\n").slice(0, 900)
+    : "Nenhum erro de sintaxe, id duplicado ou chave sem par foi encontrado pelo analisador local.";
+  return { lang, lines: total, counts, report, promptText, ms: Math.round(performance.now() - t0) };
+}
+
+// ------------------------------ Etapa 3: Verificador (confere a resposta da IA contra o arquivo real)
+function codeCheckNote(answer, source, totalLines) {
+  const parts = String(answer).split(FENCE);
+  const prose = parts.filter((_, i) => i % 2 === 0).join(" ");
+  const blocks = parts.filter((_, i) => i % 2 === 1);
+  const problems = [];
+
+  const big = blocks.find(b => b.split("\n").length > 80);
+  if (big && totalLines > 300) problems.push("a IA tentou reescrever um bloco enorme do arquivo: ignore e use só os trechos e linhas apontados");
+
+  const missing = [];
+  const ids = new Set((prose.match(/`([^`\n]{3,60})`/g) || []).map(t => t.slice(1, -1).trim()));
+  ids.forEach(id => {
+    if (!/^[A-Za-z_$][\w$.]*(\(\))?$/.test(id)) return;
+    const core = id.replace(/\(\)$/, "");
+    if (!(source.includes(core) || source.includes(core.split(".").pop()))) missing.push(id);
+  });
+  if (missing.length) problems.push("não achei no arquivo: " + missing.slice(0, 5).join(", ") + " (podem ser nomes inventados ou código novo sugerido)");
+
+  const badLines = [];
+  (prose.match(/\blinhas?\s+\d{1,7}/gi) || []).forEach(m => { const n = +m.match(/\d+/)[0]; if (n < 1 || n > totalLines) badLines.push(n); });
+  if (badLines.length) problems.push("linha(s) que não existem (o arquivo tem " + totalLines + "): " + [...new Set(badLines)].slice(0, 5).join(", "));
+
+  if (problems.length) return "⚠️ Verificação automática: " + problems.join(" · ") + ". Desconfie dessas partes.";
+  if (ids.size || /\blinhas?\s+\d/i.test(prose)) return "✅ Verificação automática: os nomes e linhas citados existem no arquivo.";
+  return "";
+}
+
+// ------------------------------ Etapa 2: Leitor rápido (programa secundário em Web Worker)
+// Lê o texto INTEIRO em milissegundos, sem usar a IA: divide em trechos nas fronteiras de função/classe
+// (como o chunking por AST, só que leve), pontua cada um com BM25 (o mesmo método de buscadores) e entrega à IA
+// só os trechos mais relevantes, na ordem original e com o número da linha de cada linha.
 // Função pura: roda tanto no Worker quanto na página (se o Worker não estiver disponível).
 function rankChunks(p) {
   var t0 = performance.now();
   var text = String(p.text || ""), query = String(p.query || "");
   var budget = Math.max(600, p.budget | 0);
+  var numbered = !!p.numbered;
   var norm = function (s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
   var STOP = Object.create(null);
   "para como que com uma por dos das nos nas isso esse essa este esta sobre qual quais faz fazer explique resuma resumo arquivo texto codigo conteudo aponte erros provaveis trecho corrigido the and what this".split(" ").forEach(function (w) { STOP[w] = 1; });
   var words = function (s) { return norm(s).replace(/[^a-z0-9_$]+/g, " ").split(" ").filter(function (w) { return w.length > 2 && !STOP[w]; }); };
+  var FN = /^\s*(export\s+)?(async\s+)?(function\*?|class|def|interface)\s+[\w$]|^\s*(const|let)\s+[\w$]+\s*=\s*(async\s*)?(\(|function)/;
 
   var lines = text.split("\n"), segs = [];
   for (var i = 0; i < lines.length; i++) {
-    var ln = lines[i];
+    var ln = lines[i], first = true;
     while (ln.length > 500) {
       var cut = ln.lastIndexOf(". ", 400);
       if (cut < 120) cut = ln.lastIndexOf(" ", 400);
       if (cut < 120) cut = 400;
-      segs.push([i, ln.slice(0, cut + 1)]);
+      segs.push([i, ln.slice(0, cut + 1), first]);
+      first = false;
       ln = ln.slice(cut + 1);
     }
-    segs.push([i, ln]);
+    segs.push([i, ln, first]);
   }
 
-  var chunks = [], cur = [], len = 0, a = 0;
+  var chunks = [], cur = [], curN = [], len = 0, a = 0;
   var flush = function (lastLine) {
-    if (cur.length) { var t = cur.join("\n"); if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t }); }
-    cur = []; len = 0;
+    if (cur.length) {
+      var t = cur.join("\n");
+      if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t, ntext: curN.join("\n") });
+    }
+    cur = []; curN = []; len = 0;
   };
   for (var s = 0; s < segs.length; s++) {
-    if (!cur.length) a = segs[s][0];
-    cur.push(segs[s][1]); len += segs[s][1].length + 1;
-    var blank = !segs[s][1].trim();
-    if (len >= 450 || (blank && len >= 200)) flush(segs[s][0]);
+    var sg = segs[s];
+    if (s > 0 && cur.length && len >= 150 && FN.test(sg[1])) flush(segs[s - 1][0]);
+    if (!cur.length) a = sg[0];
+    cur.push(sg[1]);
+    curN.push((sg[2] ? (sg[0] + 1) + "| " : "   | ") + sg[1]);
+    len += sg[1].length + 1;
+    var blank = !sg[1].trim();
+    if (len >= 450 || (blank && len >= 200)) flush(sg[0]);
   }
   flush(segs.length ? segs[segs.length - 1][0] : 0);
 
@@ -903,7 +1178,7 @@ function rankChunks(p) {
   var picked = Object.create(null), used = 0, count = 0;
   var add = function (i) {
     if (i < 0 || i >= N || picked[i]) return;
-    var l = chunks[i].text.length + 42;
+    var l = (numbered ? chunks[i].ntext.length : chunks[i].text.length) + 42;
     if (used + l > budget) return;
     picked[i] = 1; used += l; count++;
   };
@@ -932,14 +1207,15 @@ function rankChunks(p) {
       if (n !== prev + 1) out += "\n[… trecho omitido: linhas " + (chunks[prev].b + 1) + "–" + (chunks[n].a - 1) + " …]\n";
       else out += "\n";
     }
-    out += chunks[n].text;
+    out += numbered ? chunks[n].ntext : chunks[n].text;
     usedChars += chunks[n].text.length;
     prev = n;
   }
 
   var outline = [];
+  var OUT = /^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+|^\s*(const|let)\s+[\w$]+\s*=\s*(async\s*)?(\(|function)|^#{1,3}\s+\S/;
   for (var o = 0; o < lines.length && outline.length < 24; o++) {
-    if (/^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+/.test(lines[o]) || /^#{1,3}\s+\S/.test(lines[o])) outline.push(lines[o].trim().slice(0, 70));
+    if (OUT.test(lines[o])) outline.push("L" + (o + 1) + " " + lines[o].trim().slice(0, 60));
   }
 
   return {
@@ -967,9 +1243,9 @@ function getReaderWorker() {
   return rworker || null;
 }
 
-function fastRead(text, query, budget) {
+function fastRead(text, query, budget, numbered) {
   return new Promise(resolve => {
-    const payload = { text, query, budget };
+    const payload = { text, query, budget, numbered: !!numbered };
     const w = getReaderWorker();
     if (!w) { resolve(rankChunks(payload)); return; }
     const id = ++rid;
@@ -979,9 +1255,10 @@ function fastRead(text, query, budget) {
   });
 }
 
-// ------------------------------ Histórico
+// ------------------------------ Conversas (várias conversas salvas, cada uma pode ser apagada)
 
 const MAX_QUESTIONS = 34;
+const MAX_CONVS = 30;
 
 function trimQuestions(list) {
   let count = list.filter(m => m.role === "user").length;
@@ -994,24 +1271,115 @@ function trimQuestions(list) {
   return list.slice(i);
 }
 
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const titleOf = msgs => {
+  const u = msgs.find(m => m.role === "user");
+  return u ? String(u.content).replace(/\s+/g, " ").trim().slice(0, 60) : "Conversa";
+};
+
+function persistConvs() {
+  convs = convs.filter(c => c.msgs.length).slice(0, MAX_CONVS);
+  for (let tries = 0; tries < 6; tries++) {
+    try {
+      localStorage.setItem("rizik_convs", JSON.stringify(convs));
+      localStorage.setItem("rizik_cur", curId);
+      return;
+    } catch (err) {
+      // Sem espaço: descarta a conversa mais antiga (que não seja a atual) e tenta de novo.
+      const k = convs.length - 1;
+      if (k <= 0) break;
+      const victim = convs[k].id === curId ? k - 1 : k;
+      convs.splice(victim, 1);
+    }
+  }
+  console.warn("Não consegui salvar as conversas.");
+}
+
 function saveHistory() {
   history = trimQuestions(history);
-  try { localStorage.setItem("rizik_history", JSON.stringify(history)); }
-  catch (err) { console.warn("Erro ao salvar histórico:", err); }
+  if (!history.length && !curId) return;
+  if (!curId) curId = newId();
+  let c = convs.find(x => x.id === curId);
+  if (!c) { c = { id: curId, t: Date.now(), title: "", msgs: history }; convs.unshift(c); }
+  c.msgs = history;
+  c.t = Date.now();
+  c.title = titleOf(history);
+  convs = [c, ...convs.filter(x => x !== c)];
+  persistConvs();
+}
+
+function loadConvs() {
+  try {
+    const c = JSON.parse(localStorage.getItem("rizik_convs") || "null");
+    if (Array.isArray(c)) {
+      convs = c.filter(x => x && x.id && Array.isArray(x.msgs)).map(x => ({
+        id: String(x.id), t: x.t || Date.now(), title: x.title || "",
+        msgs: x.msgs.filter(m => m && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
+      }));
+    }
+  } catch (e) { convs = []; }
+  try { curId = localStorage.getItem("rizik_cur") || ""; } catch (e) { curId = ""; }
+  if (!convs.length) {
+    // Migra o histórico antigo (versões até a 24) para a primeira conversa.
+    try {
+      const old = JSON.parse(localStorage.getItem("rizik_history") || "[]");
+      const msgs = Array.isArray(old) ? old.filter(m => m && ["user", "assistant"].includes(m.role) && typeof m.content === "string") : [];
+      if (msgs.length) { curId = newId(); convs = [{ id: curId, t: Date.now(), title: titleOf(msgs), msgs }]; persistConvs(); }
+      localStorage.removeItem("rizik_history");
+    } catch (e) {}
+  }
+  if (!convs.find(c => c.id === curId)) curId = convs.length ? convs[0].id : "";
+}
+
+function renderHistory() {
+  chat.textContent = "";
+  history.forEach(m => {
+    addMessage(m.role, m.content, m.t);
+    if (m.role === "assistant") addActions(m.content);
+  });
 }
 
 function restoreHistory() {
   try {
-    const saved = JSON.parse(localStorage.getItem("rizik_history") || "[]");
-    history = Array.isArray(saved)
-      ? saved.filter(m => m && ["user", "assistant"].includes(m.role) && typeof m.content === "string")
-      : [];
-    history = trimQuestions(history);
-    history.forEach(m => {
-      addMessage(m.role, m.content, m.t);
-      if (m.role === "assistant") addActions(m.content);
-    });
+    loadConvs();
+    const c = convs.find(x => x.id === curId);
+    history = c ? trimQuestions(c.msgs) : [];
+    renderHistory();
   } catch (err) { history = []; }
+}
+
+function newConversation() {
+  curId = "";
+  history = [];
+  lastAnswer = "";
+  chat.textContent = "";
+  try { localStorage.setItem("rizik_cur", ""); } catch (e) {}
+  showWelcome();
+  window.scrollTo(0, 0);
+}
+
+function openConv(id) {
+  const c = convs.find(x => x.id === id);
+  if (!c) return;
+  curId = id;
+  history = trimQuestions(c.msgs);
+  lastAnswer = "";
+  renderHistory();
+  try { localStorage.setItem("rizik_cur", curId); } catch (e) {}
+  if (!history.length) showWelcome();
+}
+
+function deleteConv(id) {
+  convs = convs.filter(c => c.id !== id);
+  if (id === curId) newConversation();
+  persistConvs();
+}
+
+function deleteAllConvs() {
+  convs = [];
+  newConversation();
+  persistConvs();
+  try { localStorage.removeItem("rizik_convs"); localStorage.removeItem("rizik_history"); } catch (e) {}
 }
 
 function limitText(text, maxChars) {
@@ -1189,6 +1557,7 @@ async function generate(text, extraContext = "", opts = {}) {
   busy = true;
   cancelRequested = false;
   updateButtons();
+  keepAwake(true);
 
   const shown = opts.shown || text;
   let act = opts.act || null;
@@ -1232,10 +1601,13 @@ async function generate(text, extraContext = "", opts = {}) {
     const startAt = performance.now();
     let tokenCount = 0, firstTokenAt = 0, lastPaint = 0;
 
+    // Código pede resposta mais "fria": menos criatividade, menos invenção.
+    const temp = (opts.verify || (!extraContext && looksLikeCode(text))) ? Math.min(settings.temp, 0.2) : settings.temp;
+
     const stream = await currentEngine.createChatCompletion({
       messages,
       max_tokens: fit.maxNew,
-      temperature: settings.temp,
+      temperature: temp,
       top_p: 0.9,
       stream: true
     });
@@ -1292,6 +1664,14 @@ async function generate(text, extraContext = "", opts = {}) {
       }
     }
 
+    if (opts.verify && !cancelRequested) {
+      const vn = codeCheckNote(answer, opts.verify.source, opts.verify.lines);
+      if (vn) {
+        const vBox = addMessage("system", vn);
+        vBox.style.alignSelf = "flex-start";
+      }
+    }
+
     addActions(answer, (!extraContext && !opts.shown) ? text : null);
 
     history.push({ role: "assistant", content: limitText(answer, 9000), t: Date.now() });
@@ -1305,7 +1685,7 @@ async function generate(text, extraContext = "", opts = {}) {
     if (isEngineCrash(err)) {
       sayStatus("O motor travou. Preparando recuperação...");
       await destroyAI();
-      text2 = "O motor da IA travou durante a geração.\n\nA instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente.";
+      text2 = "O motor da IA travou durante a geração.\n\nA instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente." + (IS_IOS ? "\n\nNo iPhone, a memória é curta: use o Modelo Rápido e a leitura Normal." : "");
     } else if (/exceeds the available context|context size|n_ctx/i.test(String(err?.message || err))) {
       text2 = "O texto não coube na memória da IA. Abra ⋮ › Inteligência › Tamanho da leitura e escolha Grande ou Máximo, ou envie um trecho menor.";
     } else {
@@ -1320,6 +1700,7 @@ async function generate(text, extraContext = "", opts = {}) {
     if (act) act.finish();
     cancelRequested = false;
     busy = false;
+    keepAwake(false);
     updateButtons();
     sayStatus(ready ? "Rizik está pronto." : "Motor aguardando reinicialização.");
   }
@@ -1508,7 +1889,12 @@ function updateMeter() {
 }
 
 $("setCtx").addEventListener("change", e => {
-  settings.ctx = Number(e.target.value);
+  const value = Number(e.target.value);
+  if (value >= 8192 && LOW_MEM && !confirm("Este aparelho tem pouca memória: o modo Máximo pode fechar a página sozinho. Continuar mesmo assim?")) {
+    e.target.value = String(settings.ctx);
+    return;
+  }
+  settings.ctx = value;
   saveSettings();
   updateMeter();
   if (ai || ready) { addMessage("system", "Aplicando o novo tamanho de leitura..."); restartAI(); }
@@ -1545,52 +1931,64 @@ $("setModel").addEventListener("change", e => {
   }
 });
 
+// "Nova conversa" não apaga nada: a conversa atual fica salva em ⋮ › Conversas (de lá você pode apagar).
 $("clear").addEventListener("click", () => {
   closeMenu();
-  if (!confirm("Apagar toda a conversa?")) return;
-  history = [];
-  chat.innerHTML = "";
-  lastAnswer = "";
-  saveHistory();
-  showWelcome();
+  if (busy || resetting || searching) { sayStatus("Espere a resposta terminar para começar outra conversa."); return; }
+  newConversation();
 });
 
-// ----- Histórico de perguntas
+// ----- Lista de conversas (abrir e apagar)
 
 const histPanel = $("hist");
 
 function openHistory() {
   closeMenu();
-  const questions = history.filter(m => m.role === "user").reverse();
   const list = $("histList");
   list.textContent = "";
-  $("histTitle").textContent = "Histórico · " + questions.length + " de " + MAX_QUESTIONS + " perguntas";
+  const items = convs.filter(c => c.msgs.length);
+  $("histTitle").textContent = "Conversas · " + items.length;
+  $("histAll").hidden = !items.length;
 
-  if (!questions.length) {
+  if (!items.length) {
     const empty = document.createElement("div");
     empty.className = "hist-item";
-    empty.textContent = "Nenhuma pergunta ainda.";
+    empty.textContent = "Nenhuma conversa salva ainda.";
     list.appendChild(empty);
   }
 
-  questions.forEach(q => {
+  items.forEach(c => {
+    const row = document.createElement("div");
+    row.className = "conv-row" + (c.id === curId ? " cur" : "");
+
     const item = document.createElement("button");
     item.className = "hist-item";
     const time = document.createElement("small");
-    time.textContent = q.t
-      ? new Date(q.t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
-      : "";
+    const asks = c.msgs.filter(m => m.role === "user").length;
+    time.textContent = new Date(c.t).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) +
+      " · " + asks + (asks === 1 ? " pergunta" : " perguntas") + (c.id === curId ? " · atual" : "");
     const text = document.createElement("span");
-    text.textContent = limitText(q.content, 140);
+    text.textContent = c.title || titleOf(c.msgs);
     item.append(time, text);
-
     item.addEventListener("click", () => {
-      input.value = q.content;
-      input.dispatchEvent(new Event("input"));
+      if (busy || resetting || searching) { sayStatus("Espere a resposta terminar para trocar de conversa."); return; }
+      openConv(c.id);
       histPanel.hidden = true;
-      input.focus();
     });
-    list.appendChild(item);
+
+    const del = document.createElement("button");
+    del.className = "conv-del";
+    del.textContent = "🗑";
+    del.setAttribute("aria-label", "Apagar esta conversa");
+    del.addEventListener("click", () => {
+      if (busy && c.id === curId) { sayStatus("Espere a resposta terminar para apagar esta conversa."); return; }
+      if (!confirm("Apagar esta conversa? Não dá para desfazer.")) return;
+      deleteConv(c.id);
+      openHistory();
+    });
+
+    row.append(item, del);
+    list.appendChild(row);
   });
 
   histPanel.hidden = false;
@@ -1598,6 +1996,12 @@ function openHistory() {
 
 $("histBtn").addEventListener("click", openHistory);
 $("histClose").addEventListener("click", () => { histPanel.hidden = true; });
+$("histAll").addEventListener("click", () => {
+  if (busy) { sayStatus("Espere a resposta terminar para apagar as conversas."); return; }
+  if (!confirm("Apagar TODAS as conversas? Não dá para desfazer.")) return;
+  deleteAllConvs();
+  histPanel.hidden = true;
+});
 histPanel.addEventListener("click", e => { if (e.target === histPanel) histPanel.hidden = true; });
 
 $("setCustom").addEventListener("change", e => { settings.custom = e.target.value.trim().slice(0, 400); saveSettings(); });
@@ -1665,1011 +2069,3 @@ const norm = t => String(t).toLowerCase().normalize("NFD").replace(/[\u0300-\u03
 const STOP = new Set(("sobre como qual quais quem quando onde porque isso esse essa este esta aquilo mande manda envie " +
   "pesquise pesquisar pesquisa procure busque internet web site google favor pode poderia preciso quero gostaria " +
   "explique explica fale diga mostre uma uns umas para com sem por mais muito pouco meu minha seu sua dos das nos nas pra pro aos").split(" "));
-
-function keywords(text) {
-  return norm(text).replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 2 && !STOP.has(w));
-}
-
-function cleanQuery(text) {
-  return String(text).split(/\s+/)
-    .map(w => w.replace(/[?!.,;:"()]/g, ""))
-    .filter(w => w.length > 2 && !STOP.has(norm(w)))
-    .join(" ");
-}
-
-const UNSURE = /não sei|não tenho (acesso|informa)|não consigo (acessar|pesquisar|saber)|não encontrei|não posso (ajudar|prever|acessar)|desculpe/i;
-
-function needsWeb(text) {
-  if (text.length > 160 || looksLikeCode(text)) return false;
-  return /(^|\s)(quem (é|foi|ganhou|venceu)|quando (foi|será|vai)|onde fica|quanto (custa|vale)|qual (é )?(a |o )?(capital|população|cotação|preço|data|resultado|placar)|notícias?|últim[oa]s?|atualmente|20[2-3]\d|presidente|cotação|preço|placar|lançamento|significado de|definição de)(\s|$|\?)/i.test(text);
-}
-
-const JOKES = [
-  "Por que o livro de matemática ficou triste? Porque tinha muitos problemas.",
-  "O que o zero disse para o oito? Belo cinto!",
-  "Por que o computador foi ao médico? Estava com vírus.",
-  "O que a chuva pediu para o céu? Ser mais azul!",
-  "Qual é o café mais perigoso? O ex-presso."
-];
-
-function quickReply(text) {
-  if (/piada/.test(norm(text)) && text.length < 40) return JOKES[Math.floor(Math.random() * JOKES.length)];
-
-  const t = text.trim().toLowerCase().replace(/[!?.,\s]+$/g, "");
-  if (/^(oi+|ol[aá]|opa|e a[ií]|hey|hello)$/.test(t)) return "Olá! Como posso ajudar você hoje?";
-  if (t === "bom dia") return "Bom dia! Em que posso ajudar?";
-  if (t === "boa tarde") return "Boa tarde! Em que posso ajudar?";
-  if (t === "boa noite") return "Boa noite! Em que posso ajudar?";
-  if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
-  if (/^(tudo bem|tudo certo|como vai|como voc[eê] est[aá])$/.test(t)) return "Tudo ótimo por aqui! E com você? Em que posso ajudar?";
-  if (/^(quem [eé] voc[eê]|qual (é )?o seu nome|qual (é )?seu nome|o que voc[eê] faz)$/.test(t)) {
-    return "Eu sou o **Rizik AI**, um assistente que roda direto no seu aparelho.\n- Converso e respondo dúvidas\n- Pesquiso na internet\n- Leio textos, PDFs e códigos grandes\n- Mostro o clima\n- Ajudo a achar erros em programas";
-  }
-  if (/^(ajuda|o que voc[eê] sabe fazer|o que voc[eê] pode fazer|comandos)$/.test(t)) {
-    return "Posso te ajudar assim:\n- Digite uma pergunta e eu respondo\n- Toque em **+** para anexar arquivos, fotos ou pesquisar na internet\n- Toque em **Clima** para a previsão\n- Toque em **Conversar** para falar comigo por voz\n- Cole um texto ou código grande: eu leio tudo bem rápido";
-  }
-  if (/^(que horas s[aã]o|que horas|hora certa)$/.test(t)) return "Agora são " + fmtTime() + ".";
-  if (/^(que dia [eé] hoje|data de hoje|qual [eé] a data)$/.test(t)) {
-    return "Hoje é " + new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" }) + ".";
-  }
-
-  const expr = t.replace(/^(quanto [eé]|calcule|calcula)\s+/, "").replace(/(\d)\s*x\s*(\d)/g, "$1*$2").replace(/,/g, ".");
-  if (expr.length < 60 && /^[\d\s+\-*/().]+$/.test(expr) && /\d\s*[+\-*/]\s*[\d(]/.test(expr)) {
-    try {
-      const v = Function('"use strict";return (' + expr + ')')();
-      if (Number.isFinite(v)) return expr.trim() + " = " + v.toLocaleString("pt-BR", { maximumFractionDigits: 6 });
-    } catch (e) {}
-  }
-  return null;
-}
-
-function reviewNote(answer, context) {
-  const prose = String(answer).split(FENCE).map((p, i) => i % 2 ? " " : p).join(" ");
-  const words = [...new Set(keywords(prose))].filter(w => w.length > 4);
-  if (words.length < 6) return "";
-  const ctx = keywords(context).join(" ");
-  const hits = words.filter(w => ctx.includes(w)).length;
-  return hits / words.length < 0.3
-    ? "⚠️ Revisão: boa parte da resposta não aparece nas fontes. Confira antes de confiar."
-    : "✅ Revisão: a resposta tem apoio nas fontes consultadas.";
-}
-
-function cleanWebText(t) {
-  return String(t)
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/https?:\/\/\S+/g, " ")
-    .split("\n").map(l => l.trim()).filter(l => l.length > 30).join("\n");
-}
-
-async function searchWikipedia(query, words) {
-  const url = "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
-    "&gsrsearch=" + encodeURIComponent(query) +
-    "&gsrlimit=4&prop=extracts&exintro=1&explaintext=1&exchars=1100&format=json&origin=*";
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Wikipedia respondeu HTTP " + response.status);
-
-  const data = await response.json();
-  const pages = Object.values((data && data.query && data.query.pages) || {});
-  if (!pages.length) throw new Error("Sem resultados na Wikipedia.");
-
-  const scored = pages.filter(pg => pg.extract).map(pg => {
-    const hay = keywords((pg.title || "") + " " + pg.extract);
-    const hits = words.filter(w => hay.includes(w)).length;
-    return { pg, score: words.length ? hits / words.length : 0 };
-  }).sort((a, b) => b.score - a.score);
-
-  const best = scored[0];
-  if (!best || best.score < 0.75) throw new Error("A Wikipedia não tem nada claro sobre isso.");
-
-  const title = best.pg.title;
-  return {
-    title,
-    url: "https://pt.wikipedia.org/wiki/" + encodeURIComponent(title.replace(/ /g, "_")),
-    text: "Wikipedia: " + title + "\n" + best.pg.extract
-  };
-}
-
-async function searchStack(query) {
-  const url = "https://api.stackexchange.com/2.3/search/excerpts?order=desc&sort=relevance&pagesize=3&site=stackoverflow&q=" + encodeURIComponent(query);
-  const data = JSON.parse(await fetchTextWithTimeout(url, 10000));
-  const items = (data && data.items) || [];
-  if (!items.length) throw new Error("Sem resultados no Stack Overflow.");
-  const plain = html => new DOMParser().parseFromString(html || "", "text/html").documentElement.textContent;
-  const text = items.map(i => plain(i.title) + ": " + plain(i.excerpt)).join("\n").slice(0, 900);
-  return { text: "Stack Overflow:\n" + text };
-}
-
-async function searchDuck(query) {
-  const raw = await fetchTextWithTimeout("https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), 20000);
-  const cleaned = cleanWebText(raw);
-  if (cleaned.length < 100) throw new Error("Pesquisa sem resultados suficientes.");
-  // O leitor rápido varre a página toda e separa só os trechos que combinam com a pergunta.
-  const r = await fastRead(cleaned, query, 1500);
-  return {
-    text: "Resultados da web:\n" + (r.text || cleaned.slice(0, 900)),
-    note: "li " + cleaned.length.toLocaleString("pt-BR") + " caracteres em " + r.ms + "ms e escolhi os melhores trechos"
-  };
-}
-
-async function searchWeb(query, words, act) {
-  const tech = /python|javascript|\bjs\b|html|css|java|erro|error|c[oó]digo|programa|\bapi\b|fetch|npm|git|sql|react|node|bug|comando/i.test(query);
-
-  const providers = [];
-  if (tech) providers.push({ name: "stackoverflow.com", site: "https://stackoverflow.com", run: () => searchStack(query) });
-  providers.push({ name: "pt.wikipedia.org", site: "https://pt.wikipedia.org", run: () => searchWikipedia(query, words) });
-  providers.push({ name: "duckduckgo.com (via r.jina.ai)", site: "https://duckduckgo.com", run: () => searchDuck(query) });
-
-  let lastError = null;
-
-  for (const provider of providers) {
-    const source = act.step("🌐 Consultando " + provider.name, provider.site);
-    try {
-      const result = await provider.run();
-      source.done(true, {
-        name: "🌐 " + provider.name + (result.title ? " → " + result.title : "") + (result.note ? " · " + result.note : ""),
-        url: result.url
-      });
-      return result.text;
-    } catch (err) {
-      source.done(false, { name: "🌐 " + provider.name + " · sem resultado útil" });
-      lastError = err;
-      console.warn("Fonte de pesquisa falhou:", provider.name, err);
-    }
-  }
-  throw lastError || new Error("Pesquisa indisponível.");
-}
-
-async function runSearch(rawQuery, opts = {}) {
-  const original = rawQuery.trim();
-
-  if (original.length > 160) {
-    addMessage("system", "Texto longo demais para pesquisar: respondendo direto.");
-    await generate(original);
-    return;
-  }
-
-  searching = true;
-  if (!opts.silent) addMessage("user", original);
-
-  const words = keywords(original);
-  const query = (cleanQuery(original) || original) + (settings.place && /perto|aqui|minha cidade|minha regi|próxim|proxim/i.test(original) ? " " + settings.place.name : "");
-  const act = new Activity("Pesquisando na internet");
-  sayStatus("Pesquisando na internet...");
-  act.step("🔤 Palavras da busca: " + query).done(true);
-
-  try {
-    const results = await searchWeb(query, words, act);
-    searching = false;
-    act.title("Lendo as fontes e respondendo");
-    await generate(original, results, { shown: original, skipUser: true, noUserHistory: !!opts.silent, act });
-
-  } catch (err) {
-    console.error("Erro na pesquisa:", err);
-    sayStatus("Pesquisa indisponível.");
-    act.finish("Pesquisa sem resultado", false);
-    addMessage("system", "Não achei nada confiável sobre isso: " + (err.message || String(err)));
-
-  } finally {
-    searching = false;
-  }
-}
-
-// ------------------------------ Clima
-
-const WEATHER_TEXT = code => {
-  if (code === 0) return "céu limpo";
-  if (code <= 3) return "parcialmente nublado";
-  if (code === 45 || code === 48) return "neblina";
-  if (code >= 51 && code <= 57) return "garoa";
-  if (code >= 61 && code <= 67) return "chuva";
-  if (code >= 71 && code <= 77) return "neve";
-  if (code >= 80 && code <= 82) return "pancadas de chuva";
-  if (code >= 95) return "trovoadas";
-  return "tempo variável";
-};
-
-function shortDate(iso) {
-  const parts = String(iso).split("-");
-  return parts.length === 3 ? parts[2] + "/" + parts[1] : iso;
-}
-
-async function runWeather(city) {
-  const act = new Activity("Consultando a previsão do tempo");
-  sayStatus("Consultando previsão do tempo...");
-
-  try {
-    const place = await resolvePlace(city, act, null);
-
-    const weatherSrc = act.step("🌤️ Baixando a previsão (api.open-meteo.com)", "https://open-meteo.com");
-
-    const weatherUrl =
-      "https://api.open-meteo.com/v1/forecast?latitude=" + place.latitude + "&longitude=" + place.longitude +
-      "&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m" +
-      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
-      "&timezone=auto&forecast_days=3";
-
-    const weatherResponse = await fetch(weatherUrl);
-    weatherSrc.done(weatherResponse.ok);
-    if (!weatherResponse.ok) throw new Error("Erro ao consultar previsão.");
-
-    const data = await weatherResponse.json();
-    const c = data.current, d = data.daily;
-
-    const days = d.time.map((day, i) =>
-      (i === 0 ? "Hoje" : shortDate(day)) + ": " + WEATHER_TEXT(d.weather_code[i]) +
-      ", mín " + d.temperature_2m_min[i] + "°C, máx " + d.temperature_2m_max[i] +
-      "°C, chuva " + d.precipitation_probability_max[i] + "%"
-    ).join("\n");
-
-    const report =
-      "🌤️ Clima em " + place.name + (place.admin1 ? " - " + place.admin1 : "") + "\n\n" +
-      "Agora: " + c.temperature_2m + "°C (sensação " + c.apparent_temperature + "°C), " + WEATHER_TEXT(c.weather_code) + "\n" +
-      "Umidade " + c.relative_humidity_2m + "% · Vento " + c.wind_speed_10m + " km/h · Chuva agora " + c.precipitation + " mm\n\n" +
-      days;
-
-    act.finish("Previsão pronta · " + place.name);
-    addMessage("assistant", report);
-    lastAnswer = report;
-    sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
-
-  } catch (err) {
-    console.error("Erro no clima:", err);
-    act.finish("Erro ao consultar o clima", false);
-    sayStatus("Erro ao consultar o clima.");
-    addMessage("system", err.message || String(err));
-  }
-}
-
-$("weather").addEventListener("click", async () => {
-  if (busy || resetting || searching) return;
-  await runWeather("");
-});
-
-// ------------------------------ Textos grandes como arquivo (leitor rápido)
-
-function addFileMessage(text, label) {
-  clearWelcome();
-  const div = document.createElement("div");
-  div.className = "message user";
-  const box = document.createElement("div");
-  box.className = "filechip";
-  const head = document.createElement("div");
-  head.className = "filehead";
-  const name = document.createElement("span");
-  name.textContent = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
-  const btn = document.createElement("button");
-  btn.textContent = "Ver";
-  const pre = document.createElement("pre");
-  pre.textContent = text.length > 60000 ? text.slice(0, 60000) + "\n[… pré-visualização cortada …]" : text;
-  pre.hidden = true;
-  btn.addEventListener("click", () => { pre.hidden = !pre.hidden; btn.textContent = pre.hidden ? "Ver" : "Ocultar"; });
-  head.append(name, btn);
-  box.append(head, pre);
-  div.appendChild(box);
-  const time = document.createElement("small");
-  time.className = "msg-time";
-  time.textContent = fmtTime();
-  div.appendChild(time);
-  keepBottom(() => chat.appendChild(div), true);
-}
-
-async function handleLong(text, customLabel, customQuestion) {
-  const label = customLabel || (looksLikeCode(text) ? "codigo.txt" : "texto.txt");
-  addFileMessage(text, label);
-  if (customQuestion) addMessage("user", customQuestion);
-  const marker = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
-  const limit = maxChars();
-  const question = customQuestion || "Explique o que este conteúdo faz e aponte erros prováveis, com o trecho corrigido.";
-  const n = text.length.toLocaleString("pt-BR");
-  const act = new Activity("Lendo o conteúdo");
-
-  if (question.length + text.length + 2 <= limit) {
-    act.step("📂 Lendo " + label + " · " + n + " caracteres (cabe inteiro)").done(true);
-    await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true, act });
-    return;
-  }
-
-  // Texto grande: o leitor rápido (Web Worker) varre tudo e a IA recebe só o que importa. Uma única chamada à IA.
-  const outCap = Math.min(600, Math.floor(limit * 0.12));
-  const s1 = act.step("⚡ Leitor rápido: varrendo " + n + " caracteres");
-  const r = await fastRead(text, customQuestion || "", Math.max(700, limit - question.length - outCap - 240));
-  s1.done(true, { name: "⚡ Li " + n + " caracteres em " + r.ms + "ms · " + r.chunks + " trechos · enviei os " + r.picked + " mais relevantes (" + r.coverage + "% do texto)" });
-
-  if (settings.ctx < 4096) act.step("💡 Dica: em ⋮ › Inteligência › Tamanho da leitura, escolha Grande ou Máximo para a IA receber mais trechos").done(true);
-  const outline = (r.outline || []).join(" | ").slice(0, outCap);
-  if (outline) act.step("🧭 Estrutura encontrada: " + outline.slice(0, 140) + (outline.length > 140 ? "…" : "")).done(true);
-
-  const prompt =
-    question +
-    "\n(O conteúdo é grande: abaixo estão os trechos mais importantes, com '[… trecho omitido …]' nos cortes.)" +
-    (outline ? "\nEstrutura: " + outline : "") +
-    "\n\n" + r.text;
-
-  await generate(prompt, "", { shown: marker, skipUser: true, act });
-}
-
-// ------------------------------ Conversa por voz
-
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let voiceMode = false, rec = null, listening = false, speaking = false, voicePending = false, callMuted = false;
-
-const CALL_LABELS = { listening: "Ouvindo...", thinking: "Pensando...", speaking: "Falando... toque na bola para interromper", muted: "Microfone desligado" };
-function setCallState(st) {
-  $("call").dataset.state = st;
-  $("callState").textContent = CALL_LABELS[st] || "";
-}
-function setCallText(t) { $("callText").textContent = String(t || "").slice(0, 320); }
-
-function ptVoices() {
-  return ("speechSynthesis" in window ? speechSynthesis.getVoices() : []).filter(v => /^pt/i.test(v.lang));
-}
-function pickVoice() {
-  const list = ptVoices();
-  if (!list.length) return null;
-  const saved = list.find(v => v.name === settings.voice);
-  if (saved) return saved;
-  const rank = v => (/google|natural|neural|online|enhanced|premium/i.test(v.name) ? 2 : 0) + (/BR/i.test(v.lang) ? 1 : 0);
-  return list.slice().sort((a, b) => rank(b) - rank(a))[0];
-}
-function fillVoices() {
-  const sel = $("setVoice");
-  sel.textContent = "";
-  const auto = document.createElement("option");
-  auto.value = "";
-  auto.textContent = "Automática";
-  sel.appendChild(auto);
-  ptVoices().forEach(v => {
-    const o = document.createElement("option");
-    o.value = v.name;
-    o.textContent = v.name + " (" + v.lang + ")";
-    sel.appendChild(o);
-  });
-  sel.value = settings.voice || "";
-}
-if ("speechSynthesis" in window) { speechSynthesis.onvoiceschanged = fillVoices; fillVoices(); }
-$("setVoice").addEventListener("change", e => { settings.voice = e.target.value; saveSettings(); });
-
-function startListening() {
-  if (!voiceMode || !SR || listening || speaking || busy || callMuted) return;
-  rec = new SR();
-  rec.lang = "pt-BR";
-  rec.interimResults = false;
-  rec.continuous = false;
-  rec.onstart = () => { listening = true; setCallState("listening"); sayStatus("🎙️ Ouvindo... fale agora."); };
-  rec.onresult = e => {
-    const t = (e.results[0][0].transcript || "").trim();
-    if (t) { setCallText("Você: " + t); setCallState("thinking"); input.value = t; $("send").click(); }
-  };
-  rec.onerror = e => {
-    listening = false;
-    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-      setVoiceMode(false);
-      addMessage("system", "Permita o uso do microfone nas configurações do navegador.");
-    }
-  };
-  rec.onend = () => {
-    listening = false;
-    if (voiceMode && !busy && !speaking && !searching && !voicePending) setTimeout(startListening, 400);
-  };
-  try { rec.start(); } catch (e) { listening = false; }
-}
-
-function setVoiceMode(on) {
-  if (on && !SR) {
-    addMessage("system", "Este navegador não tem reconhecimento de voz. No iPhone, use o Safari normal (sem o leitor de voz do Chrome); se não funcionar, essa função depende do suporte do navegador.");
-    return;
-  }
-  voiceMode = on;
-  $("voiceBtn").classList.toggle("on", on);
-  if (on) {
-    callMuted = false;
-    $("callMute").classList.remove("off");
-    $("call").hidden = false;
-    setCallState("listening");
-    setCallText("Como posso ajudar?");
-    chime();
-    speakText("Olá! Como posso ajudar?", startListening);
-  } else {
-    try { if (rec) rec.abort(); } catch (e) {}
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
-    speaking = false;
-    $("call").hidden = true;
-    sayStatus(ready ? "Rizik está pronto." : "Rizik está aguardando.");
-  }
-}
-
-function chime() {
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
-    if (ctx.state === "suspended") { ctx.resume().catch(() => {}); }
-    [660, 880].forEach((f, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = "sine";
-      o.frequency.value = f;
-      const t = ctx.currentTime + i * 0.14;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start(t);
-      o.stop(t + 0.2);
-    });
-    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 700);
-  } catch (e) {}
-}
-
-let speakToken = 0;
-
-function speakText(text, done) {
-  if (!("speechSynthesis" in window)) { done(); return; }
-  const spoken = String(text).split(FENCE).map((p, i) => i % 2 ? " (código omitido) " : p).join(" ").replace(/[*#`]/g, "");
-  const sentences = spoken.replace(/\s+/g, " ").trim().match(/[^.!?\n]+[.!?]*/g) || [spoken];
-  const parts = [];
-  let cur = "";
-  sentences.forEach(c => {
-    if ((cur + c).length > 180 && cur) { parts.push(cur.trim()); cur = c; }
-    else cur += c;
-  });
-  if (cur.trim()) parts.push(cur.trim());
-
-  const token = ++speakToken;
-  speaking = true;
-  setCallState("speaking");
-  setCallText(text);
-  speechSynthesis.cancel();
-
-  const finish = () => {
-    if (token !== speakToken) return;
-    speaking = false;
-    if (voiceMode) setCallState(callMuted ? "muted" : "listening");
-    done();
-  };
-
-  const next = i => {
-    if (token !== speakToken) return;
-    if (i >= parts.length) { finish(); return; }
-    const u = new SpeechSynthesisUtterance(parts[i]);
-    u.lang = "pt-BR";
-    const pv = pickVoice();
-    if (pv) u.voice = pv;
-    u.onend = () => next(i + 1);
-    u.onerror = e => {
-      if (e && (e.error === "interrupted" || e.error === "canceled")) { finish(); return; }
-      next(i + 1);
-    };
-    speechSynthesis.speak(u);
-  };
-
-  setTimeout(() => next(0), 120);
-}
-
-function voiceDone(before) {
-  voicePending = false;
-  if (!voiceMode) return;
-  if (lastAnswer && lastAnswer !== before) speakText(lastAnswer, startListening);
-  else startListening();
-}
-
-$("voiceBtn").addEventListener("click", () => setVoiceMode(!voiceMode));
-$("callEnd").addEventListener("click", () => setVoiceMode(false));
-$("callMute").addEventListener("click", () => {
-  callMuted = !callMuted;
-  $("callMute").classList.toggle("off", callMuted);
-  if (callMuted) { try { if (rec) rec.abort(); } catch (e) {} setCallState("muted"); }
-  else { setCallState("listening"); startListening(); }
-});
-$("orb").addEventListener("click", () => {
-  if (speaking) {
-    speakToken++;
-    if ("speechSynthesis" in window) speechSynthesis.cancel();
-    speaking = false;
-    setCallState(callMuted ? "muted" : "listening");
-    startListening();
-    return;
-  }
-  if (!listening && !busy && !callMuted) startListening();
-});
-
-// ------------------------------ Galeria de fotos (até 12)
-
-let photoNoted = false;
-
-function openViewer(src, isVideo) {
-  $("viewerImg").hidden = !!isVideo;
-  $("viewerVid").hidden = !isVideo;
-  if (isVideo) { $("viewerVid").src = src; $("viewerVid").play().catch(() => {}); }
-  else $("viewerImg").src = src;
-  $("viewer").hidden = false;
-}
-
-$("viewerVid").addEventListener("click", e => e.stopPropagation());
-$("viewer").addEventListener("click", () => { $("viewerVid").pause(); $("viewer").hidden = true; });
-
-function addGallery(files) {
-  clearWelcome();
-  const div = document.createElement("div");
-  div.className = "message user";
-  const grid = document.createElement("div");
-  grid.className = "gallery n" + files.length;
-  files.forEach(f => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
-    const url = URL.createObjectURL(f);
-    if (f.type.startsWith("video/")) {
-      const v = document.createElement("video");
-      v.src = url + "#t=0.1";
-      v.muted = true;
-      v.playsInline = true;
-      v.preload = "metadata";
-      v.addEventListener("click", () => openViewer(url, true));
-      const badge = document.createElement("span");
-      badge.className = "badge";
-      badge.textContent = "▶";
-      cell.append(v, badge);
-    } else {
-      const img = document.createElement("img");
-      img.src = url;
-      img.loading = "lazy";
-      img.alt = "foto";
-      img.addEventListener("click", () => openViewer(url, false));
-      cell.appendChild(img);
-    }
-    grid.appendChild(cell);
-  });
-  div.appendChild(grid);
-  const cap = document.createElement("small");
-  cap.className = "msg-time";
-  cap.textContent = "🖼️ " + files.length + (files.length === 1 ? " arquivo" : " arquivos") + " · " + fmtTime();
-  div.appendChild(cap);
-  chat.appendChild(div);
-
-  const row = document.createElement("div");
-  row.className = "actions";
-  const b = document.createElement("button");
-  b.className = "copy";
-  b.textContent = "🔍 Identificar com a IA";
-  b.addEventListener("click", () => runVision(files, b));
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollEnd(true);
-}
-
-const TEXT_FILE_RE = /\.(txt|md|markdown|csv|json|js|jsx|ts|tsx|py|html|htm|css|xml|yml|yaml|log|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat|ini|env)$/i;
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
-const MAX_PDF_BYTES = 25 * 1024 * 1024;
-const MAX_PDF_PAGES = 200;
-
-let pdfLib = null;
-async function loadPdfJs() {
-  if (pdfLib) return pdfLib;
-  pdfLib = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs");
-  pdfLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs";
-  return pdfLib;
-}
-
-async function extractPdfText(file, setMsg) {
-  const lib = await loadPdfJs();
-  const buffer = await file.arrayBuffer();
-  const doc = await lib.getDocument({ data: buffer }).promise;
-  const maxPages = Math.min(doc.numPages, MAX_PDF_PAGES);
-  const pages = [];
-  for (let i = 1; i <= maxPages; i++) {
-    if (setMsg) setMsg("📄 Lendo página " + i + " de " + maxPages);
-    const page = await doc.getPage(i);
-    const content = await page.getTextContent();
-    pages.push(content.items.map(it => it.str).join(" "));
-  }
-  let text = pages.join("\n\n");
-  if (doc.numPages > maxPages) text += "\n\n[PDF truncado: li " + maxPages + " de " + doc.numPages + " páginas.]";
-  return text.trim();
-}
-
-$("fileInput").addEventListener("change", async () => {
-  const file = $("fileInput").files[0];
-  $("fileInput").value = "";
-  if (!file || busy || resetting || searching) return;
-
-  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-  const looksText = !isPdf && (/^text\//.test(file.type) || file.type === "application/json" || TEXT_FILE_RE.test(file.name) || !file.type);
-
-  if (!isPdf && !looksText) {
-    addMessage("system", "Só consigo ler arquivos de texto, código ou PDF (.txt, .md, .csv, .json, .pdf e similares). Para fotos ou vídeos, use a opção \"Fotos e vídeos\".");
-    return;
-  }
-  if (isPdf && file.size > MAX_PDF_BYTES) {
-    addMessage("system", "PDF grande demais: o limite é " + Math.round(MAX_PDF_BYTES / 1024 / 1024) + " MB.");
-    return;
-  }
-  if (!isPdf && file.size > MAX_FILE_BYTES) {
-    addMessage("system", "Arquivo grande demais: o limite é " + Math.round(MAX_FILE_BYTES / 1024 / 1024) + " MB de texto.");
-    return;
-  }
-
-  const act = new Activity("Abrindo o arquivo");
-  const sOpen = act.step((isPdf ? "📄 Abrindo o PDF " : "📂 Abrindo ") + file.name + " (" + Math.max(1, Math.round(file.size / 1024)).toLocaleString("pt-BR") + " KB)");
-  let text = "";
-  try {
-    text = isPdf
-      ? await extractPdfText(file, t => sOpen.set(t))
-      : await file.text();
-    sOpen.done(true, { name: (isPdf ? "📄 " : "📂 ") + file.name + " lido por inteiro" });
-  } catch (err) {
-    console.error("Erro ao ler arquivo:", err);
-    sOpen.done(false);
-    act.finish("Não consegui ler o arquivo", false);
-    addMessage("system", "Não consegui ler esse arquivo: " + (err?.message || String(err)));
-    return;
-  }
-
-  if (!text.trim()) {
-    act.finish("Arquivo sem texto", false);
-    addMessage("system", isPdf ? "Não encontrei texto nesse PDF (pode ser só imagens digitalizadas)." : "Esse arquivo parece estar vazio.");
-    return;
-  }
-
-  act.finish("Arquivo pronto · " + text.length.toLocaleString("pt-BR") + " caracteres");
-  pendingAttachment = { label: file.name, text };
-  showAttachPreview(file.name);
-});
-
-$("photoInput").addEventListener("change", () => {
-  let files = [...$("photoInput").files].filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
-  $("photoInput").value = "";
-  if (!files.length) return;
-  if (files.length > 12) { addMessage("system", "Máximo de 12 arquivos por envio: usei os 12 primeiros."); files = files.slice(0, 12); }
-  addGallery(files);
-  if (!photoNoted) {
-    photoNoted = true;
-    addMessage("system", "Toque em \"🔍 Identificar com a IA\" para ela ler as fotos e vídeos. Na 1ª vez baixa o leitor de imagens (cerca de 300 MB). Não identifico pessoas pelo rosto.");
-  }
-});
-
-// ------------------------------ Instalar como app (Android)
-
-let deferredInstall = null;
-window.addEventListener("beforeinstallprompt", e => {
-  e.preventDefault();
-  deferredInstall = e;
-});
-window.addEventListener("appinstalled", () => {
-  deferredInstall = null;
-  addMessage("system", "✅ Rizik AI instalado com sucesso.");
-});
-
-$("install").addEventListener("click", async () => {
-  closeMenu();
-
-  if (deferredInstall) {
-    try {
-      deferredInstall.prompt();
-      await deferredInstall.userChoice;
-    } catch (e) { console.warn("Instalação cancelada ou falhou:", e); }
-    deferredInstall = null;
-    return;
-  }
-
-  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
-    addMessage("system", "O Rizik AI já está instalado neste aparelho.");
-    return;
-  }
-
-  const ua = navigator.userAgent || "";
-  const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-  const isAndroid = /android/i.test(ua);
-  let msg;
-
-  if (isIOS) {
-    msg = "Para instalar no iPhone/iPad: toque no ícone de Compartilhar (quadrado com uma seta pra cima) na barra do Safari e escolha \"Adicionar à Tela de Início\". O botão de instalação automática não existe no Safari: esse é o único jeito no iOS.";
-  } else if (isAndroid) {
-    msg = "Não recebi o aviso automático de instalação do navegador. No Android: abra pelo Chrome, toque nos três pontinhos (⋮) no canto superior e escolha \"Instalar app\" ou \"Adicionar à tela inicial\". Se essa opção não aparecer, confira se o site está em HTTPS e se o manifest.json e os ícones (icon-192.png, idealmente também um icon-512.png) estão publicados corretamente.";
-  } else {
-    msg = "Não recebi o aviso automático de instalação. No Chrome ou Edge do computador: procure o ícone de instalar (⊕ ou uma tela com uma seta) na barra de endereço, à direita, ou abra o menu (⋮) e escolha \"Instalar Rizik AI\". Se não aparecer, confira se o site está em HTTPS e se o manifest.json está acessível.";
-  }
-  addMessage("system", msg);
-});
-
-// ------------------------------ Região e GPS
-
-function placeLabel(p) { return p.name + (p.admin1 ? " - " + p.admin1 : ""); }
-
-function showPlace() {
-  $("placeNow").textContent = settings.place
-    ? "📍 Região atual: " + placeLabel(settings.place)
-    : "Nenhuma região fixa: uso o GPS quando você pedir o clima.";
-}
-
-function savePlace(p) {
-  settings.place = { name: p.name, admin1: p.admin1 || "", latitude: p.latitude, longitude: p.longitude };
-  settings.city = p.name;
-  $("setCity").value = p.name;
-  saveSettings();
-  showPlace();
-}
-
-async function findCities() {
-  const q = $("setCity").value.trim();
-  if (!q) return;
-  const list = $("cityList");
-  list.hidden = false;
-  list.textContent = "Buscando...";
-  try {
-    const r = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(q) + "&count=8&language=pt&format=json");
-    const j = await r.json();
-    list.textContent = "";
-    if (!j.results || !j.results.length) { list.textContent = "Cidade não encontrada."; return; }
-    j.results.forEach(p => {
-      const b = document.createElement("button");
-      b.className = "hist-item";
-      b.textContent = p.name + (p.admin1 ? " - " + p.admin1 : "") + (p.country ? " · " + p.country : "");
-      b.addEventListener("click", () => { savePlace(p); list.hidden = true; });
-      list.appendChild(b);
-    });
-  } catch (e) { list.textContent = "Sem internet para buscar."; }
-}
-
-function getPosition() {
-  return new Promise((res, rej) => {
-    if (!navigator.geolocation) { rej(new Error("Este navegador não tem GPS.")); return; }
-    navigator.geolocation.getCurrentPosition(res,
-      e => rej(new Error(e.code === 1 ? "Permissão de localização negada. Ative nas configurações do navegador." : "Não consegui pegar o GPS.")),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
-  });
-}
-
-async function gpsPlace(act, _cb) {
-  const src = newSource("📡 GPS do aparelho", "", act);
-  let pos;
-  try { pos = await getPosition(); src.done(true); }
-  catch (e) { src.done(false); throw e; }
-
-  const lat = pos.coords.latitude, lon = pos.coords.longitude;
-  let name = "Minha localização", admin1 = "";
-  const rs = newSource("📍 Descobrindo o nome do lugar (api.bigdatacloud.net)", "https://www.bigdatacloud.com", act);
-  try {
-    const r = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + lat + "&longitude=" + lon + "&localityLanguage=pt");
-    if (r.ok) {
-      const j = await r.json();
-      name = j.city || j.locality || name;
-      admin1 = j.principalSubdivision || "";
-      rs.done(true);
-    } else rs.done(false);
-  } catch (e) { rs.done(false); }
-  return { name, admin1, latitude: lat, longitude: lon };
-}
-
-async function resolvePlace(city, act, _cb) {
-  if (!city) {
-    if (settings.gpsAuto) {
-      try { return await gpsPlace(act); }
-      catch (e) { if (!settings.place && !settings.city) throw e; }
-    }
-    if (settings.place) return settings.place;
-    if (settings.city) city = settings.city;
-    else return await gpsPlace(act);
-  }
-  const geoSrc = newSource("🗺️ Localizando " + city + " (geocoding-api.open-meteo.com)", "https://open-meteo.com", act);
-  const resp = await fetch("https://geocoding-api.open-meteo.com/v1/search?name=" + encodeURIComponent(city) + "&count=5&language=pt&format=json");
-  geoSrc.done(resp.ok);
-  if (!resp.ok) throw new Error("Erro ao localizar cidade.");
-  const geo = await resp.json();
-  if (!geo.results || !geo.results.length) throw new Error("Cidade não encontrada.");
-  return geo.results.find(r => r.country_code === "BR") || geo.results[0];
-}
-
-$("cityFind").addEventListener("click", findCities);
-$("setGps").addEventListener("change", e => { settings.gpsAuto = e.target.checked; saveSettings(); });
-$("gpsBtn").addEventListener("click", async () => {
-  const list = $("cityList");
-  list.hidden = false;
-  list.textContent = "Pegando o GPS...";
-  try {
-    savePlace(await gpsPlace(null));
-    list.hidden = true;
-  } catch (e) { list.textContent = e.message || String(e); }
-});
-
-// ------------------------------ Visão: fotos e vídeos
-
-let tfLib = null, visionBusy = false, visionContext = "";
-
-async function loadTF() {
-  if (tfLib) return tfLib;
-  const urls = [
-    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.6",
-    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1",
-    "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.3"
-  ];
-  for (const u of urls) {
-    try { tfLib = await import(u); break; } catch (e) { console.warn("Falha ao importar", u, e); }
-  }
-  if (!tfLib) throw new Error("Não consegui carregar o leitor de imagens. Confira a internet.");
-  tfLib.env.allowLocalModels = false;
-  return tfLib;
-}
-
-async function mkPipe(T, task, model, label, setMsg) {
-  const cb = p => { if (p && p.status === "progress" && typeof p.progress === "number") setMsg("Baixando " + label + ": " + Math.round(p.progress) + "%"); };
-  try { return await T.pipeline(task, model, { dtype: "q8", progress_callback: cb }); }
-  catch (e) { console.warn("q8 falhou, tentando o padrão", e); return await T.pipeline(task, model, { progress_callback: cb }); }
-}
-
-async function imageToDataURL(file, max = 512) {
-  const bmp = await createImageBitmap(file);
-  const sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
-  const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round(bmp.width * sc));
-  c.height = Math.max(1, Math.round(bmp.height * sc));
-  c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
-  if (bmp.close) bmp.close();
-  return c.toDataURL("image/jpeg", 0.85);
-}
-
-async function videoFrames(file, n) {
-  const url = URL.createObjectURL(file);
-  const v = document.createElement("video");
-  v.muted = true;
-  v.playsInline = true;
-  v.preload = "auto";
-  v.src = url;
-  await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error("vídeo ilegível")); });
-  const dur = isFinite(v.duration) ? v.duration : 0;
-  const sc = Math.min(1, 384 / Math.max(v.videoWidth || 384, v.videoHeight || 384));
-  const c = document.createElement("canvas");
-  c.width = Math.max(1, Math.round((v.videoWidth || 384) * sc));
-  c.height = Math.max(1, Math.round((v.videoHeight || 384) * sc));
-  const frames = [];
-  for (let i = 0; i < n; i++) {
-    const t = Math.max(0.05, dur ? dur * (i + 0.5) / n : 0.05);
-    await new Promise(res => { const to = setTimeout(res, 4000); v.onseeked = () => { clearTimeout(to); res(); }; v.currentTime = t; });
-    c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
-    frames.push(c.toDataURL("image/jpeg", 0.85));
-  }
-  URL.revokeObjectURL(url);
-  return { frames, dur };
-}
-
-async function analyzeMedia(files, setMsg) {
-  const T = await loadTF();
-  setMsg("Carregando o leitor de imagens (a 1ª vez baixa uns 300 MB)...");
-  const cap = await mkPipe(T, "image-to-text", "Xenova/vit-gpt2-image-captioning", "descrição de imagens", setMsg);
-  let det = null;
-  if (files.some(f => f.type.startsWith("image/"))) {
-    try { det = await mkPipe(T, "object-detection", "Xenova/detr-resnet-50", "detector de objetos", setMsg); }
-    catch (e) { console.warn("Sem detector de objetos:", e); }
-  }
-
-  const lines = [];
-  for (let i = 0; i < files.length; i++) {
-    const f = files[i];
-    const isVid = f.type.startsWith("video/");
-    const tag = (isVid ? "Vídeo " : "Foto ") + (i + 1);
-    setMsg("🔍 Analisando " + tag + " (" + (i + 1) + "/" + files.length + ")...");
-    try {
-      if (isVid) {
-        const { frames, dur } = await videoFrames(f, 5);
-        const caps = [];
-        for (const fr of frames) {
-          const o = await cap(fr, { max_new_tokens: 30 });
-          caps.push(String(o[0].generated_text || "").trim());
-        }
-        lines.push(tag + " (" + Math.round(dur) + "s), cenas em ordem: " + caps.map((c, k) => (k + 1) + ") " + c).join("; "));
-      } else {
-        const url = await imageToDataURL(f);
-        const o = await cap(url, { max_new_tokens: 30 });
-        let objs = "";
-        if (det) {
-          const d = await det(url, { threshold: 0.75 });
-          const count = {};
-          d.forEach(x => { count[x.label] = (count[x.label] || 0) + 1; });
-          objs = Object.entries(count).map(([k, v]) => k + " x" + v).join(", ");
-        }
-        lines.push(tag + ": legenda (em inglês): " + String(o[0].generated_text || "").trim() + (objs ? ". Objetos: " + objs : ""));
-      }
-    } catch (err) {
-      console.error(err);
-      lines.push(tag + ": não consegui ler este arquivo.");
-    }
-  }
-  for (const m of [cap, det]) { try { if (m && m.dispose) await m.dispose(); } catch (e) {} }
-  return lines.join("\n");
-}
-
-async function runVision(files, btn) {
-  if (busy || resetting || searching || visionBusy) return;
-  visionBusy = true;
-  btn.disabled = true;
-  const act = new Activity("Analisando fotos e vídeos");
-  let cur = act.step("🔍 Preparando o leitor de imagens...");
-  const setMsg = t => {
-    if (/^🔍 Analisando/.test(t)) { cur.done(true); cur = act.step(t); }
-    else cur.set(t);
-    sayStatus(t);
-  };
-  let ctxText = "";
-  try {
-    ctxText = await analyzeMedia(files, setMsg);
-    cur.done(true);
-    act.step("✅ Análise pronta: " + files.length + (files.length === 1 ? " arquivo" : " arquivos")).done(true);
-    visionContext = ctxText;
-  } catch (err) {
-    console.error("Erro na visão:", err);
-    cur.done(false);
-    act.finish("Não consegui analisar", false);
-    addMessage("system", "Não consegui analisar: " + (err.message || String(err)));
-  }
-  visionBusy = false;
-  btn.disabled = false;
-  if (ctxText) {
-    act.title("Escrevendo a descrição");
-    await generate(
-      "Descreva em português, de forma curta, o que aparece em cada foto ou vídeo. Traduza as legendas em inglês. Use somente as análises.",
-      ctxText,
-      { shown: "🔍 Identificar " + files.length + (files.length === 1 ? " arquivo" : " arquivos"), noReview: true, act }
-    );
-  }
-}
-
-// ------------------------------ Ícones nos botões
-
-const ICONS = {
-  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
-  pin: '<path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
-  dots: '<circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
-  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
-  image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>',
-  file: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/>',
-  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/>',
-  end: '<g transform="rotate(135 12 12)"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></g>',
-  send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
-  mic: '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/>',
-  refresh: '<path d="M20 11a8 8 0 10-2.3 5.7M20 4v7h-7"/>',
-  volume: '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/>',
-  history: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
-  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
-  download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
-  power: '<path d="M12 3v8"/><path d="M6.5 6.5a8 8 0 1011 0"/>',
-  weather: '<circle cx="9" cy="9" r="3"/><path d="M9 2v1.5M2 9h1.5M4 4l1 1M14 4l-1 1"/><path d="M8 20a4 4 0 01.5-8 5 5 0 019.5 1.5A3.3 3.3 0 0117.5 20z"/>'
-};
-document.querySelectorAll("[data-ic]").forEach(b => {
-  b.insertAdjacentHTML("afterbegin", '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[b.dataset.ic] || "") + "</svg>");
-});
-
-// ------------------------------ Inicialização
-
-let prevCrash = false;
-try {
-  prevCrash = localStorage.getItem("rizik_loading") === "1";
-  localStorage.removeItem("rizik_loading");
-} catch (e) {}
-
-if (prevCrash) {
-  settings.model = "fast";
-  if (settings.ctx > 4096) settings.ctx = 4096;
-  saveSettings();
-}
-
-if (settings.city === "Nova Esperança" && !settings.place) { settings.city = ""; saveSettings(); }
-applySettings();
-showPlace();
-tickClock();
-restoreHistory();
-showWelcome();
-updateButtons();
-
-if (prevCrash) {
-  addMessage("system", "A página fechou durante o último carregamento (pouca memória). Passei para o Modelo Rápido. Toque em Carregar IA.");
-} else if (settings.autoload) {
-  try { if (localStorage.getItem("rizik_autoload") === "1") loadAI(); } catch (e) {}
-}
-
-window.addEventListener("error", e => console.error("Erro JavaScript:", e.error || e.message));
-window.addEventListener("unhandledrejection", e => console.error("Erro assíncrono:", e.reason));
-</script>
-</body>
-</html>
