@@ -58,11 +58,11 @@ progress{width:100%;height:8px;margin-top:10px;display:none}
     </div>
   </header>
   <div id="setup">
-    <p id="status">A IA roda dentro do seu iPhone, sem enviar nada para servidores. No primeiro uso ela baixa o modelo (cerca de 563 MB). Use o Wi-Fi.</p>
+    <p id="status">A IA roda dentro do seu iPhone, sem enviar nada para servidores. No primeiro uso ela baixa o modelo (cerca de 491 MB). Use o Wi-Fi.</p>
     <button id="start">Baixar e iniciar a IA</button>
     <button class="alt" id="pick">Já baixei o modelo: escolher arquivo</button>
     <input type="file" id="mfile" hidden>
-    <p class="small">Se o download direto falhar, baixe <a href="https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/resolve/main/Qwen3.5-0.8B-Q4_0.gguf?download=true" target="_blank" rel="noopener">Qwen3.5-0.8B-Q4_0.gguf</a> pelo Safari e escolha o arquivo acima.</p>
+    <p class="small">Se o download direto falhar, baixe <a href="https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true" target="_blank" rel="noopener">qwen2.5-0.5b-instruct-q4_k_m.gguf</a> pelo Safari e escolha o arquivo acima.</p>
     <progress id="prog" max="100" value="0"></progress>
   </div>
   <div id="log"></div>
@@ -78,9 +78,9 @@ progress{width:100%;height:8px;margin-top:10px;display:none}
    Modelo: https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF
    Para travar a versão da biblioteca, troque "3" por um número exato (ex.: "3.1.0"). */
 const WLLAMA_VERSION = "3";
-const REPO = "ggml-org/Qwen3.5-0.8B-GGUF";
-const FILE = "Qwen3.5-0.8B-Q4_0.gguf";
-const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma direta e concisa, em texto simples. Antes de responder, pense em no máximo 1 ou 2 frases curtas dentro de <think></think> e feche esse bloco rapidamente; nunca deixe de escrever a resposta final depois do </think>. Não mostre tokens especiais ou marcadores como <think> e </think> na resposta final. Dê respostas curtas, a menos que o usuário peça detalhes.";
+const REPO = "Qwen/Qwen2.5-0.5B-Instruct-GGUF";
+const FILE = "qwen2.5-0.5b-instruct-q4_k_m.gguf";
+const SYS = "Você é o Rizik, um assistente prestativo. Responda em português do Brasil, de forma direta e concisa, em texto simples. Dê respostas curtas, a menos que o usuário peça detalhes.";
 const BASE = "https://cdn.jsdelivr.net/npm/@wllama/wllama@" + WLLAMA_VERSION + "/esm/";
 const HF_URL = "https://huggingface.co/" + REPO + "/resolve/main/" + FILE;
 
@@ -96,6 +96,13 @@ const save = () => { try { localStorage.setItem("chat", JSON.stringify(msgs.slic
 let tt;
 function toast(t) { toastEl.textContent = t; toastEl.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => toastEl.classList.remove("on"), 2600); }
 const clean = t => t.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "").replace(/<\/?think>/g, "").replace(/<\|im_end\|>/g, "").trim();
+const cleanFinal = t => {
+  if (/<\/think>/.test(t)) {
+    return t.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").replace(/<\|im_end\|>/g, "").trim();
+  }
+  // O modelo não fechou o bloco de pensamento a tempo: mostra o texto gerado em vez de apagar tudo.
+  return t.replace(/<think>/g, "").replace(/<\|im_end\|>/g, "").trim();
+};
 const mb = n => Math.round((n || 0) / 1048576);
 async function reach(url) {
   const c = new AbortController();
@@ -222,7 +229,7 @@ async function go() {
   const hist = [{ role: "system", content: SYS }, ...msgs.slice(-6).map(m => ({ role: m.role, content: m.content }))];
   try {
     let out = "";
-    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 768, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
+    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 384, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
     if (r && typeof r[Symbol.asyncIterator] === "function") {
       for await (const ch of r) {
         out += (ch.choices && ch.choices[0] && ch.choices[0].delta && ch.choices[0].delta.content) || "";
@@ -230,7 +237,7 @@ async function go() {
         log.scrollTop = log.scrollHeight;
       }
     } else out = r.choices[0].message.content;
-    const final = clean(out) || "(sem resposta)";
+    const final = cleanFinal(out) || "(sem resposta)";
     el.textContent = final;
     msgs.push({ role: "assistant", content: final }); save();
     acts(el.parentNode, el);
