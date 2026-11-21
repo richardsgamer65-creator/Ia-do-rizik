@@ -58,7 +58,7 @@ textarea{flex:1;min-width:0;resize:vertical;min-height:48px;max-height:180px;bor
   </div>
 
   <div class="info">
-    Modelo local Qwen 0.5B. Primeiro carregamento: aproximadamente 398 MB.
+    Modelo local Qwen 1.5B. Primeiro carregamento: aproximadamente 938 MB. Use Wi-Fi.
     A pesquisa e o clima precisam de internet.
     Configuração otimizada para reduzir o consumo de memória no iPhone.
   </div>
@@ -75,22 +75,19 @@ const status = $("status");
 const input = $("prompt");
 
 const MODEL_URL =
-"https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf";
+"https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_0.gguf";
 
 const SYSTEM_PROMPT = `
-Você é Rizik AI, um assistente pessoal inteligente, amigável e especialista em tecnologia.
+Você é Rizik AI, assistente pessoal em português brasileiro, claro, educado e direto. Você é especialista em HTML, CSS, JavaScript, Python, Java, Kotlin, C, C++, SQL, JSON e APIs.
 
-Fale sempre em português brasileiro. Seja natural, claro, educado e direto.
+Quando o usuário enviar um código com problema, siga sempre este método:
+1) Leia o código e a mensagem de erro.
+2) Diga a causa provável em uma frase.
+3) Explique a correção de forma simples.
+4) Entregue o código corrigido completo, preservando as funções existentes.
+5) Diga como testar.
 
-Você é especialista em HTML, CSS, JavaScript, Python, Java, Kotlin, C, C++, SQL, JSON, APIs e desenvolvimento de aplicativos.
-
-Ajude a criar sites, aplicativos e sistemas. Analise códigos enviados pelo usuário, identifique erros e explique soluções.
-
-Quando pedirem para corrigir um código, entregue o código completo atualizado sempre que possível. Preserve as funcionalidades existentes. Não invente bibliotecas, funções, APIs ou resultados de testes.
-
-Use o histórico disponível para manter o contexto. Considere os resultados de pesquisa e clima fornecidos na mensagem. Não diga que pesquisou se não recebeu resultados.
-
-Seja prestativo, prático e bem-humorado quando combinar.
+Não invente bibliotecas, funções, APIs ou resultados de testes. Se faltar informação, peça o erro exato. Use os resultados de pesquisa e clima recebidos na mensagem. Se não houver resultados, não diga que pesquisou.
 `;
 
 let ai = null;
@@ -183,13 +180,13 @@ function buildMessages(text, extraContext) {
   for (const item of recent) {
     messages.push({
       role: item.role,
-      content: limitText(item.content, 180)
+      content: limitText(item.content, 150)
     });
   }
 
-  const safeText = limitText(text, 400);
+  const safeText = limitText(text, 700);
   const safeResearch = extraContext
-    ? limitText(extraContext, 300)
+    ? limitText(extraContext, 450)
     : "";
 
   messages.push({
@@ -268,7 +265,7 @@ async function loadAI() {
 
       await newAI.loadModelFromUrl(MODEL_URL, {
         // Configuração mais leve para iPhone.
-        n_ctx: 512,
+        n_ctx: 1024,
         n_batch: 64,
         n_threads: 1,
         n_gpu_layers: 0,
@@ -375,6 +372,8 @@ async function generate(text, extraContext = "") {
 
   let answerBox = null;
   let currentEngine = null;
+  let thinkTimer = null;
+  let thinkStart = 0;
 
   try {
     if (!ready || !ai) {
@@ -405,11 +404,17 @@ async function generate(text, extraContext = "") {
     saveHistory();
 
     answerBox = addMessage("assistant", "Pensando...");
-    sayStatus("Rizik está pensando...");
+    sayStatus("Rizik está pensando... 0s");
+
+    thinkStart = performance.now();
+    thinkTimer = setInterval(() => {
+      const seconds = Math.round((performance.now() - thinkStart) / 1000);
+      sayStatus("Rizik está pensando... " + seconds + "s");
+    }, 1000);
 
     const result = await currentEngine.createChatCompletion({
       messages,
-      max_tokens: 96,
+      max_tokens: 256,
       temperature: 0.6,
       top_p: 0.9
     });
@@ -422,8 +427,17 @@ async function generate(text, extraContext = "") {
       result?.choices?.[0]?.message?.content?.trim() ||
       "Não consegui gerar uma resposta.";
 
+    clearInterval(thinkTimer);
+    thinkTimer = null;
+
     answerBox.textContent = answer;
     lastAnswer = answer;
+
+    addMessage(
+      "system",
+      "Respondido em " +
+      ((performance.now() - thinkStart) / 1000).toFixed(1) + "s"
+    );
 
     history.push({
       role: "assistant",
@@ -463,6 +477,8 @@ async function generate(text, extraContext = "") {
     }
 
   } finally {
+    if (thinkTimer) clearInterval(thinkTimer);
+
     busy = false;
     updateButtons();
 
@@ -565,7 +581,55 @@ async function fetchTextWithTimeout(url, milliseconds) {
   }
 }
 
-async function searchWeb(query) {
+async function searchWikipedia(query) {
+  const url =
+    "https://pt.wikipedia.org/w/api.php?action=query&generator=search" +
+    "&gsrsearch=" + encodeURIComponent(query) +
+    "&gsrlimit=1&prop=extracts&exintro=1&explaintext=1&exchars=500" +
+    "&format=json&origin=*";
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Wikipedia respondeu HTTP " + response.status);
+  }
+
+  const data = await response.json();
+  const pages = data && data.query && data.query.pages;
+
+  if (!pages) {
+    throw new Error("Sem resultados na Wikipedia.");
+  }
+
+  const page = Object.values(pages)[0];
+
+  if (!page || !page.extract) {
+    throw new Error("Sem resultados na Wikipedia.");
+  }
+
+  return "Wikipedia: " + page.title + "\n" + page.extract;
+}
+
+async function searchWeb(query, sources) {
+  const wikiStart = performance.now();
+
+  try {
+    const wikiText = await searchWikipedia(query);
+    sources.push({
+      name: "pt.wikipedia.org",
+      ok: true,
+      ms: performance.now() - wikiStart
+    });
+    return wikiText;
+  } catch (err) {
+    sources.push({
+      name: "pt.wikipedia.org",
+      ok: false,
+      ms: performance.now() - wikiStart
+    });
+    console.warn("Wikipedia falhou, tentando outra fonte:", err);
+  }
+
   const encoded = encodeURIComponent(query);
 
   const endpoints = [
@@ -576,16 +640,31 @@ async function searchWeb(query) {
   let lastError = null;
 
   for (const url of endpoints) {
+    const siteName = url.includes("duckduckgo")
+      ? "duckduckgo.com (via r.jina.ai)"
+      : "google.com (via r.jina.ai)";
+    const siteStart = performance.now();
+
     try {
       const result = await fetchTextWithTimeout(url, 20000);
 
       if (result && result.trim().length > 100) {
+        sources.push({
+          name: siteName,
+          ok: true,
+          ms: performance.now() - siteStart
+        });
         return result.slice(0, 600);
       }
 
       throw new Error("Pesquisa sem resultados suficientes.");
 
     } catch (err) {
+      sources.push({
+        name: siteName,
+        ok: false,
+        ms: performance.now() - siteStart
+      });
       lastError = err;
       console.warn("Fonte de pesquisa falhou:", err);
     }
@@ -601,13 +680,36 @@ $("search").addEventListener("click", async () => {
 
   if (!query || !query.trim()) return;
 
-  sayStatus("Pesquisando na internet...");
   addMessage("system", "Pesquisando: " + query);
 
-  try {
-    const results = await searchWeb(query.trim());
+  const sources = [];
+  const searchStart = performance.now();
 
-    addMessage("system", "Resultados encontrados. Analisando...");
+  const searchTimer = setInterval(() => {
+    const seconds = Math.round((performance.now() - searchStart) / 1000);
+    sayStatus("Pesquisando na internet... " + seconds + "s");
+  }, 1000);
+
+  sayStatus("Pesquisando na internet... 0s");
+
+  const sourceReport = () => sources.length
+    ? "Sites consultados:\n" + sources.map(s =>
+        (s.ok ? "✅ " : "❌ ") + s.name +
+        " (" + (s.ms / 1000).toFixed(1) + "s)"
+      ).join("\n")
+    : "Nenhum site foi consultado.";
+
+  try {
+    const results = await searchWeb(query.trim(), sources);
+
+    clearInterval(searchTimer);
+
+    const total = ((performance.now() - searchStart) / 1000).toFixed(1);
+
+    addMessage(
+      "system",
+      "Pesquisa concluída em " + total + "s.\n" + sourceReport()
+    );
 
     await generate(
       "Pesquise e explique: " + query.trim(),
@@ -615,13 +717,17 @@ $("search").addEventListener("click", async () => {
     );
 
   } catch (err) {
+    clearInterval(searchTimer);
+
     console.error("Erro na pesquisa:", err);
     sayStatus("Pesquisa indisponível.");
 
+    const total = ((performance.now() - searchStart) / 1000).toFixed(1);
+
     addMessage(
       "system",
-      "Não consegui pesquisar agora: " +
-      (err.message || String(err))
+      "Não consegui pesquisar agora (" + total + "s): " +
+      (err.message || String(err)) + "\n" + sourceReport()
     );
   }
 });
