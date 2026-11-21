@@ -218,10 +218,10 @@ async function go() {
   msgs.push({ role: "user", content: t });
   add("user", t);
   const el = add("assistant", "Pensando…");
-  const hist = [{ role: "system", content: SYS }, ...msgs.slice(-10).map(m => ({ role: m.role, content: m.content }))];
+  const hist = [{ role: "system", content: SYS }, ...msgs.slice(-6).map(m => ({ role: m.role, content: m.content }))];
   try {
     let out = "";
-    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 384, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
+    const r = await wllama.createChatCompletion({ messages: hist, max_tokens: 256, temperature: 0.5, top_p: 0.85, top_k: 30, stream: true });
     if (r && typeof r[Symbol.asyncIterator] === "function") {
       for await (const ch of r) {
         out += (ch.choices && ch.choices[0] && ch.choices[0].delta && ch.choices[0].delta.content) || "";
