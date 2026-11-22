@@ -254,7 +254,7 @@ body.lite header,body.lite .composer{background:#191b29}
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 25</small>
+    <small>Seu assistente pessoal · versão 26</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -287,7 +287,7 @@ body.lite header,body.lite .composer{background:#191b29}
         <option value="chat3">Modelo Inteligente</option>
         <option value="code3">Código · Forte</option>
       </select>
-      <small class="hint">Os maiores respondem melhor, mas demoram mais.</small>
+      <small class="hint">Os maiores respondem melhor, mas demoram mais. Para programar, use um modelo "Código".</small>
     </label>
     <label>Tamanho da resposta
       <select id="setTokens">
@@ -367,7 +367,7 @@ body.lite header,body.lite .composer{background:#191b29}
         <textarea id="setCustom" rows="3" maxlength="400" placeholder="Ex.: responda sempre em até 3 frases"></textarea>
         <small class="hint">A IA segue isso em todas as conversas (até 400 caracteres).</small>
       </label>
-      <label class="check"><span>Enter envia a mensagem</span><input id="setEnter" type="checkbox"></label>
+      <label class="check"><span>Enter do teclado envia (desligado: Enter pula linha)</span><input id="setEnter" type="checkbox"></label>
       <label class="check"><span>Carregar a IA ao abrir</span><input id="setAutoload" type="checkbox"></label>
       <div class="menu-actions">
         <button id="restart" data-ic="refresh">Reiniciar IA</button>
@@ -422,13 +422,15 @@ body.lite header,body.lite .composer{background:#191b29}
       <input id="fileInput" type="file" accept=".txt,.md,.csv,.json,.js,.mjs,.ts,.py,.html,.css,.xml,.log,.java,.c,.cpp,.sh,.sql,.yml,.yaml,.pdf,text/*,application/pdf,application/json" hidden>
     </div>
     <div class="row">
-      <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2"></textarea>
+      <textarea id="prompt" placeholder="Converse com o Rizik..." rows="2" enterkeyhint="enter"></textarea>
       <button id="send" data-ic="send" aria-label="Enviar"></button>
     </div>
   </div>
   <div class="info">
     Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
-    A pesquisa e o clima precisam de internet. Textos e arquivos grandes são lidos por um leitor rápido que separa os trechos mais importantes.
+    Arquivos, fotos e textos grandes colados ficam anexados até você escrever a pergunta e tocar em enviar (o Enter do teclado só pula linha).
+    Códigos e textos grandes são lidos por um leitor rápido que acha os trechos certos e confere a sintaxe antes de a IA responder.
+    A pesquisa e o clima precisam de internet.
     Funciona no iPhone (Safari) e no Android (Chrome). No Android, abra pelo Chrome, não por navegadores dentro de apps.
   </div>
 </main>
@@ -442,8 +444,9 @@ const chat = $("chat");
 const status = $("status");
 const input = $("prompt");
 
-// Três crases montadas por código (não se corrompem ao copiar/colar).
-const FENCE = String.fromCharCode(96).repeat(3);
+// Crases montadas por código (não se corrompem ao copiar/colar).
+const TICK = String.fromCharCode(96);
+const FENCE = TICK.repeat(3);
 
 const MODELS = {
   fast: { name: "Modelo Rápido", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
@@ -462,20 +465,37 @@ const DEVICE_MEM = navigator.deviceMemory || 0;
 const LOW_MEM = DEVICE_MEM > 0 && DEVICE_MEM <= 3;
 
 // Tokens da resposta: número escolhido ou "max" (usa o que couber no contexto).
-const wantTokens = () => settings.tokens === "max" ? 4096 : (Number(settings.tokens) || 384);
+const wantTokens = () => settings.tokens === "max" ? 4096 : (Number(settings.tokens) || 1024);
 
 // Se o iPhone travar, reduza o "Tamanho da leitura" no menu.
 // Limite de leitura em caracteres: cresce com o contexto escolhido.
 const maxChars = () => Math.max(1200, Math.floor(((loadedCtx || settings.ctx) - Math.min(wantTokens(), 1024) - 500) * 2.6));
 
+const SETTINGS_VER = 26;
 const settings = Object.assign(
-  { ctx: LOW_MEM ? 2048 : 4096, tokens: 384, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: "fast", wall: "aurora", auto: true, autoload: true, custom: "", accent: "purple", scale: 100, enter: true, lite: LOW_MEM, ext: false },
+  { ver: SETTINGS_VER, ctx: LOW_MEM ? 2048 : 4096, tokens: 1024, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: LOW_MEM ? "fast" : "code", wall: "aurora", auto: true, autoload: true, custom: "", accent: "purple", scale: 100, enter: false, lite: LOW_MEM, ext: false },
   (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
 );
 
 function saveSettings() {
   try { localStorage.setItem("rizik_settings", JSON.stringify(settings)); }
   catch (e) { console.warn("Erro ao salvar configurações:", e); }
+}
+
+// Migração para a versão 26: Enter só pula linha, respostas longas e modelo de código.
+let migrated = false;
+if ((Number(settings.ver) || 0) < SETTINGS_VER) {
+  migrated = true;
+  settings.enter = false;
+  if (!LOW_MEM) {
+    if (settings.model === "fast") settings.model = "code";
+    settings.ctx = Math.max(Number(settings.ctx) || 0, 4096);
+  }
+  if (settings.tokens !== "max" && (Number(settings.tokens) || 0) < 1024) settings.tokens = 1024;
+  settings.ver = SETTINGS_VER;
+  saveSettings();
+  // Não baixa um modelo novo sozinho (pode ser ~1 GB): o usuário toca em Carregar IA.
+  try { localStorage.removeItem("rizik_autoload"); } catch (e) {}
 }
 
 // ----- Memória de longo prazo (até 50.000 caracteres)
@@ -515,51 +535,332 @@ function recall(text) {
   return found.map(x => "- " + x.m.q.slice(0, 160) + " → " + x.m.a.slice(0, 240)).join("\n").slice(0, 800);
 }
 
-// ----- Último texto/arquivo grande lido: perguntas seguintes ("o que esse código faz?") usam ele.
+// ----- Programação: analisador de código (roda em milissegundos, sem usar a IA)
+// Acha erros REAIS (sintaxe, colchetes, ids que faltam) e monta o mapa de funções.
+// Esses fatos vão para a IA, então ela não precisa adivinhar nem inventar erros.
+
+function detectLang(t, label) {
+  const l = String(label || "").toLowerCase();
+  const head = t.slice(0, 800);
+  if (/\.json$/.test(l)) return "json";
+  if (/\.py$/.test(l)) return "python";
+  if (/\.css$/.test(l)) return "css";
+  if (/\.(html?|xml)$/.test(l) || /^\s*<!doctype html|^\s*<html/i.test(head)) return "html";
+  if (/\.(m?js|jsx|ts|tsx)$/.test(l)) return "js";
+  if (/^\s*[\[{]/.test(head)) { try { JSON.parse(t); return "json"; } catch (e) {} }
+  if (/^\s*(def |import \w+\s*$|from \w+ import|class \w+.*:)/m.test(head) && !/[;{]\s*$/m.test(head)) return "python";
+  if (/\b(function|const|let|var)\b|=>|document\.|console\./.test(t.slice(0, 6000))) return "js";
+  if (/<\/?[a-z][^>]*>/i.test(head)) return "html";
+  return "text";
+}
+
+function scanBrackets(src, lineOffset) {
+  const issues = [], stack = [], n = src.length;
+  const closeOf = { ")": "(", "]": "[", "}": "{" };
+  let i = 0, line = 1 + lineOffset, inTpl = false, prev = "", word = "";
+  const push = m => { if (issues.length < 4) issues.push(m); };
+  while (i < n) {
+    const ch = src[i], nx = src[i + 1];
+    if (inTpl) {
+      if (ch === "\\") { if (nx === "\n") line++; i += 2; continue; }
+      if (ch === "\n") line++;
+      if (ch === TICK) { inTpl = false; prev = "a"; word = ""; i++; continue; }
+      if (ch === "$" && nx === "{") { stack.push({ c: "${", line }); inTpl = false; prev = "{"; word = ""; i += 2; continue; }
+      i++; continue;
+    }
+    if (ch === "\n") { line++; i++; continue; }
+    if (ch === " " || ch === "\t" || ch === "\r") { i++; continue; }
+    if (ch === "/" && nx === "/") { while (i < n && src[i] !== "\n") i++; continue; }
+    if (ch === "/" && nx === "*") {
+      i += 2;
+      while (i < n && !(src[i] === "*" && src[i + 1] === "/")) { if (src[i] === "\n") line++; i++; }
+      i += 2; continue;
+    }
+    if (ch === '"' || ch === "'") {
+      const startLine = line;
+      i++;
+      while (i < n && src[i] !== ch && src[i] !== "\n") {
+        if (src[i] === "\\") { if (src[i + 1] === "\n") line++; i++; }
+        i++;
+      }
+      if (i >= n || src[i] === "\n") push("aspas " + ch + " abertas na linha " + startLine + " sem fechar");
+      else i++;
+      prev = "a"; word = ""; continue;
+    }
+    if (ch === TICK) { inTpl = true; i++; continue; }
+    if (ch === "/") {
+      const regexOk = prev === "" || /[(,=:\[!&|?{};}+\-*%<>~^]/.test(prev) || (prev === "a" && (word === "return" || word === "typeof" || word === "case"));
+      if (regexOk) {
+        i++;
+        let cls = false;
+        while (i < n && src[i] !== "\n") {
+          const c = src[i];
+          if (c === "\\") i++;
+          else if (c === "[") cls = true;
+          else if (c === "]") cls = false;
+          else if (c === "/" && !cls) break;
+          i++;
+        }
+        i++;
+        while (i < n && /[a-z]/i.test(src[i])) i++;
+        prev = "a"; word = ""; continue;
+      }
+      prev = "/"; word = ""; i++; continue;
+    }
+    if (/[A-Za-z_$]/.test(ch)) {
+      let j = i + 1;
+      while (j < n && /[\w$]/.test(src[j])) j++;
+      word = src.slice(i, j); prev = "a"; i = j; continue;
+    }
+    if (/[0-9]/.test(ch)) {
+      let j = i + 1;
+      while (j < n && /[\w.]/.test(src[j])) j++;
+      prev = "a"; word = ""; i = j; continue;
+    }
+    if (ch === "(" || ch === "[" || ch === "{") { stack.push({ c: ch, line }); prev = ch; word = ""; i++; continue; }
+    if (ch === ")" || ch === "]" || ch === "}") {
+      const top = stack[stack.length - 1];
+      if (ch === "}" && top && top.c === "${") { stack.pop(); inTpl = true; i++; continue; }
+      if (!top) push("'" + ch + "' sobrando na linha " + line);
+      else if (top.c !== closeOf[ch]) { push("na linha " + line + " o '" + ch + "' não combina com o '" + top.c + "' aberto na linha " + top.line); stack.pop(); }
+      else stack.pop();
+      prev = ch; word = ""; i++; continue;
+    }
+    prev = ch; word = ""; i++;
+  }
+  while (stack.length && issues.length < 4) {
+    const t = stack.pop();
+    issues.push("'" + t.c + "' aberto na linha " + t.line + " nunca foi fechado");
+  }
+  if (inTpl && issues.length < 4) issues.push("um template literal (crase) ficou sem fechar");
+  return issues;
+}
+
+function syntaxCheck(code) {
+  const blank = m => m.replace(/[^\n]/g, " ");
+  const c = code
+    .replace(/^[ \t]*import\s[\s\S]*?from\s*["'][^"']+["'];?/gm, blank)
+    .replace(/^[ \t]*import\s*["'][^"']+["'];?/gm, blank)
+    .replace(/^([ \t]*)export\s+default\s+/gm, "$1")
+    .replace(/^([ \t]*)export\s+/gm, "$1");
+  try {
+    const AsyncFn = Object.getPrototypeOf(async function () {}).constructor;
+    new AsyncFn(c);
+    return null;
+  } catch (e) { return String((e && e.message) || e); }
+}
+
+function buildOutline(text, lang) {
+  const out = [], ls = text.split("\n");
+  const rx = lang === "python"
+    ? [/^\s*(?:async\s+)?def\s+([\w]+)/, /^\s*class\s+([\w]+)/]
+    : (lang === "text"
+      ? [/^#{1,3}\s+(.{3,60})/]
+      : [/^\s*(?:export\s+)?(?:async\s+)?function\s*\*?\s*([\w$]+)/, /^\s*(?:export\s+)?class\s+([\w$]+)/, /^\s*(?:export\s+)?(?:const|let|var)\s+([\w$]+)\s*=\s*(?:async\s*)?(?:function\b|\([^)]*\)\s*=>|[\w$]+\s*=>)/]);
+  for (let i = 0; i < ls.length && out.length < 70; i++) {
+    for (const r of rx) {
+      const m = ls[i].match(r);
+      if (m) { out.push(m[1] + " (L" + (i + 1) + ")"); break; }
+    }
+  }
+  return out;
+}
+
+function dupFunctions(text) {
+  const seen = {};
+  text.split("\n").forEach((l, i) => {
+    const m = l.match(/^\s{0,4}(?:async\s+)?function\s*\*?\s*([\w$]+)\s*\(/);
+    if (m) (seen[m[1]] = seen[m[1]] || []).push(i + 1);
+  });
+  return Object.keys(seen).filter(k => seen[k].length > 1).slice(0, 3)
+    .map(k => "⚠️ A função '" + k + "' é declarada mais de uma vez (linhas " + seen[k].slice(0, 4).join(", ") + "): a última sobrescreve as outras.");
+}
+
+function analyzeHtml(text, label, findings) {
+  const scripts = [];
+  const re = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = re.exec(text))) {
+    const attrs = m[1] || "", body = m[2] || "";
+    if (/\bsrc\s*=/.test(attrs) || !body.trim() || /type\s*=\s*["']?(application\/(ld\+)?json|importmap|text\/template)/i.test(attrs)) continue;
+    const bodyStart = m.index + m[0].indexOf(">") + 1;
+    const offset = (text.slice(0, bodyStart).match(/\n/g) || []).length;
+    scripts.push({ body, offset });
+  }
+  const markup = text.replace(/<script[\s\S]*?<\/script>/gi, m2 => m2.replace(/[^\n]/g, " ")).replace(/<!--[\s\S]*?-->/g, m2 => m2.replace(/[^\n]/g, " "));
+
+  scripts.forEach(s => {
+    scanBrackets(s.body, s.offset).slice(0, 3).forEach(x => findings.push("⚠️ Possível problema no <script>: " + x));
+    const se = syntaxCheck(s.body);
+    if (se) findings.push("❌ O navegador rejeitou a sintaxe do <script> que começa na linha " + (s.offset + 1) + ": " + se);
+  });
+
+  // Tags HTML abertas e não fechadas.
+  ["div", "section", "ul", "ol", "table", "form", "button", "select", "textarea", "details", "header", "main", "nav", "label"].forEach(tag => {
+    const open = (markup.match(new RegExp("<" + tag + "(?=[\\s>])", "gi")) || []).length;
+    const close = (markup.match(new RegExp("</" + tag + "\\s*>", "gi")) || []).length;
+    if (open !== close) findings.push("⚠️ Possível tag <" + tag + "> sem par: " + open + " abertas e " + close + " fechadas.");
+  });
+
+  // ids repetidos e ids usados no JavaScript que não existem no HTML.
+  const counts = {};
+  markup.replace(/\bid\s*=\s*["']([^"']+)["']/g, (a, id) => { counts[id] = (counts[id] || 0) + 1; return a; });
+  Object.keys(counts).filter(k => counts[k] > 1).slice(0, 3).forEach(k => findings.push("⚠️ O id '" + k + "' aparece " + counts[k] + " vezes no HTML (ids devem ser únicos)."));
+  const have = new Set();
+  text.replace(/\bid\s*=\s*["']([^"']+)["']/g, (a, id) => { have.add(id); return a; });
+  const used = new Set();
+  const code = scripts.map(s => s.body).join("\n");
+  code.replace(/getElementById\(\s*["']([\w-]+)["']\s*\)/g, (a, id) => { used.add(id); return a; });
+  code.replace(/querySelector\(\s*["']#([\w-]+)["']\s*\)/g, (a, id) => { used.add(id); return a; });
+  if (/(?:const|let|var)\s+\$\s*=|function\s+\$\s*\(/.test(code)) code.replace(/\$\(\s*["']([\w-]+)["']\s*\)/g, (a, id) => { used.add(id); return a; });
+  const missing = [...used].filter(id => !have.has(id)).slice(0, 5);
+  if (missing.length) findings.push("⚠️ O JavaScript usa estes ids que não existem no HTML: " + missing.join(", ") + " (isso causa 'Cannot read properties of null').");
+  findings.push(...dupFunctions(code));
+}
+
+function analyzeCode(text, label) {
+  const lang = detectLang(text, label);
+  const out = { lang, findings: [], outline: [], lines: text.split("\n").length };
+  if (lang === "css") return out;
+  try {
+    if (lang === "json") {
+      try { JSON.parse(text); }
+      catch (e) {
+        let msg = String((e && e.message) || e);
+        const pos = msg.match(/position\s+(\d+)/i);
+        if (pos && !/line\s+\d+/i.test(msg)) msg += " (linha " + ((text.slice(0, Number(pos[1])).match(/\n/g) || []).length + 1) + ")";
+        out.findings.push("❌ JSON inválido: " + msg);
+      }
+    } else if (lang === "html") {
+      analyzeHtml(text, label, out.findings);
+    } else if (lang === "js") {
+      scanBrackets(text, 0).slice(0, 3).forEach(x => out.findings.push("⚠️ Possível problema de colchetes/aspas: " + x));
+      if (!/\.(tsx?|jsx)$/i.test(label || "")) {
+        const se = syntaxCheck(text);
+        if (se) out.findings.push("❌ O navegador rejeitou a sintaxe JavaScript: " + se);
+      }
+      out.findings.push(...dupFunctions(text));
+    } else if (lang === "python") {
+      const ls = text.split("\n");
+      let tabs = 0, spaces = 0;
+      ls.forEach(l => { if (/^\t/.test(l)) tabs++; else if (/^ +\S/.test(l)) spaces++; });
+      if (tabs && spaces) out.findings.push("⚠️ Mistura de TAB e espaços na indentação (" + tabs + " linhas com TAB, " + spaces + " com espaços): pode dar IndentationError.");
+      const miss = [];
+      ls.forEach((l, i) => {
+        const s = l.replace(/#.*$/, "").trimEnd();
+        if (/^\s*(def|class|if|elif|else|for|while|try|except|finally|with)\b/.test(s) && !/[:\\,(\[{]$/.test(s) && s.split("(").length === s.split(")").length && !/:\s*\S/.test(s)) miss.push(i + 1);
+      });
+      if (miss.length) out.findings.push("⚠️ Possível ':' faltando no fim das linhas: " + miss.slice(0, 4).join(", "));
+    }
+    out.outline = buildOutline(text, lang);
+    if (lang === "html") {
+      const extra = [];
+      text.split("\n").forEach((l, i) => { if (/<script\b/i.test(l) && !/\bsrc=/.test(l)) extra.push("<script> (L" + (i + 1) + ")"); else if (/<style\b/i.test(l)) extra.push("<style> (L" + (i + 1) + ")"); });
+      out.outline = extra.slice(0, 6).concat(out.outline);
+    }
+  } catch (e) { console.warn("Análise de código falhou:", e); }
+  out.findings = out.findings.slice(0, 8);
+  return out;
+}
+/* END_ANALYZER */
+
+// ----- Último arquivo/texto lido: perguntas seguintes ("o que esse código faz?") usam ele.
+// Guardamos o arquivo INTEIRO; a cada pergunta o leitor rápido busca só os trechos que importam.
 let currentDoc = null;
-try { currentDoc = JSON.parse(localStorage.getItem("rizik_doc") || "null"); } catch (e) {}
+try {
+  const saved = JSON.parse(localStorage.getItem("rizik_doc2") || "null");
+  if (saved && typeof saved.full === "string") currentDoc = saved;
+  else {
+    const old = JSON.parse(localStorage.getItem("rizik_doc") || "null");
+    if (old && typeof old.digest === "string") {
+      const an = analyzeCode(old.digest, old.label);
+      currentDoc = { full: old.digest, label: old.label || "arquivo", t: old.t || 0, partial: true, lang: an.lang, findings: an.findings, outline: an.outline, lines: an.lines };
+    }
+  }
+} catch (e) { currentDoc = null; }
 
 function saveDoc() {
   try {
-    if (currentDoc) localStorage.setItem("rizik_doc", JSON.stringify(currentDoc));
-    else localStorage.removeItem("rizik_doc");
+    if (!currentDoc) { localStorage.removeItem("rizik_doc2"); localStorage.removeItem("rizik_doc"); return; }
+    const { low, ...rest } = currentDoc;
+    try { localStorage.setItem("rizik_doc2", JSON.stringify(rest)); }
+    catch (e) { localStorage.setItem("rizik_doc2", JSON.stringify(Object.assign({}, rest, { full: rest.full.slice(0, 20000), partial: true }))); }
   } catch (e) {}
 }
 
-const DOC_REF = /\b(esse|este|essa|esta|aquele|aquela|o|do|no)\s+(c[oó]digo|texto|arquivo|trecho|script|site|programa|erro|documento|pdf|p[aá]gina)|acima|anterior|dele|dela|colei|mandei|enviei/i;
+function setDoc(text, label) {
+  const an = analyzeCode(text, label);
+  currentDoc = { full: text, label, t: Date.now(), partial: false, lang: an.lang, findings: an.findings, outline: an.outline, lines: an.lines };
+  saveDoc();
+  return currentDoc;
+}
+
+function docHeader(d) {
+  const parts = ["Arquivo: " + d.label + " (" + d.lines.toLocaleString("pt-BR") + " linhas, " + d.full.length.toLocaleString("pt-BR") + " caracteres, tipo: " + d.lang + ")" + (d.partial ? " [só o começo foi guardado]" : "")];
+  if (d.findings.length) parts.push("Análise automática (feita por programa, são fatos verificados):\n- " + d.findings.join("\n- "));
+  else if (d.lang !== "text" && d.lang !== "css") parts.push("Análise automática: nenhum erro de sintaxe encontrado.");
+  if (d.outline.length) parts.push("Mapa (função e linha): " + d.outline.join(", "));
+  return parts.join("\n");
+}
+
+function numberLines(text) {
+  return text.split("\n").map((l, i) => l.trim() ? (i + 1) + "| " + l : "").join("\n");
+}
+
+const DOC_REF = /\b(esse|este|essa|esta|aquele|aquela|o|do|no|meu|minha)\s+(c[oó]digo|texto|arquivo|trecho|script|site|programa|erro|documento|pdf|p[aá]gina|projeto|app)|acima|anterior|nele|nela|colei|mandei|enviei|anexei/i;
+const EDIT_REF = /\b(arrum\w*|corrig\w*|consert\w*|melhor\w*|otimiz\w*|refator\w*|adicion\w*|remov\w*|troc\w*|mud\w*|alter\w*|bug|linha|fun[cç][aã]o|por ?que (n[aã]o|d[aá])|n[aã]o (funciona|abre|envia|carrega))\b/i;
+
+function refersToDoc(text) {
+  if (!currentDoc || text.length > 600) return false;
+  if (isWeatherQuestion(text) && !DOC_REF.test(text)) return false;
+  if (DOC_REF.test(text)) return true;
+  if (Date.now() - (currentDoc.t || 0) > 3 * 3600 * 1000) return false;
+  if (EDIT_REF.test(text)) return true;
+  const kw = keywords(text).filter(w => w.length >= 5);
+  if (kw.length < 2) return false;
+  if (!currentDoc.low) currentDoc.low = norm(currentDoc.full);
+  return kw.filter(w => currentDoc.low.includes(w)).length >= 2;
+}
+
+const DEFAULT_Q = "Explique em poucas linhas o que este arquivo faz e quais são as partes principais. Depois diga se há algum problema REAL (use a análise automática). Se não houver erro visível, diga isso e pergunte o que o usuário quer corrigir ou melhorar.";
 
 const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático e inteligente que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
-const SYSTEM_CODE = "Você é Rizik AI, especialista em programação. Responda em português brasileiro. Você PODE ajudar com código. Faça exatamente o que o usuário pediu sobre o código. Diga a causa provável do problema, mostre o código corrigido em um bloco de três crases com o nome da linguagem e explique em poucas linhas como testar. Não invente erros que não existem. Se faltar informação, peça o erro exato.";
+const SYSTEM_CODE = "Você é Rizik AI, um programador sênior que fala português do Brasil. Responda direto ao ponto. Em perguntas de programação: explique a ideia em 1 a 3 linhas e dê código FUNCIONAL e completo dentro de um bloco com três crases e o nome da linguagem. Ao corrigir um erro, diga primeiro a causa mais provável. Nunca invente funções, bibliotecas, erros ou linhas: se não tiver certeza, diga. Se faltar informação (mensagem de erro exata, linguagem, versão), faça UMA pergunta curta. Você PODE ajudar com qualquer código.";
+const SYSTEM_DOC = "Você é Rizik AI, um programador sênior que fala português do Brasil e está analisando um arquivo do usuário. Regras: 1) Use SOMENTE o arquivo, o mapa e a 'Análise automática' fornecidos: nunca invente erros, funções ou linhas que não aparecem. 2) A análise automática foi feita por um programa e é confiável: se ela listar problemas, comece por eles. 3) Se não houver erro visível, diga 'não vi erro nos trechos enviados' e pergunte a mensagem de erro exata ou o comportamento esperado. 4) Cite função e linha (as linhas aparecem como 'número| código'). 5) Ao corrigir, mostre só o trecho alterado, dentro de um bloco com três crases e a linguagem, nunca o arquivo inteiro. 6) Explique em até 5 linhas o porquê e como testar. 7) Os trechos podem estar cortados ('[… trecho omitido …]'): se a resposta depender de uma parte que você não viu, diga qual parte e peça ao usuário para perguntar sobre ela.";
 
 const KNOWLEDGE = [
-  { keys: /criar.*ia|fazer.*ia|minha ia|assistente|wllama|modelo local|gguf/i,
-    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true; 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js." },
+  { keys: /criar.*ia|fazer.*ia|minha ia|wllama|modelo local|gguf/i,
+    text: "Criar uma IA no navegador: 1) importe o Wllama pelo cdn.jsdelivr.net; 2) carregue um modelo GGUF pequeno com loadModelFromUrl; 3) gere a resposta com createChatCompletion e stream:true (no Wllama 3 temperatura e top_p vão em cada chamada); 4) publique o index.html no GitHub Pages. Vários núcleos exigem o arquivo coi-serviceworker.js." },
   { keys: /github|pages|publicar|site.*(não|nao).*atualiz|cache|commit/i,
     text: "Publicar no GitHub Pages: coloque o index.html na raiz do repositório, faça o commit, espere 1 a 2 minutos e abra o link com ?v=2 no final (troque o número a cada versão) para fugir do cache do Safari." },
-  { keys: /not defined|undefined|null|cannot read|constant|const|import|syntax|erro|error|bug|console/i,
+  { keys: /not defined|cannot read|assignment to constant|syntaxerror|uncaught/i,
     text: "Erros comuns de JavaScript: 'X is not defined' = variável não declarada ou fora do escopo; 'Cannot read properties of null' = elemento não existe, confira o id; 'Assignment to constant variable' = troque const por let; erro de import = confira a URL e a versão da biblioteca. Leia sempre a primeira linha vermelha do console." },
-  { keys: /lent|trav|demor|memória|memoria|iphone|crash|out of memory/i,
-    text: "IA lenta ou travando no iPhone: use o modelo Rápido, n_ctx entre 512 e 2048, prompt curto, max_tokens baixo e vários núcleos com o coi-serviceworker.js. Prompt longo deixa a leitura lenta." },
-  { keys: /fetch|api|cors|json|requisição|requisicao/i,
+  { keys: /fetch|cors|requisição|requisicao/i,
     text: "fetch: use await dentro de try/catch e confira response.ok antes de response.json(). Erro de CORS significa que o servidor não permite a origem: use uma API que libere CORS (origin=*)." },
-  { keys: /python|indentation|modulenotfound|pip|nameerror/i,
+  { keys: /indentation|modulenotfound|nameerror/i,
     text: "Erros comuns de Python: IndentationError = confira os espaços do bloco; ModuleNotFoundError = instale com pip install nome; NameError = variável usada antes de ser definida." },
-  { keys: /html|css|layout|celular|responsiv|botão|botao/i,
-    text: "Layout no celular: use <meta name=viewport>, flex com flex-wrap, max-width:100% e unidades relativas (rem, %). Teste com a tela estreita." },
-  { keys: /localstorage|salvar|armazen|guardar dados/i,
+  { keys: /localstorage|armazen/i,
     text: "localStorage guarda texto (chave/valor) no navegador: use JSON.stringify para salvar objetos e JSON.parse para ler, sempre dentro de try/catch. O limite é de uns 5 MB." },
   { keys: /async|await|promise|assíncron|assincron/i,
     text: "async/await: coloque async antes da função e await antes de cada Promise. Use try/catch para erros. Sem o await, você recebe a Promise e não o valor." },
-  { keys: /git |git$|branch|merge|pull request|push/i,
+  { keys: /\bgit (add|commit|push|pull|status|diff|merge|branch)/i,
     text: "Git básico: git add . (prepara), git commit -m \"mensagem\" (salva), git push (envia). Para ver mudanças use git status e git diff." }
 ];
 
+// Dica só entra se a PRÓPRIA pergunta do usuário citar o assunto (antes ela entrava sem ninguém pedir e o modelo repetia como se fosse diagnóstico).
 function pickTips(text) {
-  return KNOWLEDGE.filter(i => i.keys.test(text)).slice(0, 2).map(i => i.text).join("\n").slice(0, 400);
+  if (text.length > 300) return "";
+  return KNOWLEDGE.filter(i => i.keys.test(text)).slice(0, 1).map(i => i.text).join("\n").slice(0, 400);
 }
 
 function looksLikeCode(text) {
   return text.includes(FENCE) || /<\/?[a-z]+[^>]*>|function\s*\(|\bconst\s+\w+\s*=|\blet\s+\w+\s*=|\bdef\s+\w+\(|console\.|Uncaught|Traceback|TypeError|ReferenceError|SyntaxError/i.test(text);
+}
+
+const PROG_WORDS = /\b(c[oó]digo|programa[rç]\w*|fun[cç][aã]o|vari[aá]vel|javascript|typescript|python|html|css|java|react|node|sql|json|api|bug|debug|compil\w*|algoritmo|array|loop|regex|script|git|github|framework|biblioteca|backend|frontend|php|kotlin|swift|flutter|unity|arduino|linux|terminal|deploy|classe|m[eé]todo|npm|pip|stack ?trace|exception)\b/i;
+
+function isProg(text, kind, extra) {
+  return kind === "doc" || looksLikeCode(text) || PROG_WORDS.test(text) || (kind === "vision" && looksLikeCode(String(extra || "").slice(0, 3000)));
 }
 
 const THREADS = self.crossOriginIsolated
@@ -569,6 +870,7 @@ const THREADS = self.crossOriginIsolated
 let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
 let history = [], lastAnswer = "";
 let loadedCtx = 0, lastTokens = 0;
+let hintedCoder = false;
 
 // ------------------------------ Interface
 
@@ -917,10 +1219,10 @@ function updateButtons() {
 // ------------------------------ Boas-vindas
 
 const SUGGESTIONS = [
-  "Que horas são?",
+  "Como funciona async/await em JavaScript?",
   "Como está o clima hoje?",
+  "Que horas são?",
   "Quem foi Santos Dumont?",
-  "Me explique o que é uma API",
   "Conte uma piada"
 ];
 
@@ -928,7 +1230,7 @@ function showWelcome() {
   if (chat.children.length) return;
   const w = document.createElement("div");
   w.className = "welcome";
-  w.innerHTML = "<h2>Olá! Eu sou o Rizik ✨</h2><p>Converso, pesquiso na internet, leio textos e arquivos grandes, vejo o clima e ajudo com código, tudo rodando no seu aparelho.</p>";
+  w.innerHTML = "<h2>Olá! Eu sou o Rizik ✨</h2><p>Converso, pesquiso na internet, leio códigos, textos e PDFs grandes, vejo o clima e ajudo com programação, tudo rodando no seu aparelho. Anexe um arquivo, escreva a pergunta e toque em enviar.</p>";
   const chips = document.createElement("div");
   chips.className = "chips";
   SUGGESTIONS.forEach(q => {
@@ -944,7 +1246,9 @@ function showWelcome() {
 
 // ------------------------------ Leitor rápido (programa secundário em Web Worker)
 // Lê o texto INTEIRO em milissegundos, sem usar a IA: divide em trechos, pontua cada um com BM25
-// (o mesmo método de buscadores) e entrega à IA só os trechos mais relevantes, na ordem original.
+// (o mesmo método de buscadores) e entrega à IA só os trechos mais relevantes, na ordem original,
+// com o número de cada linha ("12| código"). Entende nomes como handleLong (separa handle + long)
+// e traduz palavras comuns (botão -> button, enviar -> send) para achar a parte certa do código.
 // Função pura: roda tanto no Worker quanto na página (se o Worker não estiver disponível).
 function rankChunks(p) {
   var t0 = performance.now();
@@ -953,29 +1257,34 @@ function rankChunks(p) {
   var norm = function (s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
   var STOP = Object.create(null);
   "para como que com uma por dos das nos nas isso esse essa este esta sobre qual quais faz fazer explique resuma resumo arquivo texto codigo conteudo aponte erros provaveis trecho corrigido the and what this".split(" ").forEach(function (w) { STOP[w] = 1; });
-  var words = function (s) { return norm(s).replace(/[^a-z0-9_$]+/g, " ").split(" ").filter(function (w) { return w.length > 2 && !STOP[w]; }); };
+  var SYN = { botao: "button btn", enviar: "send submit", envia: "send submit", enter: "enter keydown", salvar: "save store", salva: "save store", clima: "weather", tempo: "weather", foto: "photo image img", fotos: "photo image img", imagem: "image img", imagens: "image img", video: "video", videos: "video", voz: "voice speech", pesquisa: "search", pesquisar: "search", busca: "search", menu: "menu", historico: "history", erro: "error catch throw", memoria: "memory", configuracao: "settings", configuracoes: "settings", tela: "screen", mensagem: "message", mensagens: "message", resposta: "answer reply response", gerar: "generate", carregar: "load", modelo: "model", teclado: "keydown key", anexo: "attach attachment", anexar: "attach", leitura: "read reader", ler: "read reader", funcao: "function", estilo: "style css", cor: "color", cores: "color" };
+  var camel = function (s) { return s.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_$]+/g, " "); };
+  var words = function (s) { return norm(s + " " + camel(s)).replace(/[^a-z0-9_$]+/g, " ").split(" ").filter(function (w) { return w.length > 2 && !STOP[w]; }); };
 
   var lines = text.split("\n"), segs = [];
   for (var i = 0; i < lines.length; i++) {
-    var ln = lines[i];
+    var ln = lines[i], first = true;
     while (ln.length > 500) {
       var cut = ln.lastIndexOf(". ", 400);
       if (cut < 120) cut = ln.lastIndexOf(" ", 400);
       if (cut < 120) cut = 400;
-      segs.push([i, ln.slice(0, cut + 1)]);
+      segs.push([i, ln.slice(0, cut + 1), first]);
+      first = false;
       ln = ln.slice(cut + 1);
     }
-    segs.push([i, ln]);
+    segs.push([i, ln, first]);
   }
 
-  var chunks = [], cur = [], len = 0, a = 0;
+  var chunks = [], cur = [], rows = [], len = 0, a = 0;
   var flush = function (lastLine) {
-    if (cur.length) { var t = cur.join("\n"); if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t }); }
-    cur = []; len = 0;
+    if (cur.length) { var t = cur.join("\n"); if (t.trim()) chunks.push({ a: a + 1, b: lastLine + 1, text: t, rows: rows }); }
+    cur = []; rows = []; len = 0;
   };
   for (var s = 0; s < segs.length; s++) {
     if (!cur.length) a = segs[s][0];
-    cur.push(segs[s][1]); len += segs[s][1].length + 1;
+    cur.push(segs[s][1]);
+    rows.push([segs[s][0] + 1, segs[s][1], segs[s][2]]);
+    len += segs[s][1].length + 1;
     var blank = !segs[s][1].trim();
     if (len >= 450 || (blank && len >= 200)) flush(segs[s][0]);
   }
@@ -985,7 +1294,8 @@ function rankChunks(p) {
   if (!N) return { text: "", outline: [], chars: text.length, lines: lines.length, chunks: 0, picked: 0, coverage: 0, ms: 0 };
 
   var q = [], seen = Object.create(null), qset = Object.create(null);
-  words(query).forEach(function (w) { if (!seen[w]) { seen[w] = 1; q.push(w); qset[w] = 1; } });
+  var addQ = function (w) { if (!seen[w]) { seen[w] = 1; q.push(w); qset[w] = 1; } };
+  words(query).forEach(function (w) { addQ(w); if (SYN[w]) SYN[w].split(" ").forEach(addQ); });
 
   var totalLen = 0;
   chunks.forEach(function (c) {
@@ -1015,9 +1325,10 @@ function rankChunks(p) {
   });
 
   var picked = Object.create(null), used = 0, count = 0;
+  var cost = function (c) { return c.text.length + c.rows.length * 6 + 42; };
   var add = function (i) {
     if (i < 0 || i >= N || picked[i]) return;
-    var l = chunks[i].text.length + 42;
+    var l = cost(chunks[i]);
     if (used + l > budget) return;
     picked[i] = 1; used += l; count++;
   };
@@ -1028,7 +1339,7 @@ function rankChunks(p) {
     var top = [];
     for (var z = 0; z < N; z++) top.push(z);
     top.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
-    for (var y2 = 0; y2 < 3 && y2 < top.length; y2++) { if (chunks[top[y2]].score > 0.5) add(top[y2]); }
+    for (var y2 = 0; y2 < 4 && y2 < top.length; y2++) { if (chunks[top[y2]].score > 0.5) add(top[y2]); }
   }
   add(0); add(N - 1);
   if (!q.length) {
@@ -1039,6 +1350,16 @@ function rankChunks(p) {
   idx.sort(function (x, y) { return chunks[y].score - chunks[x].score || x - y; });
   for (var m = 0; m < idx.length; m++) add(idx[m]);
 
+  var render = function (c) {
+    var o = [];
+    for (var r = 0; r < c.rows.length; r++) {
+      var row = c.rows[r];
+      if (!row[1].trim()) continue;
+      o.push((row[2] ? row[0] + "| " : "  | ") + row[1]);
+    }
+    return o.join("\n");
+  };
+
   var out = "", prev = -2, usedChars = 0;
   for (var n = 0; n < N; n++) {
     if (!picked[n]) continue;
@@ -1046,14 +1367,14 @@ function rankChunks(p) {
       if (n !== prev + 1) out += "\n[… trecho omitido: linhas " + (chunks[prev].b + 1) + "–" + (chunks[n].a - 1) + " …]\n";
       else out += "\n";
     }
-    out += chunks[n].text;
+    out += render(chunks[n]);
     usedChars += chunks[n].text.length;
     prev = n;
   }
 
   var outline = [];
-  for (var o = 0; o < lines.length && outline.length < 24; o++) {
-    if (/^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+/.test(lines[o]) || /^#{1,3}\s+\S/.test(lines[o])) outline.push(lines[o].trim().slice(0, 70));
+  for (var o2 = 0; o2 < lines.length && outline.length < 24; o2++) {
+    if (/^\s*(export\s+)?(async\s+)?(function|class|def)\s+[\w$]+/.test(lines[o2]) || /^#{1,3}\s+\S/.test(lines[o2])) outline.push(lines[o2].trim().slice(0, 70));
   }
 
   return {
@@ -1133,25 +1454,35 @@ function limitText(text, maxChars) {
   return text.length > maxChars ? text.slice(0, maxChars) + "\n[Conteúdo reduzido.]" : text;
 }
 
-function buildMessages(text, extraContext) {
-  const isCode = !extraContext && looksLikeCode(text);
+function buildMessages(text, extraContext, kind) {
+  const prog = isProg(text, kind, extraContext);
+  const total = maxChars();
   const today = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const messages = [{ role: "system", content: (isCode ? SYSTEM_CODE : SYSTEM_CHAT) + " Hoje é " + today + "." + (settings.custom ? " Instruções do usuário: " + String(settings.custom).slice(0, 400) : "") + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
+  const base = kind === "doc" ? SYSTEM_DOC : prog ? SYSTEM_CODE : SYSTEM_CHAT;
+  const messages = [{ role: "system", content: base + " Hoje é " + today + "." + (settings.custom ? " Instruções do usuário: " + String(settings.custom).slice(0, 400) : "") + (settings.place ? " Localização do usuário: " + placeLabel(settings.place) + "." : "") + (voiceMode ? " Estamos em conversa por voz: responda em no máximo 3 frases curtas, sem listas nem código." : "") }];
 
-  const recent = (text.length > Math.floor(maxChars() * 0.5) || (isCode && text.length > 1200)) ? [] : history.slice(-4);
+  const recent = kind === "doc"
+    ? history.slice(-2)
+    : ((text.length > Math.floor(total * 0.5) || (prog && text.length > 1200)) ? [] : history.slice(-4));
   for (const item of recent) messages.push({ role: item.role, content: limitText(item.content, 240) });
 
-  const tips = (isCode && text.length <= 1200) ? pickTips(text) : "";
-  const mem = (!extraContext && text.length <= 1500) ? recall(text) : "";
-  const research = extraContext ? limitText(extraContext, Math.max(900, Math.floor(maxChars() * 0.6))) : "";
-
-  messages.push({
-    role: "user",
-    content: limitText(text, maxChars()) +
+  let content;
+  if (kind === "doc") {
+    content = "PERGUNTA DO USUÁRIO: " + limitText(text, 1500) + "\n\n" + String(extraContext || "");
+  } else if (kind === "vision") {
+    content = limitText(text, Math.floor(total * 0.3)) +
+      "\n\nResultado da análise automática das fotos/vídeos (legendas em inglês, objetos detectados e texto lido por OCR). Responda em português usando SOMENTE isso; se a análise não mostrar algo, diga que não dá para saber:\n" +
+      limitText(extraContext, Math.floor(total * 0.7));
+  } else {
+    const tips = (!extraContext && prog) ? pickTips(text) : "";
+    const mem = (!extraContext && text.length <= 1500) ? recall(text) : "";
+    const research = extraContext ? limitText(extraContext, Math.max(900, Math.floor(total * 0.6))) : "";
+    content = limitText(text, total) +
       (mem ? "\n\nMemória (conversas antigas parecidas):\n" + mem : "") +
-      (tips ? "\n\nDicas úteis:\n" + tips : "") +
-      (research ? "\n\nUse as informações abaixo para responder em português, de forma curta.\nInformações:\n" + research : "")
-  });
+      (tips ? "\n\nDica útil (use só se for relevante):\n" + tips : "") +
+      (research ? "\n\nUse as informações abaixo para responder em português, de forma curta.\nInformações:\n" + research : "");
+  }
+  messages.push({ role: "user", content });
   return messages;
 }
 
@@ -1310,12 +1641,13 @@ async function generate(text, extraContext = "", opts = {}) {
   updateButtons();
 
   const shown = opts.shown || text;
+  const kind = opts.kind || "";
   let act = opts.act || null;
   let answerBox = null, currentEngine = null;
 
   try {
     if (!opts.skipUser) addMessage("user", shown);
-    if (text.length > maxChars()) addMessage("system", "Texto grande: li só os primeiros " + maxChars() + " caracteres.");
+    if (!opts.shown && !extraContext && text.length > maxChars()) addMessage("system", "Texto grande: li só os primeiros " + maxChars() + " caracteres.");
     if (!act) act = new Activity("Pensando");
 
     if (!ready || !ai) {
@@ -1333,7 +1665,7 @@ async function generate(text, extraContext = "", opts = {}) {
     const ctxSize = loadedCtx || settings.ctx;
     const want = wantTokens();
     const reserve = settings.tokens === "max" ? Math.min(1024, Math.floor(ctxSize * 0.25)) : want;
-    const fit = await fitMessages(currentEngine, buildMessages(text, extraContext), ctxSize, want, reserve);
+    const fit = await fitMessages(currentEngine, buildMessages(text, extraContext, kind), ctxSize, want, reserve);
     const messages = fit.messages;
     lastTokens = fit.tokens;
     updateMeter();
@@ -1352,11 +1684,13 @@ async function generate(text, extraContext = "", opts = {}) {
 
     const startAt = performance.now();
     let tokenCount = 0, firstTokenAt = 0, lastPaint = 0;
+    // Em programação a temperatura é baixa: menos invenção, mais precisão.
+    const temp = isProg(text, kind, extraContext) ? Math.min(settings.temp, 0.2) : settings.temp;
 
     const stream = await currentEngine.createChatCompletion({
       messages,
       max_tokens: fit.maxNew,
-      temperature: settings.temp,
+      temperature: temp,
       top_p: 0.9,
       stream: true
     });
@@ -1550,6 +1884,8 @@ async function handleUrl(text, url) {
 
 let webMode = false;
 let searching = false;
+// Anexo esperando a pergunta: { kind: "text", label, text } ou { kind: "media", files }.
+// Nada é enviado até o usuário tocar no botão de enviar.
 let pendingAttachment = null;
 
 function setWebMode(on) {
@@ -1559,10 +1895,10 @@ function setWebMode(on) {
   if (!pendingAttachment) input.placeholder = on ? "Pesquisar na internet..." : "Converse com o Rizik...";
 }
 
-function showAttachPreview(name) {
-  $("attachPreviewName").textContent = "📄 " + name;
+function showAttachPreview(name, icon) {
+  $("attachPreviewName").textContent = (icon || "📄") + " " + name;
   $("attachPreview").hidden = false;
-  input.placeholder = "Pergunte algo sobre o arquivo (opcional) e toque em enviar...";
+  input.placeholder = "Escreva o que quer saber e toque em enviar (opcional)...";
   input.focus();
 }
 
@@ -1573,6 +1909,20 @@ function hideAttachPreview() {
 }
 
 $("attachRemove").addEventListener("click", () => { pendingAttachment = null; hideAttachPreview(); });
+
+function attachText(text, label) {
+  pendingAttachment = { kind: "text", label, text };
+  showAttachPreview(label + " · " + text.length.toLocaleString("pt-BR") + " caracteres");
+}
+
+function attachMedia(files) {
+  files = files.filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
+  if (!files.length) return;
+  if (files.length > 12) { addMessage("system", "Máximo de 12 arquivos por envio: usei os 12 primeiros."); files = files.slice(0, 12); }
+  pendingAttachment = { kind: "media", files };
+  const names = files.slice(0, 2).map(f => f.name || "imagem").join(", ") + (files.length > 2 ? "…" : "");
+  showAttachPreview(files.length + (files.length === 1 ? " arquivo" : " arquivos") + " (" + names + ")", "🖼️");
+}
 
 $("load").addEventListener("click", () => loadAI());
 
@@ -1603,18 +1953,34 @@ $("attPhoto").addEventListener("click", () => { closeAttachMenu(); $("photoInput
 $("attFile").addEventListener("click", () => { closeAttachMenu(); $("fileInput").click(); });
 $("attWeb").addEventListener("click", () => { closeAttachMenu(); setWebMode(!webMode); input.focus(); });
 
+// Texto grande colado (código, artigo...) vira anexo: não é enviado sozinho, espera a pergunta.
+input.addEventListener("paste", e => {
+  const cd = e.clipboardData;
+  if (!cd) return;
+  const imgs = [...(cd.files || [])].filter(f => f.type.startsWith("image/"));
+  if (imgs.length) { e.preventDefault(); attachMedia(imgs); return; }
+  const t = cd.getData("text") || "";
+  if (t.length < 1500) return;
+  e.preventDefault();
+  attachText(t, looksLikeCode(t) ? "codigo-colado.txt" : "texto-colado.txt");
+  addMessage("system", "Texto grande colado: anexei como arquivo (" + t.length.toLocaleString("pt-BR") + " caracteres). Escreva o que quer saber e toque em enviar.");
+});
+
+const HINT_CODER = "Para programar melhor, use um modelo \"Código\" em ⋮ Configurações › Inteligência (Código · Leve ou Código · Forte).";
+
 async function handleSend() {
   const text = input.value.trim();
   if (busy || resetting || searching) return;
   if (!text && !pendingAttachment) return;
 
   if (pendingAttachment) {
-    const attachment = pendingAttachment;
+    const att = pendingAttachment;
     pendingAttachment = null;
     hideAttachPreview();
     input.value = "";
     input.style.height = "";
-    await handleLong(attachment.text, attachment.label, text || null);
+    if (att.kind === "media") await handleMedia(att.files, text || null);
+    else await handleLong(att.text, att.label, text || null);
     return;
   }
 
@@ -1643,9 +2009,10 @@ async function handleSend() {
     return;
   }
 
-  // Pergunta sobre o último arquivo/texto grande lido ("o que esse código faz?").
-  if (!wasWeb && currentDoc && text.length < 400 && DOC_REF.test(text) && !isWeatherQuestion(text)) {
-    await generate(text, currentDoc.digest, { noReview: true });
+  // Pergunta sobre o último arquivo/texto lido ("o que esse código faz?", "arruma a função X").
+  if (!wasWeb && refersToDoc(text)) {
+    addMessage("user", text);
+    await followDoc(text);
     return;
   }
 
@@ -1660,7 +2027,15 @@ async function handleSend() {
     return;
   }
 
-  if (visionContext && /foto|imagem|imagens|v[ií]deo|figura|cena/i.test(text)) { await generate(text, visionContext, { noReview: true }); return; }
+  if (visionContext && /foto|imagem|imagens|v[ií]deo|figura|cena|print|captura/i.test(text)) {
+    await generate(text, visionContext, { noReview: true, kind: "vision" });
+    return;
+  }
+
+  if (!hintedCoder && settings.model === "fast" && isProg(text)) {
+    hintedCoder = true;
+    addMessage("system", HINT_CODER);
+  }
 
   const answer = await generate(text);
 
@@ -1681,9 +2056,11 @@ input.addEventListener("input", () => {
   input.style.height = Math.min(input.scrollHeight, 180) + "px";
 });
 
+// Enter do teclado só pula linha (padrão). Enviar = botão na tela.
+// Quem quiser pode ligar "Enter do teclado envia" em Avançado; Ctrl/Cmd+Enter sempre envia.
 input.addEventListener("keydown", e => {
   if (e.key !== "Enter" || e.isComposing || e.keyCode === 229) return;
-  if ((settings.enter && !e.shiftKey) || e.ctrlKey || e.metaKey) { e.preventDefault(); $("send").click(); }
+  if (e.ctrlKey || e.metaKey || (settings.enter && !e.shiftKey)) { e.preventDefault(); $("send").click(); }
 });
 
 // ----- Menu
@@ -1728,7 +2105,7 @@ function updateMeter() {
   const f = $("meterFill");
   f.style.width = Math.max(2, pct) + "%";
   f.className = pct > 85 ? "hot" : pct > 60 ? "warm" : "";
-  $("meterHint").textContent = "A IA lê até cerca de " + maxChars().toLocaleString("pt-BR") + " caracteres por vez. Textos maiores passam pelo leitor rápido." + (loadedCtx ? "" : " (A IA ainda não foi carregada.)");
+  $("meterHint").textContent = "A IA lê até cerca de " + maxChars().toLocaleString("pt-BR") + " caracteres por vez. Textos maiores passam pelo leitor rápido, que escolhe os trechos certos." + (loadedCtx ? "" : " (A IA ainda não foi carregada.)");
   updateMemInfo();
 }
 
@@ -1792,6 +2169,9 @@ $("clear").addEventListener("click", () => {
   saveMemory();
   currentDoc = null;
   saveDoc();
+  visionContext = "";
+  pendingAttachment = null;
+  hideAttachPreview();
   chat.innerHTML = "";
   lastAnswer = "";
   saveHistory();
@@ -1951,10 +2331,10 @@ function quickReply(text) {
   if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
   if (/^(tudo bem|tudo certo|como vai|como voc[eê] est[aá])$/.test(t)) return "Tudo ótimo por aqui! E com você? Em que posso ajudar?";
   if (/^(quem [eé] voc[eê]|qual (é )?o seu nome|qual (é )?seu nome|o que voc[eê] faz)$/.test(t)) {
-    return "Eu sou o **Rizik AI**, um assistente que roda direto no seu aparelho.\n- Converso e respondo dúvidas\n- Pesquiso na internet\n- Leio textos, PDFs e códigos grandes\n- Mostro o clima\n- Ajudo a achar erros em programas";
+    return "Eu sou o **Rizik AI**, um assistente que roda direto no seu aparelho.\n- Converso e respondo dúvidas\n- Entendo e corrijo código\n- Pesquiso na internet\n- Leio textos, PDFs e códigos grandes\n- Leio fotos e prints (inclusive o texto que aparece nelas)\n- Mostro o clima";
   }
   if (/^(ajuda|o que voc[eê] sabe fazer|o que voc[eê] pode fazer|comandos)$/.test(t)) {
-    return "Posso te ajudar assim:\n- Digite uma pergunta e eu respondo\n- Toque em **+** para anexar arquivos, fotos ou pesquisar na internet\n- Toque em **Clima** para a previsão\n- Toque em **Conversar** para falar comigo por voz\n- Cole um texto ou código grande: eu leio tudo bem rápido";
+    return "Posso te ajudar assim:\n- Digite uma pergunta e eu respondo\n- Toque em **+** para anexar arquivos, fotos ou pesquisar na internet: o anexo espera você escrever a pergunta e tocar em enviar\n- Cole um código grande: ele vira anexo e eu leio rápido\n- Toque em **Clima** para a previsão\n- Toque em **Conversar** para falar comigo por voz";
   }
   if (/^(que horas s[aã]o|que horas|hora certa)$/.test(t)) return "Agora são " + fmtTime() + ".";
   if (/^(que dia [eé] hoje|data de hoje|qual [eé] a data)$/.test(t)) {
@@ -2029,6 +2409,19 @@ async function searchStack(query) {
   return { text: "Stack Overflow:\n" + text };
 }
 
+// Documentação oficial de HTML, CSS e JavaScript (MDN).
+async function searchMdn(query) {
+  const url = "https://developer.mozilla.org/api/v1/search?locale=en-US&q=" + encodeURIComponent(query);
+  const data = JSON.parse(await fetchTextWithTimeout(url, 10000));
+  const docs = ((data && data.documents) || []).slice(0, 3);
+  if (!docs.length) throw new Error("Sem resultados na MDN.");
+  return {
+    title: docs[0].title,
+    url: "https://developer.mozilla.org" + docs[0].mdn_url,
+    text: ("MDN (documentação):\n" + docs.map(d => d.title + ": " + (d.summary || "")).join("\n")).slice(0, 900)
+  };
+}
+
 async function searchDuck(query) {
   const raw = await fetchTextWithTimeout("https://r.jina.ai/http://html.duckduckgo.com/html/?q=" + encodeURIComponent(query), 20000);
   const cleaned = cleanWebText(raw);
@@ -2046,7 +2439,10 @@ async function searchWeb(query, words, act) {
 
   const providers = [];
   if (extOn()) providers.push({ name: "duckduckgo.com (via extensão)", site: "https://duckduckgo.com", run: () => searchExtDuck(query) });
-  if (tech) providers.push({ name: "stackoverflow.com", site: "https://stackoverflow.com", run: () => searchStack(query) });
+  if (tech) {
+    providers.push({ name: "stackoverflow.com", site: "https://stackoverflow.com", run: () => searchStack(query) });
+    providers.push({ name: "developer.mozilla.org", site: "https://developer.mozilla.org", run: () => searchMdn(query) });
+  }
   providers.push({ name: "pt.wikipedia.org", site: "https://pt.wikipedia.org", run: () => searchWikipedia(query, words) });
   providers.push({ name: "duckduckgo.com (via r.jina.ai)", site: "https://duckduckgo.com", run: () => searchDuck(query) });
 
@@ -2176,7 +2572,7 @@ $("weather").addEventListener("click", async () => {
   await runWeather("");
 });
 
-// ------------------------------ Textos grandes como arquivo (leitor rápido)
+// ------------------------------ Arquivos e textos grandes (leitor rápido + análise de código)
 
 function addFileMessage(text, label) {
   clearWelcome();
@@ -2204,45 +2600,51 @@ function addFileMessage(text, label) {
   keepBottom(() => chat.appendChild(div), true);
 }
 
+// Responde uma pergunta sobre currentDoc: confere a sintaxe (já feita ao abrir), busca os trechos certos
+// com o leitor rápido e manda só isso para a IA (uma única chamada).
+async function answerDoc(question, act, opts = {}) {
+  const d = currentDoc;
+  const isDefault = !!opts.isDefault;
+  const total = maxChars();
+  const header = limitText(docHeader(d), Math.floor(total * 0.3));
+  const room = Math.max(700, total - Math.min(question.length, 1500) - header.length - 320);
+  const n = d.full.length.toLocaleString("pt-BR");
+  let body;
+
+  const numbered = d.full.length * 1.12 <= room ? numberLines(d.full) : "";
+  if (numbered && numbered.length <= room) {
+    body = numbered;
+    act.step("📂 Li o arquivo inteiro · " + n + " caracteres (cabe na memória da IA)").done(true);
+  } else {
+    const s1 = act.step("⚡ Leitor rápido: varrendo " + n + " caracteres");
+    const r = await fastRead(d.full, isDefault ? "" : question, room);
+    s1.done(true, { name: "⚡ Li " + n + " caracteres em " + r.ms + "ms · " + r.chunks + " trechos · enviei os " + r.picked + " mais relevantes (" + r.coverage + "% do arquivo)" });
+    body = r.text;
+    if (settings.ctx < 4096) act.step("💡 Dica: em ⋮ › Inteligência › Tamanho da leitura, escolha Grande ou Máximo para a IA receber mais trechos").done(true);
+    if (isDefault && d.lines > 300) act.step("💡 Pergunte sobre uma função ou parte específica (ex.: \"o que faz a função handleSend?\") para eu buscar o trecho certo").done(true);
+  }
+
+  const ctx = header + "\n\nTrechos do arquivo (formato 'linha| código'; '[… trecho omitido …]' marca cortes):\n" + body;
+  return generate(question, ctx, { shown: opts.shown || question, skipUser: true, noReview: true, act, kind: "doc" });
+}
+
+async function followDoc(question) {
+  const act = new Activity("Procurando no arquivo " + currentDoc.label);
+  await answerDoc(question, act, { shown: question });
+}
+
 async function handleLong(text, customLabel, customQuestion) {
   const label = customLabel || (looksLikeCode(text) ? "codigo.txt" : "texto.txt");
   addFileMessage(text, label);
-  if (customQuestion) addMessage("user", customQuestion);
-  const marker = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
-  const limit = maxChars();
-  const question = customQuestion || "Explique o que este conteúdo faz e aponte erros prováveis, com o trecho corrigido.";
-  const n = text.length.toLocaleString("pt-BR");
+  const question = (customQuestion || "").trim();
+  if (question) addMessage("user", question);
   const act = new Activity("Lendo o conteúdo");
-
-  if (question.length + text.length + 2 <= limit) {
-    act.step("📂 Lendo " + label + " · " + n + " caracteres (cabe inteiro)").done(true);
-    currentDoc = { digest: text.slice(0, 12000), label, t: Date.now() };
-    saveDoc();
-    await generate(question + "\n\n" + text, "", { shown: marker, skipUser: true, act });
-    return;
-  }
-
-  // Texto grande: o leitor rápido (Web Worker) varre tudo e a IA recebe só o que importa. Uma única chamada à IA.
-  const outCap = Math.min(600, Math.floor(limit * 0.12));
-  const s1 = act.step("⚡ Leitor rápido: varrendo " + n + " caracteres");
-  const r = await fastRead(text, customQuestion || "", Math.max(700, limit - question.length - outCap - 240));
-  s1.done(true, { name: "⚡ Li " + n + " caracteres em " + r.ms + "ms · " + r.chunks + " trechos · enviei os " + r.picked + " mais relevantes (" + r.coverage + "% do texto)" });
-
-  if (settings.ctx < 4096) act.step("💡 Dica: em ⋮ › Inteligência › Tamanho da leitura, escolha Grande ou Máximo para a IA receber mais trechos").done(true);
-  const outline = (r.outline || []).join(" | ").slice(0, outCap);
-  if (outline) act.step("🧭 Estrutura encontrada: " + outline.slice(0, 140) + (outline.length > 140 ? "…" : "")).done(true);
-
-  // Guarda os trechos principais para perguntas seguintes ("o que esse código faz?").
-  currentDoc = { digest: String(r.text || "").slice(0, 12000), label, t: Date.now() };
-  saveDoc();
-
-  const prompt =
-    question +
-    "\n(O conteúdo é grande: abaixo estão os trechos mais importantes, com '[… trecho omitido …]' nos cortes.)" +
-    (outline ? "\nEstrutura: " + outline : "") +
-    "\n\n" + r.text;
-
-  await generate(prompt, "", { shown: marker, skipUser: true, act });
+  const s0 = act.step("🔎 Analisando " + label + " (sintaxe e estrutura)");
+  const d = setDoc(text, label);
+  const bad = d.findings.filter(f => /^(❌|⚠️)/.test(f)).length;
+  s0.done(true, { name: "🔎 Análise automática: " + (bad ? bad + " possível(is) problema(s) achado(s)" : (d.lang === "text" ? "texto comum" : "nenhum erro de sintaxe")) + " · " + d.lines.toLocaleString("pt-BR") + " linhas" + (d.outline.length ? " · " + d.outline.length + " itens no mapa" : "") });
+  const marker = "📄 " + label + " · " + text.length.toLocaleString("pt-BR") + " caracteres";
+  await answerDoc(question || DEFAULT_Q, act, { shown: question || marker, isDefault: !question });
 }
 
 // ------------------------------ Conversa por voz
@@ -2430,9 +2832,7 @@ $("orb").addEventListener("click", () => {
   if (!listening && !busy && !callMuted) startListening();
 });
 
-// ------------------------------ Galeria de fotos (até 12)
-
-let photoNoted = false;
+// ------------------------------ Fotos, vídeos e arquivos: anexam e esperam a pergunta
 
 function openViewer(src, isVideo) {
   $("viewerImg").hidden = !!isVideo;
@@ -2481,17 +2881,7 @@ function addGallery(files) {
   cap.className = "msg-time";
   cap.textContent = "🖼️ " + files.length + (files.length === 1 ? " arquivo" : " arquivos") + " · " + fmtTime();
   div.appendChild(cap);
-  chat.appendChild(div);
-
-  const row = document.createElement("div");
-  row.className = "actions";
-  const b = document.createElement("button");
-  b.className = "copy";
-  b.textContent = "🔍 Identificar com a IA";
-  b.addEventListener("click", () => runVision(files, b));
-  row.appendChild(b);
-  chat.appendChild(row);
-  scrollEnd(true);
+  keepBottom(() => chat.appendChild(div), true);
 }
 
 const TEXT_FILE_RE = /\.(txt|md|markdown|csv|json|js|mjs|jsx|ts|tsx|py|html|htm|css|xml|yml|yaml|log|java|c|cpp|h|cs|php|rb|go|rs|sql|sh|bat|ini|env)$/i;
@@ -2567,21 +2957,14 @@ $("fileInput").addEventListener("change", async () => {
     return;
   }
 
-  act.finish("Arquivo pronto · " + text.length.toLocaleString("pt-BR") + " caracteres");
-  pendingAttachment = { label: file.name, text };
-  showAttachPreview(file.name);
+  act.finish("Arquivo anexado · " + text.length.toLocaleString("pt-BR") + " caracteres");
+  attachText(text, file.name);
 });
 
 $("photoInput").addEventListener("change", () => {
-  let files = [...$("photoInput").files].filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
+  const files = [...$("photoInput").files];
   $("photoInput").value = "";
-  if (!files.length) return;
-  if (files.length > 12) { addMessage("system", "Máximo de 12 arquivos por envio: usei os 12 primeiros."); files = files.slice(0, 12); }
-  addGallery(files);
-  if (!photoNoted) {
-    photoNoted = true;
-    addMessage("system", "Toque em \"🔍 Identificar com a IA\" para ela ler as fotos e vídeos. Na 1ª vez baixa o leitor de imagens (cerca de 300 MB). Não identifico pessoas pelo rosto.");
-  }
+  attachMedia(files);
 });
 
 // ------------------------------ Instalar como app (Android)
@@ -2727,7 +3110,7 @@ $("gpsBtn").addEventListener("click", async () => {
   } catch (e) { list.textContent = e.message || String(e); }
 });
 
-// ------------------------------ Visão: fotos e vídeos
+// ------------------------------ Visão: fotos e vídeos (legenda, objetos e OCR do texto da imagem)
 
 let tfLib = null, visionBusy = false, visionContext = "";
 
@@ -2750,6 +3133,37 @@ async function mkPipe(T, task, model, label, setMsg) {
   const cb = p => { if (p && p.status === "progress" && typeof p.progress === "number") setMsg("Baixando " + label + ": " + Math.round(p.progress) + "%"); };
   try { return await T.pipeline(task, model, { dtype: "q8", progress_callback: cb }); }
   catch (e) { console.warn("q8 falhou, tentando o padrão", e); return await T.pipeline(task, model, { progress_callback: cb }); }
+}
+
+// OCR (Tesseract.js): lê o texto de prints de código, erros e documentos. Só baixa quando você anexa uma imagem.
+let tessLoad = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  if (tessLoad) return tessLoad;
+  tessLoad = new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+    s.crossOrigin = "anonymous";
+    s.onload = () => window.Tesseract ? res(window.Tesseract) : rej(new Error("OCR indisponível"));
+    s.onerror = () => { tessLoad = null; rej(new Error("Não consegui carregar o leitor de texto (OCR)")); };
+    document.head.appendChild(s);
+  });
+  return tessLoad;
+}
+
+async function ocrImage(file) {
+  const T = await loadTesseract();
+  const url = await imageToDataURL(file, 1800);
+  const r = await T.recognize(url, "por+eng");
+  return String((r && r.data && r.data.text) || "").trim();
+}
+
+function usefulOcr(t) {
+  t = String(t || "").replace(/\n{3,}/g, "\n\n").trim();
+  if (t.length < 20) return "";
+  const letters = (t.match(/[A-Za-zÀ-ú]/g) || []).length;
+  const good = (t.match(/[A-Za-zÀ-ú0-9\s.,;:(){}\[\]=<>"'\/_\-+*!?#]/g) || []).length;
+  return (good / t.length > 0.85 && letters / t.length > 0.35) ? t.slice(0, 4000) : "";
 }
 
 async function imageToDataURL(file, max = 512) {
@@ -2788,16 +3202,24 @@ async function videoFrames(file, n) {
 }
 
 async function analyzeMedia(files, setMsg) {
-  const T = await loadTF();
-  setMsg("Carregando o leitor de imagens (a 1ª vez baixa uns 300 MB)...");
-  const cap = await mkPipe(T, "image-to-text", "Xenova/vit-gpt2-image-captioning", "descrição de imagens", setMsg);
-  let det = null;
-  if (files.some(f => f.type.startsWith("image/"))) {
-    try { det = await mkPipe(T, "object-detection", "Xenova/detr-resnet-50", "detector de objetos", setMsg); }
-    catch (e) { console.warn("Sem detector de objetos:", e); }
-  }
+  let T = null, cap = null, det = null, capFail = false, detFail = false;
+  const ensureCap = async () => {
+    if (cap || capFail) return cap;
+    try {
+      T = T || await loadTF();
+      setMsg("Carregando o leitor de imagens (a 1ª vez baixa uns 300 MB)...");
+      cap = await mkPipe(T, "image-to-text", "Xenova/vit-gpt2-image-captioning", "descrição de imagens", setMsg);
+    } catch (e) { capFail = true; console.warn("Sem legendas:", e); }
+    return cap;
+  };
+  const ensureDet = async () => {
+    if (det || detFail) return det;
+    try { T = T || await loadTF(); det = await mkPipe(T, "object-detection", "Xenova/detr-resnet-50", "detector de objetos", setMsg); }
+    catch (e) { detFail = true; console.warn("Sem detector de objetos:", e); }
+    return det;
+  };
 
-  const lines = [];
+  const lines = [], ocrTexts = [];
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     const isVid = f.type.startsWith("video/");
@@ -2805,6 +3227,7 @@ async function analyzeMedia(files, setMsg) {
     setMsg("🔍 Analisando " + tag + " (" + (i + 1) + "/" + files.length + ")...");
     try {
       if (isVid) {
+        if (!(await ensureCap())) { lines.push(tag + ": não consegui carregar o leitor de imagens."); continue; }
         const { frames, dur } = await videoFrames(f, 5);
         const caps = [];
         for (const fr of frames) {
@@ -2813,16 +3236,26 @@ async function analyzeMedia(files, setMsg) {
         }
         lines.push(tag + " (" + Math.round(dur) + "s), cenas em ordem: " + caps.map((c, k) => (k + 1) + ") " + c).join("; "));
       } else {
-        const url = await imageToDataURL(f);
-        const o = await cap(url, { max_new_tokens: 30 });
-        let objs = "";
-        if (det) {
-          const d = await det(url, { threshold: 0.75 });
-          const count = {};
-          d.forEach(x => { count[x.label] = (count[x.label] || 0) + 1; });
-          objs = Object.entries(count).map(([k, v]) => k + " x" + v).join(", ");
+        let ocr = "";
+        try { setMsg("🔤 Lendo o texto da " + tag + " (OCR)..."); ocr = usefulOcr(await ocrImage(f)); }
+        catch (e) { console.warn("OCR falhou:", e); }
+        if (ocr) ocrTexts.push(ocr);
+
+        let capText = "", objs = "";
+        // Print cheio de texto (código, erro): a legenda não ajuda, então nem baixa o modelo de legendas.
+        if (!(ocr && ocr.length >= 150) && await ensureCap()) {
+          const url = await imageToDataURL(f);
+          const o = await cap(url, { max_new_tokens: 30 });
+          capText = String(o[0].generated_text || "").trim();
+          if (await ensureDet()) {
+            const d = await det(url, { threshold: 0.75 });
+            const count = {};
+            d.forEach(x => { count[x.label] = (count[x.label] || 0) + 1; });
+            objs = Object.entries(count).map(([k, v]) => k + " x" + v).join(", ");
+          }
         }
-        lines.push(tag + ": legenda (em inglês): " + String(o[0].generated_text || "").trim() + (objs ? ". Objetos: " + objs : ""));
+        lines.push(tag + (capText ? ": legenda (em inglês): " + capText : ":") + (objs ? ". Objetos: " + objs : "") +
+          (ocr ? "\nTexto lido na imagem (OCR, pode ter pequenos erros):\n" + ocr : (capText ? "" : " não consegui descrever a imagem e não achei texto nela.")));
       }
     } catch (err) {
       console.error(err);
@@ -2830,13 +3263,18 @@ async function analyzeMedia(files, setMsg) {
     }
   }
   for (const m of [cap, det]) { try { if (m && m.dispose) await m.dispose(); } catch (e) {} }
-  return lines.join("\n");
+  return { text: lines.join("\n"), ocrTexts };
 }
 
-async function runVision(files, btn) {
+async function handleMedia(files, question) {
+  addGallery(files);
+  if (question) addMessage("user", question);
+  await runVision(files, question || "");
+}
+
+async function runVision(files, question) {
   if (busy || resetting || searching || visionBusy) return;
   visionBusy = true;
-  btn.disabled = true;
   keepAwake(true);
   const act = new Activity("Analisando fotos e vídeos");
   let cur = act.step("🔍 Preparando o leitor de imagens...");
@@ -2845,12 +3283,15 @@ async function runVision(files, btn) {
     else cur.set(t);
     sayStatus(t);
   };
-  let ctxText = "";
+  let result = null;
   try {
-    ctxText = await analyzeMedia(files, setMsg);
+    result = await analyzeMedia(files, setMsg);
     cur.done(true);
     act.step("✅ Análise pronta: " + files.length + (files.length === 1 ? " arquivo" : " arquivos")).done(true);
-    visionContext = ctxText;
+    visionContext = result.text;
+    // Print de código ou de erro: vira "arquivo atual" e as próximas perguntas buscam nesse texto.
+    const code = result.ocrTexts.filter(t => t.length > 150 && looksLikeCode(t)).sort((a, b) => b.length - a.length)[0];
+    if (code) setDoc(code, "texto-lido-da-imagem.txt");
   } catch (err) {
     console.error("Erro na visão:", err);
     cur.done(false);
@@ -2858,14 +3299,13 @@ async function runVision(files, btn) {
     addMessage("system", "Não consegui analisar: " + (err.message || String(err)));
   }
   visionBusy = false;
-  btn.disabled = false;
-  if (ctxText) {
-    act.title("Escrevendo a descrição");
-    await generate(
-      "Descreva em português, de forma curta, o que aparece em cada foto ou vídeo. Traduza as legendas em inglês. Use somente as análises.",
-      ctxText,
-      { shown: "🔍 Identificar " + files.length + (files.length === 1 ? " arquivo" : " arquivos"), noReview: true, act }
-    );
+  if (result && result.text) {
+    act.title("Escrevendo a resposta");
+    const q = question || "Descreva em português, de forma curta, o que aparece em cada foto ou vídeo.";
+    await generate(q, result.text, {
+      shown: question || ("🖼️ " + files.length + (files.length === 1 ? " arquivo" : " arquivos")),
+      skipUser: true, noReview: true, act, kind: "vision"
+    });
   } else if (!busy) keepAwake(false);
 }
 
@@ -2921,6 +3361,8 @@ updateButtons();
 
 if (prevCrash) {
   addMessage("system", "A página fechou durante o último carregamento (pouca memória). Passei para o Modelo Rápido. Toque em Carregar IA.");
+} else if (migrated) {
+  addMessage("system", "Atualização 26 ✨\n- O Enter do teclado agora só pula linha: envie pelo botão na tela\n- Arquivos, fotos, vídeos e textos grandes colados ficam anexados até você perguntar\n- Leio códigos com análise de erros reais e número de linha\n- Modelo: " + MODELS[settings.model].name + (settings.model === "code" ? " (baixa cerca de 1 GB na primeira vez: use Wi-Fi)" : "") + "\nToque em Carregar IA para começar.");
 } else if (settings.autoload) {
   try { if (localStorage.getItem("rizik_autoload") === "1") loadAI(); } catch (e) {}
 }
