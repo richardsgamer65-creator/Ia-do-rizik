@@ -248,13 +248,36 @@ body.lite *:not(.act-spin):not(.act-ic),body.lite *::before,body.lite *::after{a
 body.lite header,body.lite .composer,body.lite .activity{-webkit-backdrop-filter:none;backdrop-filter:none}
 body.lite header,body.lite .composer{background:#191b29}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
+/* ===== v29: vidro transparente, celular e PC ===== */
+body{min-height:100vh;min-height:100dvh}
+*{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.28) transparent}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.25);border-radius:99px}
+::-webkit-scrollbar-track{background:transparent}
+button{cursor:pointer}
+@media (hover:hover){button:hover:not(:disabled){filter:brightness(1.18)}}
+#chat{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.15);border-radius:26px;padding:16px;min-height:52vh;-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:0 20px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.18)}
+.assistant{background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.2);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 8px 28px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22)}
+.user{box-shadow:0 8px 28px var(--ash),inset 0 1px 0 rgba(255,255,255,.3)}
+.system{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.activity{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16)}
+.composer{position:sticky;bottom:6px;margin-top:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:24px;padding:12px 12px calc(12px + env(safe-area-inset-bottom));-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:0 -8px 30px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.18)}
+textarea{background:rgba(10,11,20,.45);border-color:rgba(255,255,255,.16)}
+.menu,.hist-box{background:rgba(27,30,43,.86);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border-color:rgba(255,255,255,.16)}
+.menu textarea,.menu select,.menu input[type=text]{background:rgba(10,11,20,.55)}
+.codeblock{background:rgba(8,9,16,.6)}
+@media (pointer:coarse){textarea,select,input[type=text]{font-size:16px}}
+@media (min-width:900px){main{max-width:960px;padding:22px}.message{max-width:82%;font-size:16px}#chat{min-height:58vh;padding:22px}.welcome h2{font-size:34px}.welcome p{font-size:16px}}
+body.lite #chat,body.lite .assistant,body.lite .system,body.lite .menu,body.lite .hist-box{-webkit-backdrop-filter:none;backdrop-filter:none}
+body.lite .assistant{background:rgba(38,41,60,.95)}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 27</small>
+    <small>Inteligente e com bom humor 😎 · versão 29</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -283,11 +306,12 @@ body.lite header,body.lite .composer{background:#191b29}
       <select id="setModel">
         <option value="fast">Modelo Rápido</option>
         <option value="code">Código · Leve</option>
-        <option value="chat">Modelo Equilibrado</option>
-        <option value="chat3">Modelo Inteligente</option>
+        <option value="chat">Modelo Equilibrado (Gemma 3 · 1B)</option>
+        <option value="chat3">Modelo Inteligente (Gemma 3 · 4B)</option>
+        <option value="phi4">Phi-4 mini · Raciocínio</option>
         <option value="code3">Código · Forte</option>
       </select>
-      <small class="hint">Os maiores respondem melhor, mas demoram mais. Para programar, use um modelo "Código".</small>
+      <small class="hint">Os maiores respondem melhor, mas demoram mais e baixam cerca de 2,5 GB. Para programar, use um modelo "Código".</small>
     </label>
     <label>Tamanho da resposta
       <select id="setTokens">
@@ -445,8 +469,9 @@ const FENCE = TICK.repeat(3);
 const MODELS = {
   fast: { name: "Modelo Rápido", url: "https://huggingface.co/bartowski/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/Qwen2.5-0.5B-Instruct-Q4_K_M.gguf" },
   code: { name: "Código · Leve", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-1.5B-Instruct-Q4_K_M.gguf" },
-  chat: { name: "Modelo Equilibrado", url: "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf" },
-  chat3: { name: "Modelo Inteligente", url: "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf" },
+  chat: { name: "Modelo Equilibrado (Gemma 3 · 1B)", url: "https://huggingface.co/unsloth/gemma-3-1b-it-GGUF/resolve/main/gemma-3-1b-it-Q4_K_M.gguf" },
+  chat3: { name: "Modelo Inteligente (Gemma 3 · 4B)", url: "https://huggingface.co/unsloth/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf" },
+  phi4: { name: "Phi-4 mini · Raciocínio", url: "https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf" },
   code3: { name: "Código · Forte", url: "https://huggingface.co/bartowski/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf" }
 };
 
@@ -465,7 +490,7 @@ const wantTokens = () => settings.tokens === "max" ? 4096 : (Number(settings.tok
 // Limite de leitura em caracteres: cresce com o contexto escolhido.
 // Velocidade de leitura medida neste aparelho (tokens/s). Limita o texto enviado para a leitura durar cerca de 90 s.
 let readTimer = 0, runId = 0, hintedSlow = false, hintedChat = false;
-const PF_GUESS = { fast: 40, code: 15, chat: 15, chat3: 6, code3: 6 };
+const PF_GUESS = { fast: 40, code: 15, chat: 15, chat3: 6, code3: 6, phi4: 5 };
 const PF_TARGET_S = 90;
 const pfKey = () => "rizik_pf_" + settings.model + "_" + THREADS;
 const prefillTps = () => { try { const v = Number(localStorage.getItem(pfKey())); if (v > 0) return v; } catch (e) {} return PF_GUESS[settings.model] || 8; };
@@ -478,9 +503,12 @@ const maxChars = () => {
 
 const SETTINGS_VER = 26;
 const settings = Object.assign(
-  { ver: SETTINGS_VER, ctx: LOW_MEM ? 2048 : 4096, tokens: 1024, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: LOW_MEM ? "fast" : "code", wall: "aurora", auto: true, autoload: true, custom: "", accent: "purple", scale: 100, enter: false, lite: LOW_MEM, ext: false },
+  { ver: SETTINGS_VER, ctx: LOW_MEM ? 2048 : 4096, tokens: 1024, temp: 0.3, city: "", place: null, gpsAuto: true, time: true, model: LOW_MEM ? "fast" : (IS_IOS ? "chat" : "chat3"), wall: "aurora", auto: true, autoload: true, custom: "", accent: "purple", scale: 100, enter: false, lite: LOW_MEM, ext: false },
   (() => { try { return JSON.parse(localStorage.getItem("rizik_settings") || "{}"); } catch (e) { return {}; } })()
 );
+
+// Se um modelo salvo não existe mais, volta para o padrão.
+if (!MODELS[settings.model]) settings.model = LOW_MEM ? "fast" : "code";
 
 function saveSettings() {
   try { localStorage.setItem("rizik_settings", JSON.stringify(settings)); }
@@ -829,8 +857,8 @@ function refersToDoc(text) {
 
 const DEFAULT_Q = "Explique em poucas linhas o que este arquivo faz e quais são as partes principais. Depois diga se há algum problema REAL (use a análise automática). Se não houver erro visível, diga isso e pergunte o que o usuário quer corrigir ou melhorar.";
 
-const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático e inteligente que fala português brasileiro. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
-const SYSTEM_CODE = "Você é Rizik AI, um programador sênior que fala português do Brasil. Responda direto ao ponto. Em perguntas de programação: explique a ideia em 1 a 3 linhas e dê código FUNCIONAL e completo dentro de um bloco com três crases e o nome da linguagem. Ao corrigir um erro, diga primeiro a causa mais provável. Nunca invente funções, bibliotecas, erros ou linhas: se não tiver certeza, diga. Se faltar informação (mensagem de erro exata, linguagem, versão), faça UMA pergunta curta. Você PODE ajudar com qualquer código.";
+const SYSTEM_CHAT = "Você é Rizik AI, um assistente pessoal simpático, inteligente e de muito bom humor que fala português brasileiro. Seu jeito é leve e brincalhão: solte uma piadinha curta ou um comentário espirituoso quando combinar (no máximo uma por resposta), sem exagerar e sem nunca prejudicar a clareza da resposta. Você PODE ajudar com qualquer assunto, inclusive programação. Nunca diga que não pode ajudar. Responda de forma curta, clara e organizada: frases diretas, listas com hífen quando houver passos e **negrito** só no essencial. Se o pedido for vago, faça UMA pergunta curta antes de responder. Pense passo a passo antes de dar números ou código. Se não souber, diga \"não sei\" em vez de inventar. Quando escrever código, coloque sempre dentro de um bloco com três crases e o nome da linguagem.";
+const SYSTEM_CODE = "Você é Rizik AI, um programador sênior de bom humor que fala português do Brasil. Responda direto ao ponto, com no máximo uma frase curta e leve de humor (nunca dentro do código). Em perguntas de programação: explique a ideia em 1 a 3 linhas e dê código FUNCIONAL e completo dentro de um bloco com três crases e o nome da linguagem. Ao corrigir um erro, diga primeiro a causa mais provável. Nunca invente funções, bibliotecas, erros ou linhas: se não tiver certeza, diga. Se faltar informação (mensagem de erro exata, linguagem, versão), faça UMA pergunta curta. Você PODE ajudar com qualquer código.";
 const SYSTEM_DOC = "Você é Rizik AI, um programador sênior que fala português do Brasil e está analisando um arquivo do usuário. Regras: 1) Use SOMENTE o arquivo, o mapa e a 'Análise automática' fornecidos: nunca invente erros, funções ou linhas que não aparecem. 2) A análise automática foi feita por um programa e é confiável: se ela listar problemas, comece por eles. 3) Se não houver erro visível, diga 'não vi erro nos trechos enviados' e pergunte a mensagem de erro exata ou o comportamento esperado. 4) Cite função e linha (as linhas aparecem como 'número| código'). 5) Ao corrigir, mostre só o trecho alterado, dentro de um bloco com três crases e a linguagem, nunca o arquivo inteiro. 6) Explique em até 5 linhas o porquê e como testar. 7) Os trechos podem estar cortados ('[… trecho omitido …]'): se a resposta depender de uma parte que você não viu, diga qual parte e peça ao usuário para perguntar sobre ela.";
 
 const KNOWLEDGE = [
@@ -1230,14 +1258,15 @@ const SUGGESTIONS = [
   "Como está o clima hoje?",
   "Que horas são?",
   "Quem foi Santos Dumont?",
-  "Conte uma piada"
+  "Conte uma piada de programador",
+  "Me dê um conselho com humor"
 ];
 
 function showWelcome() {
   if (chat.children.length) return;
   const w = document.createElement("div");
   w.className = "welcome";
-  w.innerHTML = "<h2>Olá! Eu sou o Rizik ✨</h2><p>Converso, pesquiso na internet, leio códigos, textos e PDFs grandes, vejo o clima e ajudo com programação, tudo rodando no seu aparelho. Anexe um arquivo, escreva a pergunta e toque em enviar.</p>";
+  w.innerHTML = "<h2>E aí! Eu sou o Rizik ✨</h2><p>Uma IA que mora no seu aparelho: converso, pesquiso na internet, leio códigos e PDFs, vejo o clima, ajudo a programar e ainda conto piada (às vezes boa 😄). Anexe um arquivo, escreva a pergunta e toque em enviar.</p>";
   const chips = document.createElement("div");
   chips.className = "chips";
   SUGGESTIONS.forEach(q => {
@@ -1741,7 +1770,7 @@ async function generate(text, extraContext = "", opts = {}) {
           if (fit.tokens >= 400) {
             const tps = fit.tokens / Math.max(0.5, (now - startAt) / 1000);
             savePrefillTps(tps);
-            if (tps < 6 && /3$/.test(settings.model) && !hintedSlow) {
+            if (tps < 6 && /3$|^phi4$/.test(settings.model) && !hintedSlow) {
               hintedSlow = true;
               addMessage("system", "A leitura está lenta neste aparelho (" + tps.toFixed(1) + " tokens/s). Para arquivos grandes, o Código · Leve responde bem mais rápido (⋮ Configurações › Inteligência).");
             }
@@ -2365,19 +2394,23 @@ const JOKES = [
   "O que o zero disse para o oito? Belo cinto!",
   "Por que o computador foi ao médico? Estava com vírus.",
   "O que a chuva pediu para o céu? Ser mais azul!",
-  "Qual é o café mais perigoso? O ex-presso."
+  "Qual é o café mais perigoso? O ex-presso.",
+  "Por que o programador largou o emprego? Porque não recebia arrays (a raise).",
+  "Um programador foi ao mercado. A esposa pediu: compre 1 leite e, se tiver ovos, traga 6. Ele voltou com 6 leites. Tinha ovos!",
+  "Como o programador resolve tudo? Desliga e liga de novo. Funciona até com relacionamento.",
+  "Existem 10 tipos de pessoas: as que entendem binário e as que não."
 ];
 
 function quickReply(text) {
   if (/piada/.test(norm(text)) && text.length < 40) return JOKES[Math.floor(Math.random() * JOKES.length)];
 
   const t = text.trim().toLowerCase().replace(/[!?.,\s]+$/g, "");
-  if (/^(oi+|ol[aá]|opa|e a[ií]|hey|hello)$/.test(t)) return "Olá! Como posso ajudar você hoje?";
-  if (t === "bom dia") return "Bom dia! Em que posso ajudar?";
+  if (/^(oi+|ol[aá]|opa|e a[ií]|hey|hello)$/.test(t)) return "E aí! Cheguei sem bug e com café virtual ☕ Como posso ajudar?";
+  if (t === "bom dia") return "Bom dia! Já tomei meu café... de bits ☕ Em que posso ajudar?";
   if (t === "boa tarde") return "Boa tarde! Em que posso ajudar?";
   if (t === "boa noite") return "Boa noite! Em que posso ajudar?";
-  if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! 😊";
-  if (/^(tudo bem|tudo certo|como vai|como voc[eê] est[aá])$/.test(t)) return "Tudo ótimo por aqui! E com você? Em que posso ajudar?";
+  if (/^(obrigad[oa]|valeu|brigad[oa])$/.test(t)) return "De nada! Foi um prazer, e olha que eu nem cobro hora extra 😄";
+  if (/^(tudo bem|tudo certo|como vai|como voc[eê] est[aá])$/.test(t)) return "Tudo ótimo por aqui, zero erros 404! 😄 E com você? Em que posso ajudar?";
   if (/^(quem [eé] voc[eê]|qual (é )?o seu nome|qual (é )?seu nome|o que voc[eê] faz)$/.test(t)) {
     return "Eu sou o **Rizik AI**, um assistente que roda direto no seu aparelho.\n- Converso e respondo dúvidas\n- Entendo e corrijo código\n- Pesquiso na internet\n- Leio textos, PDFs e códigos grandes\n- Leio fotos e prints (inclusive o texto que aparece nelas)\n- Mostro o clima";
   }
@@ -3399,6 +3432,8 @@ if (prevCrash) {
 }
 
 if (settings.city === "Nova Esperança" && !settings.place) { settings.city = ""; saveSettings(); }
+// Pede ao navegador para NÃO apagar o modelo baixado (cache permanente).
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
 window.postMessage({ type: "RIZIK_PING" }, "*");
 applySettings();
 showPlace();
