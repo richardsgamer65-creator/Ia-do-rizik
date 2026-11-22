@@ -254,7 +254,7 @@ body.lite header,body.lite .composer{background:#191b29}
 <header>
   <div>
     <h1>✨ Rizik AI</h1>
-    <small>Seu assistente pessoal · versão 26</small>
+    <small>Seu assistente pessoal · versão 27</small>
   </div>
   <div class="hright">
     <span id="clock"></span>
@@ -363,6 +363,7 @@ body.lite header,body.lite .composer{background:#191b29}
 
     <details class="adv">
       <summary>Avançado</summary>
+      <small class="hint">Enter pula linha: envie pelo botão ↑. Anexos esperam sua pergunta. O 1º carregamento baixa o modelo: use Wi-Fi.</small>
       <label>Instruções personalizadas
         <textarea id="setCustom" rows="3" maxlength="400" placeholder="Ex.: responda sempre em até 3 frases"></textarea>
         <small class="hint">A IA segue isso em todas as conversas (até 400 caracteres).</small>
@@ -426,13 +427,6 @@ body.lite header,body.lite .composer{background:#191b29}
       <button id="send" data-ic="send" aria-label="Enviar"></button>
     </div>
   </div>
-  <div class="info">
-    Primeiro carregamento da IA pode levar um tempo: use Wi-Fi.
-    Arquivos, fotos e textos grandes colados ficam anexados até você escrever a pergunta e tocar em enviar (o Enter do teclado só pula linha).
-    Códigos e textos grandes são lidos por um leitor rápido que acha os trechos certos e confere a sintaxe antes de a IA responder.
-    A pesquisa e o clima precisam de internet.
-    Funciona no iPhone (Safari) e no Android (Chrome). No Android, abra pelo Chrome, não por navegadores dentro de apps.
-  </div>
 </main>
 
 <script type="module">
@@ -469,7 +463,18 @@ const wantTokens = () => settings.tokens === "max" ? 4096 : (Number(settings.tok
 
 // Se o iPhone travar, reduza o "Tamanho da leitura" no menu.
 // Limite de leitura em caracteres: cresce com o contexto escolhido.
-const maxChars = () => Math.max(1200, Math.floor(((loadedCtx || settings.ctx) - Math.min(wantTokens(), 1024) - 500) * 2.6));
+// Velocidade de leitura medida neste aparelho (tokens/s). Limita o texto enviado para a leitura durar cerca de 90 s.
+let readTimer = 0, runId = 0, hintedSlow = false, hintedChat = false;
+const PF_GUESS = { fast: 40, code: 15, chat: 15, chat3: 6, code3: 6 };
+const PF_TARGET_S = 90;
+const pfKey = () => "rizik_pf_" + settings.model + "_" + THREADS;
+const prefillTps = () => { try { const v = Number(localStorage.getItem(pfKey())); if (v > 0) return v; } catch (e) {} return PF_GUESS[settings.model] || 8; };
+const savePrefillTps = v => { try { if (v > 0.2) localStorage.setItem(pfKey(), String(Math.round(v * 10) / 10)); } catch (e) {} };
+const maxChars = () => {
+  const byCtx = Math.floor(((loadedCtx || settings.ctx) - Math.min(wantTokens(), 1024) - 500) * 2.6);
+  const bySpeed = Math.floor(prefillTps() * PF_TARGET_S * 2.6);
+  return Math.max(1200, Math.min(byCtx, bySpeed));
+};
 
 const SETTINGS_VER = 26;
 const settings = Object.assign(
@@ -863,8 +868,10 @@ function isProg(text, kind, extra) {
   return kind === "doc" || looksLikeCode(text) || PROG_WORDS.test(text) || (kind === "vision" && looksLikeCode(String(extra || "").slice(0, 3000)));
 }
 
+const HW_CORES = navigator.hardwareConcurrency || 4;
+const IS_PHONE = IS_ANDROID || IS_IOS;
 const THREADS = self.crossOriginIsolated
-  ? Math.max(2, Math.min(LOW_MEM ? 2 : 4, Math.floor((navigator.hardwareConcurrency || 4) / 2)))
+  ? Math.max(2, Math.min(LOW_MEM ? 2 : IS_PHONE ? 4 : 8, (IS_PHONE || LOW_MEM) ? Math.floor(HW_CORES / 2) : Math.floor(HW_CORES * 0.75)))
   : 1;
 
 let ai = null, ready = false, loadingPromise = null, busy = false, resetting = false, cancelRequested = false;
@@ -1554,9 +1561,7 @@ async function loadAI(parentAct) {
 
       sayStatus("Rizik está pronto!");
       if (own) act.finish("IA pronta · " + ((performance.now() - t0) / 1000).toFixed(1) + "s");
-      addMessage("system",
-        "Rizik AI carregado com sucesso! 🚀\nModelo: " + MODELS[settings.model].name + "\nAparelho: " + DEVICE +
-        "\nNúcleos em uso: " + THREADS + (self.crossOriginIsolated ? " (modo rápido ativo)" : " (modo rápido inativo)"));
+      addMessage("system", "✅ " + MODELS[settings.model].name + " pronto · " + THREADS + (THREADS === 1 ? " núcleo" : " núcleos") + (self.crossOriginIsolated ? "" : " (modo rápido inativo)"));
       return true;
 
     } catch (err) {
@@ -1679,11 +1684,35 @@ async function generate(text, extraContext = "", opts = {}) {
 
     const readStep = act.step("🧠 Lendo a pergunta e o contexto");
     let writeStep = null;
-    act.setCancel(() => { cancelRequested = true; sayStatus("Parando a resposta..."); });
+    const ctl = new AbortController();
+    const myRun = ++runId;
+    act.setCancel(() => {
+      cancelRequested = true;
+      sayStatus("Parando a resposta...");
+      if (firstTokenAt) return; // já escrevendo: o laço de leitura para sozinho
+      ctl.abort();
+      // A IA só confere o cancelamento entre blocos de leitura. Se não parar em 6 s, encerra o motor à força.
+      setTimeout(() => {
+        if (!busy || runId !== myRun || firstTokenAt || ai !== currentEngine) return;
+        destroyAI();
+        clearInterval(readTimer);
+        if (history.length && history[history.length - 1].role === "user") { history.pop(); saveHistory(); }
+        act.finish("⏹ Interrompida");
+        if (answerBox) setBody(answerBox, "⏹ Parei a leitura. Toque em Carregar IA para continuar (o modelo volta rápido do cache).");
+        cancelRequested = false; busy = false; keepAwake(false); updateButtons();
+        sayStatus("Motor aguardando reinicialização.");
+      }, 6000);
+    });
     sayStatus("Rizik está pensando...");
 
     const startAt = performance.now();
     let tokenCount = 0, firstTokenAt = 0, lastPaint = 0;
+    const estS = Math.max(2, fit.tokens / prefillTps());
+    clearInterval(readTimer);
+    readTimer = setInterval(() => {
+      const el = (performance.now() - startAt) / 1000;
+      readStep.set("🧠 Lendo " + fit.tokens.toLocaleString("pt-BR") + " tokens · " + Math.round(el) + "s de ~" + Math.round(estS) + "s" + (el > estS * 2 + 20 ? " · demorando: toque no ✕ para parar" : ""));
+    }, 1000);
     // Em programação a temperatura é baixa: menos invenção, mais precisão.
     const temp = isProg(text, kind, extraContext) ? Math.min(settings.temp, 0.2) : settings.temp;
 
@@ -1692,7 +1721,8 @@ async function generate(text, extraContext = "", opts = {}) {
       max_tokens: fit.maxNew,
       temperature: temp,
       top_p: 0.9,
-      stream: true
+      stream: true,
+      abortSignal: ctl.signal
     });
 
     let answer = "", truncated = false;
@@ -1707,6 +1737,15 @@ async function generate(text, extraContext = "", opts = {}) {
         const now = performance.now();
         if (!firstTokenAt) {
           firstTokenAt = now;
+          clearInterval(readTimer);
+          if (fit.tokens >= 400) {
+            const tps = fit.tokens / Math.max(0.5, (now - startAt) / 1000);
+            savePrefillTps(tps);
+            if (tps < 6 && /3$/.test(settings.model) && !hintedSlow) {
+              hintedSlow = true;
+              addMessage("system", "A leitura está lenta neste aparelho (" + tps.toFixed(1) + " tokens/s). Para arquivos grandes, o Código · Leve responde bem mais rápido (⋮ Configurações › Inteligência).");
+            }
+          }
           readStep.done(true, { name: "🧠 Leitura concluída em " + ((now - startAt) / 1000).toFixed(1) + "s" });
           writeStep = act.step("✍️ Escrevendo a resposta");
         }
@@ -1768,7 +1807,10 @@ async function generate(text, extraContext = "", opts = {}) {
     console.error("Erro na resposta:", err);
     let text2;
 
-    if (isEngineCrash(err)) {
+    if (cancelRequested || (err && err.name === "AbortError")) {
+      if (history.length && history[history.length - 1].role === "user") { history.pop(); saveHistory(); }
+      text2 = ready ? "⏹ Resposta interrompida." : "⏹ Parei a leitura. Toque em Carregar IA para continuar (o modelo volta rápido do cache).";
+    } else if (isEngineCrash(err)) {
       sayStatus("O motor travou. Preparando recuperação...");
       await destroyAI();
       text2 = "O motor da IA travou durante a geração.\n\nA instância com erro foi descartada. Abra ⋮ > Reiniciar IA para carregar o modelo novamente.";
@@ -1778,11 +1820,12 @@ async function generate(text, extraContext = "", opts = {}) {
       text2 = "Erro ao responder: " + (err?.message || String(err));
     }
 
-    if (act) act.finish("❌ Erro ao responder", false);
+    if (act) act.finish(cancelRequested ? "⏹ Interrompida" : "❌ Erro ao responder", !!cancelRequested);
     if (answerBox) setBody(answerBox, text2);
     else addMessage("system", text2);
 
   } finally {
+    clearInterval(readTimer);
     if (act) act.finish();
     cancelRequested = false;
     busy = false;
@@ -2035,6 +2078,11 @@ async function handleSend() {
   if (!hintedCoder && settings.model === "fast" && isProg(text)) {
     hintedCoder = true;
     addMessage("system", HINT_CODER);
+  }
+
+  if (!hintedChat && /^code/.test(settings.model) && !isProg(text) && text.length > 12) {
+    hintedChat = true;
+    addMessage("system", "Dica: os modelos \"Código\" programam bem, mas conversam pior. Para papo e perguntas gerais, use o Modelo Equilibrado (⋮ Configurações › Inteligência).");
   }
 
   const answer = await generate(text);
